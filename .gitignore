@@ -1,0 +1,20 @@
+# Java / Spring Boot
+target/
+*.class
+*.jar
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar
+
+# React / Node
+node_modules/
+build/
+dist/
+.env
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store

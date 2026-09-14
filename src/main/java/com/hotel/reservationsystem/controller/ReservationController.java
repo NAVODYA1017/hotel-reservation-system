@@ -48,6 +48,16 @@ public class ReservationController {
     }
 
     // ──────────────────────────────────────────────
+    // PUT http://localhost:8080/api/reservations/5
+    // Modify an existing reservation
+    // ──────────────────────────────────────────────
+    @PutMapping("/{id}")
+    public ResponseEntity<ReservationResponse> modifyReservation(@PathVariable Long id, @RequestBody ReservationRequest request) {
+        ReservationResponse response = reservationService.modifyReservation(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    // ──────────────────────────────────────────────
     // PUT http://localhost:8080/api/reservations/5/cancel
     // Cancel a reservation
     // ──────────────────────────────────────────────

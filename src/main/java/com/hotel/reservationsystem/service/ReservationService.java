@@ -147,6 +147,47 @@ public class ReservationService {
     }
 
     // ──────────────────────────────────────────────
+    // 5. MODIFY A RESERVATION (Extension 12a)
+    // ──────────────────────────────────────────────
+    public ReservationResponse modifyReservation(Long id, ReservationRequest request) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reservation not found with ID: " + id));
+
+        if (reservation.getStatus() == ReservationStatus.CANCELLED || reservation.getStatus() == ReservationStatus.COMPLETED) {
+            throw new RuntimeException("Cannot modify a cancelled or completed reservation");
+        }
+
+        // Validate new dates
+        if (request.getCheckOut().isBefore(request.getCheckIn()) || request.getCheckOut().isEqual(request.getCheckIn())) {
+            throw new RuntimeException("Check-out date must be after check-in date");
+        }
+
+        // Check if room is available for the NEW dates (ignoring this exact reservation)
+        if (reservation.getRoom() != null) {
+            boolean isBooked = reservationRepository.findAll().stream()
+                    .filter(r -> !r.getId().equals(reservation.getId())) // ignore current booking
+                    .filter(r -> r.getRoom() != null && r.getRoom().getId().equals(reservation.getRoom().getId()))
+                    .filter(r -> r.getStatus() != ReservationStatus.CANCELLED)
+                    .filter(r -> r.getCheckIn().isBefore(request.getCheckOut()) && r.getCheckOut().isAfter(request.getCheckIn()))
+                    .findAny().isPresent();
+
+            if (isBooked) {
+                throw new RuntimeException("Room is already booked for these new dates");
+            }
+            
+            // Recalculate total amount
+            long nights = java.time.temporal.ChronoUnit.DAYS.between(request.getCheckIn(), request.getCheckOut());
+            reservation.setTotalAmount(reservation.getRoom().getPrice().multiply(java.math.BigDecimal.valueOf(nights)));
+        }
+
+        reservation.setCheckIn(request.getCheckIn());
+        reservation.setCheckOut(request.getCheckOut());
+        
+        Reservation saved = reservationRepository.save(reservation);
+        return mapToResponse(saved);
+    }
+
+    // ──────────────────────────────────────────────
     // HELPER: Check if a room is already booked for given dates
     // ──────────────────────────────────────────────
     private boolean isRoomBooked(Long roomId, java.time.LocalDate checkIn, java.time.LocalDate checkOut) {

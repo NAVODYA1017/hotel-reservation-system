@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ceylon Sanctuary — Hotel Reservation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Lato', sans-serif; background: #f5f0eb; color: #2c1810; }
+
+        /* ── NAVBAR ── */
+        nav { background: #1a0f0a; padding: 18px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .logo { font-family: 'Playfair Display', serif; color: #c9a96e; font-size: 22px; font-weight: 700; letter-spacing: 2px; }
+        .logo span { color: #fff; font-weight: 300; font-size: 14px; display: block; letter-spacing: 4px; }
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        .nav-links a { color: #d4c5a9; text-decoration: none; font-size: 14px; letter-spacing: 1px; transition: color 0.3s; }
+        .nav-links a:hover { color: #c9a96e; }
+
+        /* ── HERO ── */
+        .hero {
+            background: linear-gradient(rgba(26,15,10,0.5), rgba(26,15,10,0.7)),
+                        url('https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1400') center/cover;
+            min-height: 500px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 60px 20px;
+        }
+        .hero h1 { font-family: 'Playfair Display', serif; color: #fff; font-size: 48px; font-weight: 600; margin-bottom: 10px; }
+        .hero p { color: #d4c5a9; font-size: 18px; font-weight: 300; margin-bottom: 40px; letter-spacing: 2px; }
+
+        /* ── BOOKING BAR ── */
+        .booking-bar {
+            background: rgba(26,15,10,0.9); padding: 30px 40px; border-radius: 8px;
+            display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; justify-content: center;
+            backdrop-filter: blur(10px); border: 1px solid #3d2b1f;
+        }
+        .booking-bar .field { display: flex; flex-direction: column; }
+        .booking-bar label { color: #c9a96e; font-size: 12px; letter-spacing: 2px; margin-bottom: 6px; text-transform: uppercase; }
+        .booking-bar input, .booking-bar select {
+            background: #2c1810; border: 1px solid #5a3d2b; color: #fff; padding: 12px 16px;
+            border-radius: 4px; font-size: 14px; min-width: 180px; font-family: 'Lato', sans-serif;
+        }
+        .booking-bar input:focus, .booking-bar select:focus { outline: none; border-color: #c9a96e; }
+        .btn-gold {
+            background: linear-gradient(135deg, #c9a96e, #a67c52); color: #1a0f0a; border: none;
+            padding: 13px 35px; font-size: 14px; font-weight: 600; letter-spacing: 2px; cursor: pointer;
+            border-radius: 4px; text-transform: uppercase; transition: all 0.3s; font-family: 'Lato', sans-serif;
+        }
+        .btn-gold:hover { background: linear-gradient(135deg, #d4b87a, #b8895c); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(201,169,110,0.4); }
+        .btn-gold:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* ── SECTION TITLE ── */
+        .section-title { text-align: center; padding: 50px 20px 30px; }
+        .section-title h2 { font-family: 'Playfair Display', serif; font-size: 36px; color: #2c1810; margin-bottom: 8px; }
+        .section-title .line { width: 60px; height: 3px; background: #c9a96e; margin: 0 auto; }
+
+        /* ── ROOMS GRID ── */
+        .rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 30px; padding: 20px 60px 60px; max-width: 1200px; margin: 0 auto; }
+        .room-card {
+            background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(44,24,16,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .room-card:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(44,24,16,0.15); }
+        .room-img {
+            height: 220px; background-size: cover; background-position: center;
+            position: relative;
+        }
+        .room-badge {
+            position: absolute; top: 15px; right: 15px; background: #c9a96e; color: #1a0f0a;
+            padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 1px;
+        }
+        .room-badge.occupied { background: #e74c3c; color: #fff; }
+        .room-badge.maintenance { background: #95a5a6; color: #fff; }
+        .room-info { padding: 24px; }
+        .room-info h3 { font-family: 'Playfair Display', serif; font-size: 20px; margin-bottom: 8px; color: #2c1810; }
+        .room-info .room-type { color: #8b7355; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+        .room-info .room-desc { color: #6b5b4a; font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+        .room-info .price { font-family: 'Playfair Display', serif; color: #c9a96e; font-size: 24px; font-weight: 600; }
+        .room-info .price span { font-size: 14px; color: #8b7355; font-family: 'Lato', sans-serif; font-weight: 300; }
+        .room-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+        .btn-reserve {
+            background: #2c1810; color: #c9a96e; border: 1px solid #c9a96e; padding: 10px 28px;
+            border-radius: 4px; font-size: 13px; letter-spacing: 2px; cursor: pointer;
+            text-transform: uppercase; transition: all 0.3s; font-family: 'Lato', sans-serif;
+        }
+        .btn-reserve:hover { background: #c9a96e; color: #1a0f0a; }
+
+        /* ── MY RESERVATIONS ── */
+        .reservations-section { background: #1a0f0a; padding: 50px 60px; }
+        .reservations-section h2 { font-family: 'Playfair Display', serif; color: #c9a96e; font-size: 32px; text-align: center; margin-bottom: 30px; }
+        .res-table { width: 100%; max-width: 1100px; margin: 0 auto; border-collapse: collapse; }
+        .res-table th { background: #2c1810; color: #c9a96e; padding: 14px 18px; text-align: left; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+        .res-table td { padding: 14px 18px; color: #d4c5a9; border-bottom: 1px solid #2c1810; font-size: 14px; }
+        .res-table tr:hover td { background: rgba(201,169,110,0.05); }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 1px; }
+        .status-PENDING { background: #f39c1220; color: #f39c12; border: 1px solid #f39c1250; }
+        .status-CONFIRMED { background: #27ae6020; color: #27ae60; border: 1px solid #27ae6050; }
+        .status-CANCELLED { background: #e74c3c20; color: #e74c3c; border: 1px solid #e74c3c50; }
+        .status-COMPLETED { background: #3498db20; color: #3498db; border: 1px solid #3498db50; }
+        .btn-cancel {
+            background: transparent; color: #e74c3c; border: 1px solid #e74c3c; padding: 6px 16px;
+            border-radius: 4px; font-size: 11px; cursor: pointer; letter-spacing: 1px;
+            text-transform: uppercase; transition: all 0.3s; font-family: 'Lato', sans-serif;
+        }
+        .btn-cancel:hover { background: #e74c3c; color: #fff; }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #fff; border-radius: 12px; padding: 40px; max-width: 500px; width: 90%;
+            position: relative;
+        }
+        .modal h2 { font-family: 'Playfair Display', serif; margin-bottom: 24px; color: #2c1810; }
+        .modal .field { margin-bottom: 16px; }
+        .modal label { display: block; color: #8b7355; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+        .modal input, .modal select {
+            width: 100%; padding: 12px; border: 1px solid #d4c5a9; border-radius: 4px;
+            font-size: 14px; font-family: 'Lato', sans-serif; color: #2c1810;
+        }
+        .modal input:focus, .modal select:focus { outline: none; border-color: #c9a96e; }
+        .modal-close {
+            position: absolute; top: 15px; right: 20px; background: none; border: none;
+            font-size: 24px; cursor: pointer; color: #8b7355;
+        }
+        .modal-total { font-family: 'Playfair Display', serif; font-size: 28px; color: #c9a96e; text-align: center; margin: 20px 0; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; border-radius: 8px;
+            color: #fff; font-size: 14px; z-index: 300; transform: translateY(100px); opacity: 0;
+            transition: all 0.4s; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: #27ae60; }
+        .toast.error { background: #e74c3c; }
+
+        /* ── FOOTER ── */
+        footer { background: #0f0a07; padding: 40px; text-align: center; color: #5a4a3a; font-size: 13px; letter-spacing: 1px; }
+
+        /* ── LOADING ── */
+        .loading { text-align: center; padding: 40px; color: #8b7355; }
+        .spinner { display: inline-block; width: 30px; height: 30px; border: 3px solid #d4c5a9; border-top-color: #c9a96e; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <div class="logo">CEYLON SANCTUARY <span>H O T E L S</span></div>
+    <div class="nav-links">
+        <a href="#rooms">Rooms</a>
+        <a href="#reservations">My Reservations</a>
+    </div>
+</nav>
+
+<!-- HERO + BOOKING BAR -->
+<section class="hero">
+    <h1>Experience Unrivaled Luxury</h1>
+    <p>Book Your Unforgettable Stay Today</p>
+    <div class="booking-bar">
+        <div class="field">
+            <label>Check-in</label>
+            <input type="date" id="searchCheckIn">
+        </div>
+        <div class="field">
+            <label>Check-out</label>
+            <input type="date" id="searchCheckOut">
+        </div>
+        <div class="field">
+            <label>Room Type</label>
+            <select id="searchType">
+                <option value="">All Types</option>
+                <option value="Deluxe">Deluxe</option>
+                <option value="Standard">Standard</option>
+                <option value="Suite">Suite</option>
+            </select>
+        </div>
+        <button class="btn-gold" onclick="loadRooms()">Search</button>
+    </div>
+</section>
+
+<!-- ROOMS -->
+<section id="rooms">
+    <div class="section-title">
+        <h2>Available Rooms & Suites</h2>
+        <div class="line"></div>
+    </div>
+    <div class="rooms-grid" id="roomsGrid">
+        <div class="loading"><div class="spinner"></div><p>Loading rooms...</p></div>
+    </div>
+</section>
+
+<!-- MY RESERVATIONS -->
+<section id="reservations" class="reservations-section">
+    <h2>My Reservations</h2>
+    <table class="res-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Room / Hall</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="reservationsBody">
+            <tr><td colspan="7" class="loading"><div class="spinner"></div></td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="bookingModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h2>Confirm Reservation</h2>
+        <div class="field">
+            <label>Room</label>
+            <input type="text" id="modalRoom" readonly>
+        </div>
+        <div class="field">
+            <label>Check-in Date</label>
+            <input type="date" id="modalCheckIn">
+        </div>
+        <div class="field">
+            <label>Check-out Date</label>
+            <input type="date" id="modalCheckOut">
+        </div>
+        <div class="modal-total" id="modalTotal">LKR 0.00</div>
+        <input type="hidden" id="modalRoomId">
+        <input type="hidden" id="modalRoomPrice">
+        <button class="btn-gold" style="width:100%" onclick="confirmBooking()">Confirm Booking</button>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<footer>
+    &copy; 2026 Ceylon Sanctuary Hotels — SE2030 Group Project (Testing UI)
+</footer>
+
+<script>
+    const API = 'http://localhost:8080/api';
+    const USER_ID = 1; // Using the seed admin user for testing
+
+    // Room images based on type
+    const roomImages = {
+        'Deluxe': 'https://images.unsplash.com/photo-1590490360182-c33d955c1a5e?w=600',
+        'Standard': 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600',
+        'Suite': 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600',
+        'default': 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=600'
+    };
+
+    // ── LOAD ROOMS ──
+    async function loadRooms() {
+        const grid = document.getElementById('roomsGrid');
+        grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading rooms...</p></div>';
+
+        try {
+            const res = await fetch(API + '/rooms');
+            if (!res.ok) throw new Error('Failed to load rooms');
+            const rooms = await res.json();
+
+            const typeFilter = document.getElementById('searchType').value;
+            const filtered = typeFilter ? rooms.filter(r => r.roomType === typeFilter) : rooms;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<p style="text-align:center;color:#8b7355;grid-column:1/-1;padding:40px;">No rooms found.</p>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(room => `
+                <div class="room-card">
+                    <div class="room-img" style="background-image:url('${roomImages[room.roomType] || roomImages.default}')">
+                        <span class="room-badge ${room.status === 'OCCUPIED' ? 'occupied' : ''} ${room.status === 'MAINTENANCE' ? 'maintenance' : ''}">
+                            ${room.status}
+                        </span>
+                    </div>
+                    <div class="room-info">
+                        <div class="room-type">${room.roomType}</div>
+                        <h3>Room ${room.roomNumber}</h3>
+                        <p class="room-desc">${room.description || 'A beautifully appointed room with modern amenities and stunning views.'}</p>
+                        <div class="room-actions">
+                            <div class="price">LKR ${Number(room.price).toLocaleString()}<span> / night</span></div>
+                            <button class="btn-reserve" onclick="openBooking(${room.id}, '${room.roomNumber}', '${room.roomType}', ${room.price})"
+                                    ${room.status !== 'AVAILABLE' ? 'disabled style="opacity:0.3;cursor:not-allowed"' : ''}>
+                                Reserve
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) {
+            grid.innerHTML = `<p style="text-align:center;color:#e74c3c;grid-column:1/-1;padding:40px;">Error: ${err.message}. Make sure Spring Boot is running.</p>`;
+        }
+    }
+
+    // ── LOAD RESERVATIONS ──
+    async function loadReservations() {
+        const tbody = document.getElementById('reservationsBody');
+        try {
+            const res = await fetch(API + '/reservations');
+            if (!res.ok) throw new Error('Failed to load');
+            const reservations = await res.json();
+
+            if (reservations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:#5a4a3a;">No reservations yet. Book a room above!</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = reservations.map(r => `
+                <tr>
+                    <td>#${r.id}</td>
+                    <td>${r.roomNumber ? 'Room ' + r.roomNumber + ' (' + r.roomType + ')' : r.hallName || 'N/A'}</td>
+                    <td>${r.checkIn}</td>
+                    <td>${r.checkOut}</td>
+                    <td>LKR ${Number(r.totalAmount).toLocaleString()}</td>
+                    <td><span class="status-badge status-${r.status}">${r.status}</span></td>
+                    <td>
+                        ${r.status === 'PENDING' || r.status === 'CONFIRMED'
+                            ? `<button class="btn-cancel" onclick="cancelReservation(${r.id})">Cancel</button>`
+                            : '—'}
+                    </td>
+                </tr>
+            `).join('');
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="7" style="color:#e74c3c;text-align:center;padding:30px;">Error: ${err.message}</td></tr>`;
+        }
+    }
+
+    // ── OPEN BOOKING MODAL ──
+    function openBooking(roomId, roomNumber, roomType, price) {
+        document.getElementById('modalRoomId').value = roomId;
+        document.getElementById('modalRoom').value = `Room ${roomNumber} — ${roomType}`;
+        document.getElementById('modalRoomPrice').value = price;
+        document.getElementById('modalCheckIn').value = document.getElementById('searchCheckIn').value;
+        document.getElementById('modalCheckOut').value = document.getElementById('searchCheckOut').value;
+        calcTotal();
+        document.getElementById('bookingModal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('bookingModal').classList.remove('active');
+    }
+
+    // ── CALCULATE TOTAL ──
+    function calcTotal() {
+        const checkIn = new Date(document.getElementById('modalCheckIn').value);
+        const checkOut = new Date(document.getElementById('modalCheckOut').value);
+        const price = parseFloat(document.getElementById('modalRoomPrice').value);
+        if (checkIn && checkOut && checkOut > checkIn) {
+            const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+            document.getElementById('modalTotal').textContent = `LKR ${(price * nights).toLocaleString()} (${nights} night${nights > 1 ? 's' : ''})`;
+        }
+    }
+    document.addEventListener('change', e => { if (e.target.id === 'modalCheckIn' || e.target.id === 'modalCheckOut') calcTotal(); });
+
+    // ── CONFIRM BOOKING ──
+    async function confirmBooking() {
+        const body = {
+            userId: USER_ID,
+            roomId: parseInt(document.getElementById('modalRoomId').value),
+            checkIn: document.getElementById('modalCheckIn').value,
+            checkOut: document.getElementById('modalCheckOut').value
+        };
+
+        if (!body.checkIn || !body.checkOut) { showToast('Please select dates', 'error'); return; }
+
+        try {
+            const res = await fetch(API + '/reservations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (!res.ok) {
+                const err = await res.text();
+                throw new Error(err || 'Booking failed');
+            }
+
+            closeModal();
+            showToast('Reservation created successfully!', 'success');
+            loadReservations();
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+
+    // ── CANCEL RESERVATION ──
+    async function cancelReservation(id) {
+        if (!confirm('Are you sure you want to cancel this reservation?')) return;
+        try {
+            const res = await fetch(API + `/reservations/${id}/cancel`, { method: 'PUT' });
+            if (!res.ok) throw new Error('Cancel failed');
+            showToast('Reservation cancelled', 'success');
+            loadReservations();
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+
+    // ── TOAST ──
+    function showToast(msg, type) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.className = `toast ${type} show`;
+        setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    // ── SET DEFAULT DATES ──
+    const today = new Date();
+    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+    document.getElementById('searchCheckIn').value = today.toISOString().split('T')[0];
+    document.getElementById('searchCheckOut').value = tomorrow.toISOString().split('T')[0];
+
+    // ── LOAD ON PAGE START ──
+    loadRooms();
+    loadReservations();
+</script>
+
+</body>
+</html>

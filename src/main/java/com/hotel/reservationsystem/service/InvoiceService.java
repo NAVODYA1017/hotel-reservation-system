@@ -47,4 +47,18 @@ public class InvoiceService {
         return invoiceRepository.findByPaymentId(paymentId)
                 .orElseThrow(() -> new ResourceNotFoundException("No invoice found for payment id: " + paymentId));
     }
+
+    /**
+     * DELETE - used directly (admin correcting a mistake) and internally by
+     * PaymentService.deletePayment() to satisfy the invoices.payment_id FK
+     * constraint before the payment row itself is removed.
+     */
+    public void deleteInvoiceByPaymentId(Long paymentId) {
+        invoiceRepository.findByPaymentId(paymentId).ifPresent(invoiceRepository::delete);
+    }
+
+    public void deleteInvoiceById(Long id) {
+        Invoice invoice = getInvoiceById(id);
+        invoiceRepository.delete(invoice);
+    }
 }

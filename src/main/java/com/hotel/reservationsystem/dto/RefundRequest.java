@@ -9,6 +9,7 @@ import lombok.Setter;
  *   "reason": "Event cancelled by customer"
  * }
  */
+
 @Getter
 @Setter
 public class RefundRequest {

@@ -16,6 +16,7 @@ import java.math.BigDecimal;
  */
 @Getter
 @Setter
+
 public class PaymentRequest {
     private Long reservationId;
     private BigDecimal amount;

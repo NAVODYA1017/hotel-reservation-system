@@ -34,5 +34,6 @@ public class InvoiceResponse {
         res.setMethod(invoice.getPayment().getMethod());
         res.setStatus(invoice.getPayment().getStatus());
         return res;
+
     }
 }

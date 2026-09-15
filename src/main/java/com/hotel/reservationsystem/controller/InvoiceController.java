@@ -23,4 +23,6 @@ public class InvoiceController {
     public InvoiceResponse getInvoiceByPayment(@PathVariable Long paymentId) {
         return InvoiceResponse.fromEntity(invoiceService.getInvoiceByPaymentId(paymentId));
     }
+
 }
+

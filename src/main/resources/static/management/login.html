@@ -33,18 +33,27 @@
 
             <form id="loginForm" novalidate>
                 <div class="field">
-                    <label for="userId">Staff user ID</label>
-                    <input class="input" id="userId" name="userId" type="number" min="1" inputmode="numeric"
-                           placeholder="e.g. 1" required autocomplete="username">
-                    <span class="hint">The seeded Hotel Manager account (admin@hotel.com) has ID 1.</span>
+                    <label for="email">Email address</label>
+                    <input class="input" id="email" name="email" type="email" maxlength="150"
+                           placeholder="name@hotel.com" required autocomplete="username">
+                </div>
+                <div class="field" style="margin-top:16px">
+                    <label for="password">Password</label>
+                    <div style="position:relative">
+                        <input class="input" id="password" name="password" type="password"
+                               required autocomplete="current-password" style="padding-right:72px">
+                        <button type="button" id="togglePassword" class="icon-btn"
+                                style="position:absolute;right:6px;top:6px;border:0" aria-controls="password"
+                                aria-pressed="false">Show</button>
+                    </div>
                 </div>
                 <button class="btn btn-primary" type="submit" id="loginBtn">Sign in</button>
             </form>
 
             <p class="login-note">
-                Temporary sign-in. Password login will replace this when the User Account
-                module (UC-01) is finished. Your ID is sent to the server with each request
-                and checked there.
+                Staff accounts are created by a Hotel Manager or System Administrator on the
+                Users &amp; Roles page. Passwords are stored as BCrypt hashes, and 5 wrong
+                attempts lock the account for 5 minutes.
             </p>
             <p style="margin-top:14px"><a class="link-arrow" href="../index.html">Back to guest website</a></p>
         </div>
@@ -57,8 +66,17 @@
         const params = new URLSearchParams(location.search);
         const alertBox = document.getElementById('loginAlert');
         const form = document.getElementById('loginForm');
-        const input = document.getElementById('userId');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const toggle = document.getElementById('togglePassword');
         const button = document.getElementById('loginBtn');
+
+        toggle.addEventListener('click', () => {
+            const show = passwordInput.type === 'password';
+            passwordInput.type = show ? 'text' : 'password';
+            toggle.textContent = show ? 'Hide' : 'Show';
+            toggle.setAttribute('aria-pressed', String(show));
+        });
 
         document.querySelectorAll('[data-hotel-name]').forEach(n => { n.textContent = Mgmt.hotelName(); });
 
@@ -73,32 +91,44 @@
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
             alertBox.innerHTML = '';
-            input.classList.remove('invalid');
+            emailInput.classList.remove('invalid');
+            passwordInput.classList.remove('invalid');
 
-            const id = input.value.trim();
-            if (!/^\d+$/.test(id) || Number(id) < 1) {
-                input.classList.add('invalid');
-                alertBox.innerHTML = Mgmt.alertBox('error', 'Enter your numeric staff user ID.');
-                input.focus();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                emailInput.classList.add('invalid');
+                alertBox.innerHTML = Mgmt.alertBox('error', 'Enter a valid email address.');
+                emailInput.focus();
+                return;
+            }
+            if (!password) {
+                passwordInput.classList.add('invalid');
+                alertBox.innerHTML = Mgmt.alertBox('error', 'Enter your password.');
+                passwordInput.focus();
                 return;
             }
 
             button.disabled = true;
             button.textContent = 'Signing in…';
             try {
-                // The server decides whether this user may enter the admin area (extension 1a)
-                const user = await Mgmt.api('/api/admin/users/me', { userId: id });
-                Mgmt.signIn(user);
+                // The server checks the password and whether this role may enter the admin area (extension 1a)
+                const result = await Mgmt.api('/api/admin/auth/login', { method: 'POST', body: { email, password } });
+                Mgmt.signIn(result);
                 location.href = safeNext;
             } catch (err) {
-                input.classList.add('invalid');
+                if (err.status === 401) {
+                    passwordInput.classList.add('invalid');
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
                 alertBox.innerHTML = Mgmt.alertBox('error', err.message);
                 button.disabled = false;
                 button.textContent = 'Sign in';
             }
         });
 
-        input.focus();
+        emailInput.focus();
     })();
 </script>
 </body>

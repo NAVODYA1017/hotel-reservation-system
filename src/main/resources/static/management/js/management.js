@@ -1,6 +1,6 @@
 /* ==========================================================================
    UC-06 Administration & Reporting - shared page code
-   - session (temporary X-User-Id sign-in until UC-01 login/JWT is ready)
+   - session: email + password sign-in, token sent as "Authorization: Bearer <token>"
    - API helper, header / nav / footer, formatting, charts, dialogs, toasts
    ========================================================================== */
 const Mgmt = (() => {
@@ -52,10 +52,10 @@ const Mgmt = (() => {
         constructor(status, message) { super(message); this.status = status; }
     }
 
-    async function api(path, { method = 'GET', body, userId } = {}) {
+    async function api(path, { method = 'GET', body } = {}) {
         const headers = { 'Accept': 'application/json' };
-        const id = userId ?? store.get('mgmt.userId');
-        if (id) headers['X-User-Id'] = id;
+        const token = store.get('mgmt.token');
+        if (token) headers['Authorization'] = 'Bearer ' + token;
         if (body !== undefined) headers['Content-Type'] = 'application/json';
 
         let response;
@@ -74,20 +74,31 @@ const Mgmt = (() => {
         }
         if (!response.ok) {
             const message = (data && data.message) || (typeof data === 'string' && data) || `Request failed (${response.status})`;
+            // Session missing/expired while using a page → back to the sign-in form
+            if (response.status === 401 && token && !path.startsWith('/api/admin/auth/')) {
+                clearSession();
+                goToLogin(message);
+            }
             throw new ApiError(response.status, message);
         }
         return data;
     }
 
     // ── Session ────────────────────────────────────────────────────────────
-    function signIn(user) {
-        store.set('mgmt.userId', String(user.id));
-        store.set('mgmt.user', JSON.stringify(user));
+    // Called by login.html with the response of POST /api/admin/auth/login
+    function signIn(loginResponse) {
+        store.set('mgmt.token', loginResponse.token);
+        store.set('mgmt.user', JSON.stringify(loginResponse.user));
     }
 
-    function signOut() {
-        store.remove('mgmt.userId');
+    function clearSession() {
+        store.remove('mgmt.token');
         store.remove('mgmt.user');
+    }
+
+    async function signOut() {
+        try { await api('/api/admin/auth/logout', { method: 'POST' }); } catch (e) { /* already signed out */ }
+        clearSession();
         location.href = 'login.html';
     }
 
@@ -106,7 +117,7 @@ const Mgmt = (() => {
     async function init({ page, roles = REPORT_ROLES }) {
         drawChrome(page, null);
 
-        if (!store.get('mgmt.userId')) {
+        if (!store.get('mgmt.token')) {
             goToLogin();
             return null;
         }
@@ -115,9 +126,8 @@ const Mgmt = (() => {
             currentUser = await api('/api/admin/users/me');
             store.set('mgmt.user', JSON.stringify(currentUser));
         } catch (err) {
-            if (err.status === 403) {
-                store.remove('mgmt.userId');
-                store.remove('mgmt.user');
+            if (err.status === 401 || err.status === 403) {
+                clearSession();
                 goToLogin(err.message);
                 return null;
             }

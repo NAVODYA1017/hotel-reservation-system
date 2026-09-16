@@ -2,6 +2,7 @@ package com.hotel.reservationsystem.service;
 
 import com.hotel.reservationsystem.entity.User;
 import com.hotel.reservationsystem.entity.enums.Role;
+import com.hotel.reservationsystem.exception.AuthenticationFailedException;
 import com.hotel.reservationsystem.exception.UnauthorizedAccessException;
 import com.hotel.reservationsystem.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +14,9 @@ import java.util.Set;
 /**
  * UC-06 extension 1a: decides who may use the administration functions.
  *
- * Login/JWT (UC-01) isn't finished yet and SecurityConfig currently permits every
- * request, so the admin controllers identify the logged-in user with an
- * "X-User-Id" request header. When UC-01 is done, only this class needs to change
- * to read the user from the Spring Security context instead.
+ * The controllers get the signed-in user's id from the session token (AdminAuthService),
+ * then every service method calls requireAdmin / requireReportAccess. The role is read
+ * from the database on each request, so a role change or deleted account takes effect immediately.
  */
 @Service
 public class AdminAccessService {
@@ -40,12 +40,11 @@ public class AdminAccessService {
 
     private User requireAnyRole(Long userId, Set<Role> allowedRoles) {
         if (userId == null) {
-            throw new UnauthorizedAccessException(
-                    "You must be logged in to use administration functions (missing X-User-Id header).");
+            throw new AuthenticationFailedException("Please sign in to use administration functions.");
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UnauthorizedAccessException("Logged-in user not found with id: " + userId));
+                .orElseThrow(() -> new AuthenticationFailedException("Your account no longer exists. Please sign in again."));
 
         if (!allowedRoles.contains(user.getRole())) {
             throw new UnauthorizedAccessException(

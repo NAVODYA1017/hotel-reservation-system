@@ -1,5 +1,6 @@
 package com.hotel.reservationsystem.exception;
 
+import com.hotel.reservationsystem.controller.AdminAuthController;
 import com.hotel.reservationsystem.controller.AdminReportController;
 import com.hotel.reservationsystem.controller.AdminUserController;
 import com.hotel.reservationsystem.controller.SystemSettingsController;
@@ -26,12 +27,19 @@ import java.time.LocalDateTime;
  * ResourceNotFoundException) still falls through to GlobalExceptionHandler.
  */
 @RestControllerAdvice(assignableTypes = {
+        AdminAuthController.class,
         AdminReportController.class,
         AdminUserController.class,
         SystemSettingsController.class
 })
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class AdminExceptionHandler {
+
+    // Not signed in: wrong email/password, missing or expired session token
+    @ExceptionHandler(AuthenticationFailedException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationFailed(AuthenticationFailedException ex) {
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
 
     // 1a / 10a - not an administrator, or operation not allowed for this role
     @ExceptionHandler(UnauthorizedAccessException.class)
@@ -50,7 +58,7 @@ public class AdminExceptionHandler {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
-    // e.g. ?from=01-09-2026 instead of ?from=2026-09-01, ?role=MANAGER, or X-User-Id: abc
+    // e.g. ?from=01-09-2026 instead of ?from=2026-09-01 or ?role=MANAGER
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         String hint = ex.getRequiredType() == LocalDate.class ? " Dates must use the format yyyy-MM-dd." : "";

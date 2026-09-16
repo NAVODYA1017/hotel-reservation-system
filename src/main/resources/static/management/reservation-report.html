@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation Report · Grand Horizon Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/management.css">
+</head>
+<body>
+
+<div id="chrome"></div>
+
+<main id="pageBody">
+    <section class="page-hero">
+        <div id="heroOrnament"></div>
+        <p class="eyebrow"><a href="reports.html" style="color:inherit">Reports</a> / Reservations</p>
+        <h1 class="page-title">Reservation Report</h1>
+        <p class="page-lead" id="periodLabel">Room and event hall reservations by check-in date.</p>
+    </section>
+
+    <div class="container section">
+        <form class="filter-bar" id="filterForm" novalidate>
+            <div class="field">
+                <label for="from">From</label>
+                <input class="input" type="date" id="from" name="from" required>
+            </div>
+            <div class="field">
+                <label for="to">To</label>
+                <input class="input" type="date" id="to" name="to" required>
+            </div>
+            <div class="field">
+                <span class="label">Quick periods</span>
+                <div class="presets" id="presets">
+                    <button type="button" class="preset" data-preset="this-month">This month</button>
+                    <button type="button" class="preset" data-preset="last-month">Last month</button>
+                    <button type="button" class="preset" data-preset="next-90">Next 90 days</button>
+                    <button type="button" class="preset" data-preset="this-year">This year</button>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-primary" type="submit">Generate</button>
+            </div>
+        </form>
+
+        <div id="reportArea" style="margin-top:24px"></div>
+    </div>
+</main>
+
+<div id="footer"></div>
+
+<script src="js/management.js"></script>
+<script>
+    (async function () {
+        const user = await Mgmt.init({ page: 'reports', roles: Mgmt.REPORT_ROLES });
+        if (!user) return;
+        document.getElementById('heroOrnament').innerHTML = Mgmt.ORNAMENT;
+
+        const form = document.getElementById('filterForm');
+        const fromInput = document.getElementById('from');
+        const toInput = document.getElementById('to');
+        const presetButtons = document.querySelectorAll('[data-preset]');
+        const area = document.getElementById('reportArea');
+        let lastReport = null;
+
+        // Period from the URL (links from the Reports page), default = this month
+        const params = new URLSearchParams(location.search);
+        const [defFrom, defTo] = Mgmt.presetRange('this-month').map(Mgmt.isoDate);
+        fromInput.value = params.get('from') || defFrom;
+        toInput.value = params.get('to') || defTo;
+
+        presetButtons.forEach(btn => btn.addEventListener('click', () => {
+            const [s, e] = Mgmt.presetRange(btn.dataset.preset);
+            fromInput.value = Mgmt.isoDate(s);
+            toInput.value = Mgmt.isoDate(e);
+            presetButtons.forEach(b => b.classList.toggle('active', b === btn));
+            generate();
+        }));
+        [fromInput, toInput].forEach(i => i.addEventListener('input', () => presetButtons.forEach(b => b.classList.remove('active'))));
+        form.addEventListener('submit', e => { e.preventDefault(); generate(); });
+
+        generate();
+
+        async function generate() {
+            const from = fromInput.value, to = toInput.value;
+            if (!from || !to) {
+                area.innerHTML = Mgmt.alertBox('error', 'Choose both a start and an end date.');
+                return;
+            }
+            history.replaceState(null, '', `?from=${from}&to=${to}`);
+            area.innerHTML = `<div class="grid grid-4">${'<div class="skeleton" style="height:110px"></div>'.repeat(4)}</div>
+                              <div class="skeleton" style="height:320px;margin-top:20px"></div>`;
+            try {
+                const report = await Mgmt.api(`/api/admin/reports/reservations?from=${from}&to=${to}`);
+                lastReport = report;
+                render(report);
+            } catch (err) {
+                if (err.status === 400) {
+                    // Validation problem (e.g. from after to) - fix the filters
+                    area.innerHTML = Mgmt.alertBox('error', err.message);
+                } else {
+                    // Extension 8a: generation failed → show error with retry
+                    area.innerHTML = Mgmt.errorState(err.message, 'Retry report');
+                    area.querySelector('[data-retry]').addEventListener('click', generate);
+                }
+            }
+        }
+
+        function render(r) {
+            document.getElementById('periodLabel').textContent =
+                `${Mgmt.date(r.fromDate)} – ${Mgmt.date(r.toDate)} · generated ${Mgmt.dateTime(r.generatedAt)}`;
+
+            // Extension 6a: no data for the period
+            if (!r.totalReservations) {
+                area.innerHTML = Mgmt.emptyState('No reservations in this period', r.message);
+                return;
+            }
+
+            const status = r.reservationsByStatus || {};
+            area.innerHTML = `
+                <div class="section-head no-print">
+                    <p class="section-note">${Mgmt.esc(r.message)}</p>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap">
+                        <button class="btn" type="button" id="csvBtn">Export CSV</button>
+                        <button class="btn" type="button" onclick="window.print()">Print</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-4">
+                    <div class="hero-figure" style="grid-column: span 2">
+                        <div>
+                            <div class="stat-label">Reservations with check-in in this period</div>
+                            <div class="hero-value">${Mgmt.number(r.totalReservations)}</div>
+                        </div>
+                        <div class="hero-split">
+                            <div><strong>${Mgmt.number(r.roomBookings)}</strong>Room bookings</div>
+                            <div><strong>${Mgmt.number(r.hallBookings)}</strong>Event hall bookings</div>
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Booking value (excl. cancelled)</div>
+                        <div class="stat-value">${Mgmt.money(r.totalBookingValue)}</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Cancellation rate</div>
+                        <div class="stat-value">${Number(r.cancellationRatePercent || 0).toFixed(1)}%</div>
+                        <div class="stat-foot">${Mgmt.number(status.CANCELLED)} of ${Mgmt.number(r.totalReservations)} cancelled</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-2" style="margin-top:20px">
+                    <div class="card">
+                        <h3 class="card-title">Reservations by status</h3>
+                        <p class="card-sub">Count of reservations</p>
+                        <div id="chartStatus"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Room bookings by room type</h3>
+                        <p class="card-sub">Count of room reservations</p>
+                        <div id="chartRoomType"></div>
+                    </div>
+                </div>
+
+                <div class="section-head" style="margin-top:36px">
+                    <h2 class="section-title">Reservation details</h2>
+                    <p class="section-note">${Mgmt.plural(r.reservations.length, 'reservation')}</p>
+                </div>
+                <div class="table-wrap">
+                    <table class="data">
+                        <thead>
+                            <tr>
+                                <th>#</th><th>Guest</th><th>Booked</th><th>Check-in</th><th>Check-out</th>
+                                <th>Status</th><th class="num">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${r.reservations.map(row => `
+                                <tr>
+                                    <td class="muted">${Mgmt.esc(row.id)}</td>
+                                    <td><div class="cell-main">${Mgmt.esc(row.userName)}</div><div class="cell-sub">User #${Mgmt.esc(row.userId)}</div></td>
+                                    <td>${row.roomNumber
+                                        ? `<div class="cell-main">Room ${Mgmt.esc(row.roomNumber)}</div><div class="cell-sub">${Mgmt.esc(row.roomType)}</div>`
+                                        : `<div class="cell-main">${Mgmt.esc(row.hallName || 'Event hall')}</div><div class="cell-sub">${Mgmt.esc(row.packageName || 'No package')}</div>`}</td>
+                                    <td>${Mgmt.date(row.checkIn)}</td>
+                                    <td>${Mgmt.date(row.checkOut)}</td>
+                                    <td>${Mgmt.statusBadge(row.status)}</td>
+                                    <td class="num">${Mgmt.money(row.totalAmount)}</td>
+                                </tr>`).join('')}
+                        </tbody>
+                        <tfoot>
+                            <tr><td colspan="6">Booking value (excluding cancelled)</td><td class="num">${Mgmt.money(r.totalBookingValue)}</td></tr>
+                        </tfoot>
+                    </table>
+                </div>`;
+
+            Mgmt.hbarChart(document.getElementById('chartStatus'),
+                Object.entries(status).map(([k, v]) => ({ label: Mgmt.titleCase(k), value: v })));
+
+            const roomTypes = Object.entries(r.bookingsByRoomType || {});
+            const roomChart = document.getElementById('chartRoomType');
+            if (roomTypes.length) {
+                Mgmt.hbarChart(roomChart, roomTypes.map(([k, v]) => ({ label: k, value: v })));
+            } else {
+                roomChart.innerHTML = '<p class="section-note">No room bookings in this period, only event halls.</p>';
+            }
+
+            document.getElementById('csvBtn').addEventListener('click', exportCsv);
+        }
+
+        function exportCsv() {
+            if (!lastReport) return;
+            const rows = lastReport.reservations.map(r => [
+                r.id, r.userName, r.userId,
+                r.roomNumber ? 'ROOM' : 'EVENT_HALL',
+                r.roomNumber ? `${r.roomNumber} (${r.roomType})` : (r.hallName || ''),
+                r.packageName || '', r.checkIn, r.checkOut, r.status, r.totalAmount
+            ]);
+            Mgmt.downloadCsv(`reservation-report_${lastReport.fromDate}_${lastReport.toDate}.csv`,
+                ['Reservation ID', 'Guest', 'User ID', 'Type', 'Room / Hall', 'Package', 'Check-in', 'Check-out', 'Status', 'Amount'],
+                rows);
+        }
+    })();
+</script>
+</body>
+</html>

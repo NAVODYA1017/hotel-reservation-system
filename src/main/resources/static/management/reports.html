@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports · Grand Horizon Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/management.css">
+</head>
+<body>
+
+<div id="chrome"></div>
+
+<main id="pageBody">
+    <section class="page-hero">
+        <div id="heroOrnament"></div>
+        <p class="eyebrow">Reports &amp; Analytics</p>
+        <h1 class="page-title">Available Reports</h1>
+        <p class="page-lead">Choose a report and a reporting period. You can print any report or export it to CSV.</p>
+    </section>
+
+    <div class="container section">
+        <div class="grid grid-2" id="reportList">
+            <div class="skeleton" style="height:300px"></div>
+            <div class="skeleton" style="height:300px"></div>
+        </div>
+    </div>
+</main>
+
+<div id="footer"></div>
+
+<script src="js/management.js"></script>
+<script>
+    (async function () {
+        const user = await Mgmt.init({ page: 'reports', roles: Mgmt.REPORT_ROLES });
+        if (!user) return;
+        document.getElementById('heroOrnament').innerHTML = Mgmt.ORNAMENT;
+
+        // Report code → page in this folder
+        const PAGES = { RESERVATION: 'reservation-report.html', REVENUE: 'revenue-report.html' };
+        const PRESETS = [
+            ['this-month', 'This month'], ['last-month', 'Last month'],
+            ['last-30', 'Last 30 days'], ['this-year', 'This year']
+        ];
+
+        load();
+
+        async function load() {
+            const list = document.getElementById('reportList');
+            try {
+                // Step 5: the server lists the available report types
+                const types = await Mgmt.api('/api/admin/reports');
+                list.innerHTML = types.map(renderCard).join('');
+                list.querySelectorAll('form').forEach(bindForm);
+            } catch (err) {
+                list.innerHTML = `<div style="grid-column:1/-1">${Mgmt.errorState(err.message)}</div>`;
+                list.querySelector('[data-retry]').addEventListener('click', load);
+            }
+        }
+
+        function renderCard(type) {
+            const [from, to] = Mgmt.presetRange('this-month').map(Mgmt.isoDate);
+            const page = PAGES[type.code] || 'reports.html';
+            const code = Mgmt.esc(type.code);
+            return `
+                <article class="card" style="display:flex;flex-direction:column;gap:14px">
+                    <div>
+                        <p class="eyebrow">${code}</p>
+                        <h2 class="section-title" style="margin-top:4px">${Mgmt.esc(type.name)}</h2>
+                        <p style="color:var(--ink-2);margin-top:6px">${Mgmt.esc(type.description)}</p>
+                    </div>
+                    <form data-page="${page}" novalidate style="display:flex;flex-direction:column;gap:14px;margin-top:auto">
+                        <div class="presets" role="group" aria-label="Quick periods">
+                            ${PRESETS.map(([k, label]) => `<button type="button" class="preset ${k === 'this-month' ? 'active' : ''}" data-preset="${k}">${label}</button>`).join('')}
+                        </div>
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="from-${code}">From</label>
+                                <input class="input" type="date" id="from-${code}" name="from" value="${from}" required>
+                            </div>
+                            <div class="field">
+                                <label for="to-${code}">To</label>
+                                <input class="input" type="date" id="to-${code}" name="to" value="${to}" required>
+                            </div>
+                        </div>
+                        <div class="form-error"></div>
+                        <div style="display:flex;justify-content:flex-end">
+                            <button class="btn btn-primary" type="submit">Generate report</button>
+                        </div>
+                    </form>
+                </article>`;
+        }
+
+        function bindForm(form) {
+            const from = form.querySelector('[name=from]');
+            const to = form.querySelector('[name=to]');
+            const presets = form.querySelectorAll('[data-preset]');
+
+            presets.forEach(btn => btn.addEventListener('click', () => {
+                const [s, e] = Mgmt.presetRange(btn.dataset.preset);
+                from.value = Mgmt.isoDate(s);
+                to.value = Mgmt.isoDate(e);
+                presets.forEach(b => b.classList.toggle('active', b === btn));
+            }));
+            [from, to].forEach(inp => inp.addEventListener('input', () => presets.forEach(b => b.classList.remove('active'))));
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const errorBox = form.querySelector('.form-error');
+                errorBox.innerHTML = '';
+                if (!from.value || !to.value) {
+                    errorBox.innerHTML = Mgmt.alertBox('error', 'Choose both a start and an end date.');
+                    return;
+                }
+                if (from.value > to.value) {
+                    errorBox.innerHTML = Mgmt.alertBox('error', 'The start date must be on or before the end date.');
+                    return;
+                }
+                location.href = `${form.dataset.page}?from=${encodeURIComponent(from.value)}&to=${encodeURIComponent(to.value)}`;
+            });
+        }
+    })();
+</script>
+</body>
+</html>

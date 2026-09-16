@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration Sign In · Grand Horizon Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/management.css">
+</head>
+<body class="login-page">
+
+<div class="login-shell">
+    <section class="login-visual" aria-hidden="true">
+        <p class="eyebrow" style="color:rgba(255,255,255,.8)">Administration &amp; Reporting</p>
+        <h1>Every stay,<br>every event,<br>at a glance.</h1>
+        <p>Dashboard statistics, reservation and revenue reports, user accounts and
+           system settings in one place.</p>
+    </section>
+
+    <section class="login-panel">
+        <div class="login-card">
+            <a class="brand" href="../index.html">
+                <span class="brand-name" data-hotel-name>Grand Horizon Hotel</span>
+                <span class="brand-sub">Hotels &amp; Events · Admin</span>
+            </a>
+
+            <h2>Sign in</h2>
+            <p class="page-lead">For Hotel Managers, System Administrators and Finance Executives.</p>
+
+            <div id="loginAlert"></div>
+
+            <form id="loginForm" novalidate>
+                <div class="field">
+                    <label for="userId">Staff user ID</label>
+                    <input class="input" id="userId" name="userId" type="number" min="1" inputmode="numeric"
+                           placeholder="e.g. 1" required autocomplete="username">
+                    <span class="hint">The seeded Hotel Manager account (admin@hotel.com) has ID 1.</span>
+                </div>
+                <button class="btn btn-primary" type="submit" id="loginBtn">Sign in</button>
+            </form>
+
+            <p class="login-note">
+                Temporary sign-in. Password login will replace this when the User Account
+                module (UC-01) is finished. Your ID is sent to the server with each request
+                and checked there.
+            </p>
+            <p style="margin-top:14px"><a class="link-arrow" href="../index.html">Back to guest website</a></p>
+        </div>
+    </section>
+</div>
+
+<script src="js/management.js"></script>
+<script>
+    (function () {
+        const params = new URLSearchParams(location.search);
+        const alertBox = document.getElementById('loginAlert');
+        const form = document.getElementById('loginForm');
+        const input = document.getElementById('userId');
+        const button = document.getElementById('loginBtn');
+
+        document.querySelectorAll('[data-hotel-name]').forEach(n => { n.textContent = Mgmt.hotelName(); });
+
+        if (params.get('msg')) {
+            alertBox.innerHTML = Mgmt.alertBox('error', params.get('msg'));
+        }
+
+        // Only allow redirecting back to a page in this folder
+        const next = params.get('next');
+        const safeNext = next && /^[a-z-]+\.html(\?.*)?$/.test(next) && !next.startsWith('login') ? next : 'dashboard.html';
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            alertBox.innerHTML = '';
+            input.classList.remove('invalid');
+
+            const id = input.value.trim();
+            if (!/^\d+$/.test(id) || Number(id) < 1) {
+                input.classList.add('invalid');
+                alertBox.innerHTML = Mgmt.alertBox('error', 'Enter your numeric staff user ID.');
+                input.focus();
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = 'Signing in…';
+            try {
+                // The server decides whether this user may enter the admin area (extension 1a)
+                const user = await Mgmt.api('/api/admin/users/me', { userId: id });
+                Mgmt.signIn(user);
+                location.href = safeNext;
+            } catch (err) {
+                input.classList.add('invalid');
+                alertBox.innerHTML = Mgmt.alertBox('error', err.message);
+                button.disabled = false;
+                button.textContent = 'Sign in';
+            }
+        });
+
+        input.focus();
+    })();
+</script>
+</body>
+</html>

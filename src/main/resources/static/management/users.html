@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users &amp; Roles · Grand Horizon Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/management.css">
+</head>
+<body>
+
+<div id="chrome"></div>
+
+<main id="pageBody">
+    <section class="page-hero">
+        <div id="heroOrnament"></div>
+        <p class="eyebrow">Administration</p>
+        <h1 class="page-title">Users &amp; Roles</h1>
+        <p class="page-lead">Create customer and staff accounts, update their details, and assign roles.</p>
+    </section>
+
+    <div class="container section">
+        <div class="toolbar">
+            <div class="field">
+                <label for="search">Search</label>
+                <input class="input" id="search" type="search" placeholder="Name or email">
+            </div>
+            <div class="field">
+                <label for="roleFilter">Role</label>
+                <select class="input" id="roleFilter">
+                    <option value="">All roles</option>
+                </select>
+            </div>
+            <div class="spacer"></div>
+            <button class="btn btn-primary" type="button" id="addBtn">Add account</button>
+        </div>
+
+        <div id="summary" class="section-note" style="margin-bottom:12px"></div>
+        <div id="tableArea"><div class="skeleton" style="height:320px"></div></div>
+    </div>
+</main>
+
+<!-- Create / edit account -->
+<dialog class="modal" id="userModal" aria-labelledby="userModalTitle">
+    <div class="modal-head">
+        <h2 id="userModalTitle">Add account</h2>
+        <button class="modal-close" type="button" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+        <div id="userModalAlert"></div>
+        <form id="userForm" novalidate>
+            <div class="form-grid">
+                <div class="field" style="grid-column:1/-1">
+                    <label for="uName">Full name</label>
+                    <input class="input" id="uName" name="name" maxlength="100" required autocomplete="off">
+                </div>
+                <div class="field" style="grid-column:1/-1">
+                    <label for="uEmail">Email</label>
+                    <input class="input" id="uEmail" name="email" type="email" maxlength="150" required autocomplete="off">
+                </div>
+                <div class="field">
+                    <label for="uPassword" id="uPasswordLabel">Password</label>
+                    <input class="input" id="uPassword" name="password" type="password" minlength="8" autocomplete="new-password">
+                    <span class="hint" id="uPasswordHint">At least 8 characters.</span>
+                </div>
+                <div class="field">
+                    <label for="uRole">Role</label>
+                    <select class="input" id="uRole" name="role" required></select>
+                    <span class="hint" id="uRoleHint"></span>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn" type="button" data-close>Cancel</button>
+                <button class="btn btn-primary" type="submit" id="userSubmit">Create account</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<!-- Change role -->
+<dialog class="modal" id="roleModal" aria-labelledby="roleModalTitle">
+    <div class="modal-head">
+        <h2 id="roleModalTitle">Change role</h2>
+        <button class="modal-close" type="button" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+        <div id="roleModalAlert"></div>
+        <p id="roleModalText" style="margin-bottom:16px"></p>
+        <form id="roleForm" novalidate>
+            <div class="field">
+                <label for="rRole">New role</label>
+                <select class="input" id="rRole" required></select>
+            </div>
+            <div class="form-actions">
+                <button class="btn" type="button" data-close>Cancel</button>
+                <button class="btn btn-primary" type="submit">Save role</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<div id="footer"></div>
+
+<script src="js/management.js"></script>
+<script>
+    (async function () {
+        const me = await Mgmt.init({ page: 'users', roles: Mgmt.ADMIN_ROLES });
+        if (!me) return;
+        document.getElementById('heroOrnament').innerHTML = Mgmt.ORNAMENT;
+
+        const ROLES = Object.keys(Mgmt.ROLE_LABELS);
+        let users = [];
+        let editing = null;       // user being edited, or null when creating
+        let roleTarget = null;
+
+        const tableArea = document.getElementById('tableArea');
+        const search = document.getElementById('search');
+        const roleFilter = document.getElementById('roleFilter');
+        const userModal = document.getElementById('userModal');
+        const roleModal = document.getElementById('roleModal');
+
+        // Role options (only a System Administrator may grant SYSTEM_ADMIN - extension 10a)
+        const canAssign = role => role !== 'SYSTEM_ADMIN' || me.role === 'SYSTEM_ADMIN';
+        const roleOptions = selected => ROLES.map(r =>
+            `<option value="${r}" ${r === selected ? 'selected' : ''} ${canAssign(r) ? '' : 'disabled'}>
+                ${Mgmt.ROLE_LABELS[r]}${canAssign(r) ? '' : ' (System Admin only)'}</option>`).join('');
+
+        roleFilter.insertAdjacentHTML('beforeend', ROLES.map(r => `<option value="${r}">${Mgmt.ROLE_LABELS[r]}</option>`).join(''));
+        const initialRole = new URLSearchParams(location.search).get('role');
+        if (initialRole && ROLES.includes(initialRole)) roleFilter.value = initialRole;
+
+        document.querySelectorAll('dialog [data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
+        document.getElementById('addBtn').addEventListener('click', () => openUserModal(null));
+        search.addEventListener('input', renderTable);
+        roleFilter.addEventListener('change', () => {
+            const url = roleFilter.value ? `?role=${roleFilter.value}` : location.pathname;
+            history.replaceState(null, '', url);
+            load();
+        });
+
+        load();
+
+        async function load() {
+            tableArea.innerHTML = '<div class="skeleton" style="height:320px"></div>';
+            try {
+                const query = roleFilter.value ? `?role=${encodeURIComponent(roleFilter.value)}` : '';
+                users = await Mgmt.api('/api/admin/users' + query);
+                renderTable();
+            } catch (err) {
+                tableArea.innerHTML = Mgmt.errorState(err.message);
+                tableArea.querySelector('[data-retry]').addEventListener('click', load);
+            }
+        }
+
+        function renderTable() {
+            const term = search.value.trim().toLowerCase();
+            const rows = users.filter(u => !term || u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term));
+            const staff = users.filter(u => u.staff).length;
+            document.getElementById('summary').textContent =
+                `${Mgmt.plural(users.length, 'account')} · ${staff} staff · ${Mgmt.plural(users.length - staff, 'customer')}` +
+                (term ? ` · ${rows.length} matching “${search.value.trim()}”` : '');
+
+            if (!rows.length) {
+                tableArea.innerHTML = Mgmt.emptyState('No accounts found',
+                    term || roleFilter.value ? 'Try a different search or role filter.' : 'Add the first account to get started.');
+                return;
+            }
+
+            tableArea.innerHTML = `
+                <div class="table-wrap">
+                    <table class="data">
+                        <thead>
+                            <tr><th>Account</th><th>Role</th><th>Type</th><th class="num">Reservations</th><th>Created</th><th class="num">Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            ${rows.map(u => {
+                                const isMe = u.id === me.id;
+                                const protectedAdmin = u.role === 'SYSTEM_ADMIN' && me.role !== 'SYSTEM_ADMIN';
+                                const deleteBlockedReason = isMe ? 'You cannot delete your own account'
+                                    : protectedAdmin ? 'Only a System Administrator can delete this account'
+                                    : u.reservationCount > 0 ? 'Accounts with reservations cannot be deleted' : '';
+                                const editBlockedReason = protectedAdmin ? 'Only a System Administrator can edit this account' : '';
+                                const roleBlockedReason = isMe ? 'You cannot change your own role' : editBlockedReason;
+                                return `
+                                <tr>
+                                    <td>
+                                        <div class="cell-main">${Mgmt.esc(u.name)}${isMe ? ' <span class="badge" style="margin-left:6px">You</span>' : ''}</div>
+                                        <div class="cell-sub">${Mgmt.esc(u.email)} · ID ${Mgmt.esc(u.id)}</div>
+                                    </td>
+                                    <td>${Mgmt.roleBadge(u.role)}</td>
+                                    <td>${u.staff ? 'Staff' : 'Customer'}</td>
+                                    <td class="num">${Mgmt.number(u.reservationCount)}</td>
+                                    <td class="muted">${Mgmt.date(u.createdAt)}</td>
+                                    <td>
+                                        <div class="actions">
+                                            <button class="icon-btn" type="button" data-edit="${u.id}" ${editBlockedReason ? `disabled title="${editBlockedReason}"` : ''}>Edit</button>
+                                            <button class="icon-btn" type="button" data-role="${u.id}" ${roleBlockedReason ? `disabled title="${roleBlockedReason}"` : ''}>Role</button>
+                                            <button class="icon-btn danger" type="button" data-delete="${u.id}" ${deleteBlockedReason ? `disabled title="${deleteBlockedReason}"` : ''}>Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+
+            const find = id => users.find(u => String(u.id) === String(id));
+            tableArea.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openUserModal(find(b.dataset.edit))));
+            tableArea.querySelectorAll('[data-role]').forEach(b => b.addEventListener('click', () => openRoleModal(find(b.dataset.role))));
+            tableArea.querySelectorAll('[data-delete]').forEach(b => b.addEventListener('click', () => deleteUser(find(b.dataset.delete))));
+        }
+
+        // ── Create / edit ──────────────────────────────────────────────────
+        function openUserModal(user) {
+            editing = user;
+            const form = document.getElementById('userForm');
+            form.reset();
+            form.querySelectorAll('.input').forEach(i => i.classList.remove('invalid'));
+            document.getElementById('userModalAlert').innerHTML = '';
+            document.getElementById('userModalTitle').textContent = user ? 'Edit account' : 'Add account';
+            document.getElementById('userSubmit').textContent = user ? 'Save changes' : 'Create account';
+            document.getElementById('uPasswordLabel').textContent = user ? 'Reset password' : 'Password';
+            document.getElementById('uPasswordHint').textContent = user ? 'Leave blank to keep the current password.' : 'At least 8 characters.';
+
+            const roleSelect = document.getElementById('uRole');
+            roleSelect.innerHTML = roleOptions(user ? user.role : 'RECEPTIONIST');
+            const ownAccount = user && user.id === me.id;
+            roleSelect.disabled = ownAccount;
+            document.getElementById('uRoleHint').textContent = ownAccount ? 'You cannot change your own role.' : '';
+
+            document.getElementById('uName').value = user ? user.name : '';
+            document.getElementById('uEmail').value = user ? user.email : '';
+            userModal.showModal();
+            document.getElementById('uName').focus();
+        }
+
+        document.getElementById('userForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const alertArea = document.getElementById('userModalAlert');
+            const name = document.getElementById('uName');
+            const email = document.getElementById('uEmail');
+            const password = document.getElementById('uPassword');
+            const role = document.getElementById('uRole');
+            [name, email, password].forEach(i => i.classList.remove('invalid'));
+
+            // Quick checks in the browser; the server validates everything again (step 12)
+            const problems = [];
+            if (!name.value.trim()) { problems.push('Full name is required.'); name.classList.add('invalid'); }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) { problems.push('Enter a valid email address.'); email.classList.add('invalid'); }
+            if ((!editing || password.value) && password.value.length < 8) { problems.push('Password must be at least 8 characters.'); password.classList.add('invalid'); }
+            if (problems.length) {
+                alertArea.innerHTML = Mgmt.alertBox('error', problems.join(' '));
+                return;
+            }
+
+            const body = { name: name.value.trim(), email: email.value.trim() };
+            if (password.value) body.password = password.value;
+            if (!role.disabled) body.role = role.value;
+
+            const submit = document.getElementById('userSubmit');
+            submit.disabled = true;
+            try {
+                if (editing) {
+                    await Mgmt.api(`/api/admin/users/${editing.id}`, { method: 'PUT', body });
+                    Mgmt.toast(`${body.name} updated`);
+                } else {
+                    await Mgmt.api('/api/admin/users', { method: 'POST', body });
+                    Mgmt.toast(`Account created for ${body.name}`);
+                }
+                userModal.close();
+                load();
+            } catch (err) {
+                alertArea.innerHTML = Mgmt.alertBox('error', err.message);
+            } finally {
+                submit.disabled = false;
+            }
+        });
+
+        // ── Change role ────────────────────────────────────────────────────
+        function openRoleModal(user) {
+            roleTarget = user;
+            document.getElementById('roleModalAlert').innerHTML = '';
+            document.getElementById('roleModalText').textContent =
+                `${user.name} is currently a ${Mgmt.ROLE_LABELS[user.role] || user.role}.`;
+            document.getElementById('rRole').innerHTML = roleOptions(user.role);
+            roleModal.showModal();
+        }
+
+        document.getElementById('roleForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const newRole = document.getElementById('rRole').value;
+            if (newRole === roleTarget.role) { roleModal.close(); return; }
+            try {
+                await Mgmt.api(`/api/admin/users/${roleTarget.id}/role`, { method: 'PUT', body: { role: newRole } });
+                Mgmt.toast(`${roleTarget.name} is now a ${Mgmt.ROLE_LABELS[newRole]}`);
+                roleModal.close();
+                load();
+            } catch (err) {
+                document.getElementById('roleModalAlert').innerHTML = Mgmt.alertBox('error', err.message);
+            }
+        });
+
+        // ── Delete ─────────────────────────────────────────────────────────
+        async function deleteUser(user) {
+            const ok = await Mgmt.confirmDialog({
+                title: 'Delete account',
+                message: `Permanently delete ${user.name} (${user.email})? This cannot be undone.`,
+                confirmLabel: 'Delete account',
+                danger: true
+            });
+            if (!ok) return;
+            try {
+                await Mgmt.api(`/api/admin/users/${user.id}`, { method: 'DELETE' });
+                Mgmt.toast(`${user.name} deleted`);
+                load();
+            } catch (err) {
+                Mgmt.toast(err.message, 'error');
+            }
+        }
+    })();
+</script>
+</body>
+</html>

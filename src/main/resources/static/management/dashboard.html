@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard · Grand Horizon Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/management.css">
+</head>
+<body>
+
+<div id="chrome"></div>
+
+<main id="pageBody">
+    <section class="page-hero">
+        <div id="heroOrnament"></div>
+        <p class="eyebrow" id="greeting">Welcome</p>
+        <h1 class="page-title">Administration Dashboard</h1>
+        <p class="page-lead">Today's picture of rooms, halls, reservations, revenue and accounts.</p>
+    </section>
+
+    <div class="container">
+        <section class="section">
+            <div class="section-head">
+                <div>
+                    <h2 class="section-title">At a glance</h2>
+                    <p class="section-note" id="generatedAt">Loading statistics…</p>
+                </div>
+                <button class="btn" type="button" id="refreshBtn">Refresh</button>
+            </div>
+            <div id="dashboardContent">
+                <div class="grid grid-4">
+                    <div class="skeleton" style="height:160px;grid-column:span 2"></div>
+                    <div class="skeleton" style="height:160px"></div>
+                    <div class="skeleton" style="height:160px"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-head">
+                <h2 class="section-title">Where to next</h2>
+            </div>
+            <div class="grid grid-4" id="quickLinks"></div>
+        </section>
+    </div>
+</main>
+
+<div id="footer"></div>
+
+<script src="js/management.js"></script>
+<script>
+    (async function () {
+        const user = await Mgmt.init({ page: 'dashboard', roles: Mgmt.REPORT_ROLES });
+        if (!user) return;
+
+        document.getElementById('heroOrnament').innerHTML = Mgmt.ORNAMENT;
+        const hour = new Date().getHours();
+        document.getElementById('greeting').textContent =
+            (hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening') + ', ' + user.name;
+
+        renderQuickLinks(user);
+        document.getElementById('refreshBtn').addEventListener('click', load);
+        load();
+
+        async function load() {
+            const content = document.getElementById('dashboardContent');
+            const stamp = document.getElementById('generatedAt');
+            stamp.textContent = 'Loading statistics…';
+            try {
+                const d = await Mgmt.api('/api/admin/dashboard');
+                stamp.textContent = 'Updated ' + Mgmt.dateTime(d.generatedAt);
+                render(d);
+            } catch (err) {
+                stamp.textContent = '';
+                content.innerHTML = Mgmt.errorState(err.message);
+                content.querySelector('[data-retry]').addEventListener('click', load);
+            }
+        }
+
+        function render(d) {
+            const content = document.getElementById('dashboardContent');
+            const res = d.reservationsByStatus || {};
+            const active = (res.PENDING || 0) + (res.CONFIRMED || 0);
+
+            content.innerHTML = `
+                <div class="grid grid-4">
+                    <div class="hero-figure" style="grid-column: span 2">
+                        <div>
+                            <div class="stat-label">Total revenue (successful payments)</div>
+                            <div class="hero-value">${Mgmt.money(d.totalRevenue)}</div>
+                        </div>
+                        <div class="hero-split">
+                            <div><strong>${Mgmt.money(d.revenueThisMonth)}</strong>This month</div>
+                            <div><strong>${Mgmt.money(d.totalRefunded)}</strong>Refunded</div>
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Active reservations</div>
+                        <div class="stat-value">${Mgmt.number(active)}</div>
+                        <div class="stat-foot">${Mgmt.number(res.PENDING)} pending · ${Mgmt.number(res.CONFIRMED)} confirmed</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Upcoming in the next 7 days</div>
+                        <div class="stat-value">${Mgmt.number(d.upcomingReservationsNext7Days)}</div>
+                        <div class="stat-foot">${Mgmt.plural(d.totalReservations, 'reservation')} in total</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-4" style="margin-top:20px">
+                    <div class="stat">
+                        <div class="stat-label">Check-ins today</div>
+                        <div class="stat-value">${Mgmt.number(d.todayCheckIns)}</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Check-outs today</div>
+                        <div class="stat-value">${Mgmt.number(d.todayCheckOuts)}</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Rooms available</div>
+                        <div class="stat-value">${Mgmt.number((d.roomsByStatus || {}).AVAILABLE)} <span style="font-size:15px;color:var(--muted);font-weight:400">of ${Mgmt.number(d.totalRooms)}</span></div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">User accounts</div>
+                        <div class="stat-value">${Mgmt.number(d.totalUsers)}</div>
+                        <div class="stat-foot">${Mgmt.plural(d.totalCustomers, 'customer')} · ${Mgmt.number(d.totalStaff)} staff</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-2" style="margin-top:20px">
+                    <div class="card">
+                        <h3 class="card-title">Reservations by status</h3>
+                        <p class="card-sub">All reservations in the system</p>
+                        <div id="chartReservations"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">User accounts by role</h3>
+                        <p class="card-sub">Customers and staff</p>
+                        <div id="chartRoles"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Rooms by status</h3>
+                        <p class="card-sub">${Mgmt.plural(d.totalRooms, 'room')}</p>
+                        <div id="chartRooms"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Event halls by status</h3>
+                        <p class="card-sub">${Mgmt.plural(d.totalEventHalls, 'hall')}</p>
+                        <div id="chartHalls"></div>
+                    </div>
+                </div>`;
+
+            const toItems = (map, labels) => Object.entries(map || {}).map(([k, v]) => ({ label: labels ? (labels[k] || k) : Mgmt.titleCase(k), value: v }));
+            Mgmt.hbarChart(document.getElementById('chartReservations'), toItems(d.reservationsByStatus));
+            Mgmt.hbarChart(document.getElementById('chartRoles'), toItems(d.usersByRole, Mgmt.ROLE_LABELS));
+            Mgmt.hbarChart(document.getElementById('chartRooms'), toItems(d.roomsByStatus));
+            Mgmt.hbarChart(document.getElementById('chartHalls'), toItems(d.hallsByStatus));
+        }
+
+        function renderQuickLinks(u) {
+            const links = [
+                { title: 'Reservation report', text: 'Bookings by check-in date, status breakdown and cancellation rate.', href: 'reservation-report.html', roles: Mgmt.REPORT_ROLES },
+                { title: 'Revenue report', text: 'Payments, refunds, net revenue and daily takings.', href: 'revenue-report.html', roles: Mgmt.REPORT_ROLES },
+                { title: 'Users & roles', text: 'Create customer and staff accounts and assign roles.', href: 'users.html', roles: Mgmt.ADMIN_ROLES },
+                { title: 'System settings', text: 'Hotel details, tax rate, check-in/out times and policies.', href: 'settings.html', roles: Mgmt.ADMIN_ROLES }
+            ].filter(l => l.roles.includes(u.role));
+
+            document.getElementById('quickLinks').innerHTML = links.map(l => `
+                <a class="card-feature" href="${l.href}">
+                    <h3>${Mgmt.esc(l.title)}</h3>
+                    <p>${Mgmt.esc(l.text)}</p>
+                    <span class="link-arrow">Open</span>
+                </a>`).join('');
+        }
+    })();
+</script>
+</body>
+</html>

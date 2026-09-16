@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Administration · Grand Horizon Hotel</title>
+    <script>
+        // /management/ → dashboard if signed in, otherwise the sign-in page
+        (function () {
+            let signedIn = false;
+            try { signedIn = !!sessionStorage.getItem('mgmt.userId'); } catch (e) { /* ignore */ }
+            location.replace(signedIn ? 'dashboard.html' : 'login.html');
+        })();
+    </script>
+</head>
+<body>
+    <p><a href="login.html">Continue to administration sign in</a></p>
+</body>
+</html>

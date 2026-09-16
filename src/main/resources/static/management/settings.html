@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Settings · Grand Horizon Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/management.css">
+</head>
+<body>
+
+<div id="chrome"></div>
+
+<main id="pageBody">
+    <section class="page-hero">
+        <div id="heroOrnament"></div>
+        <p class="eyebrow">Administration</p>
+        <h1 class="page-title">System Settings</h1>
+        <p class="page-lead">Hotel details, pricing and stay policies used across the system. Changes are checked before they are saved.</p>
+    </section>
+
+    <div class="container section">
+        <div id="pageAlert"></div>
+        <form id="settingsForm" novalidate>
+            <div id="settingsArea"><div class="skeleton" style="height:420px"></div></div>
+        </form>
+    </div>
+
+    <div class="save-bar" id="saveBar">
+        <div class="container">
+            <span id="changeCount">0 unsaved changes</span>
+            <div style="display:flex;gap:10px">
+                <button class="btn" type="button" id="discardBtn">Discard</button>
+                <button class="btn btn-primary" type="submit" form="settingsForm" id="saveBtn">Save changes</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div id="footer"></div>
+
+<script src="js/management.js"></script>
+<script>
+    (async function () {
+        const me = await Mgmt.init({ page: 'settings', roles: Mgmt.ADMIN_ROLES });
+        if (!me) return;
+        document.getElementById('heroOrnament').innerHTML = Mgmt.ORNAMENT;
+
+        // How each setting is shown. Keys match SystemSettingsService on the server.
+        const GROUPS = [
+            { title: 'Hotel details', note: 'Shown to guests and on invoices', keys: ['hotel.name', 'hotel.email', 'hotel.phone', 'hotel.address'] },
+            { title: 'Pricing', note: 'Applied to prices and bills', keys: ['currency', 'tax.rate'] },
+            { title: 'Stay policies', note: 'Check-in, check-out and cancellation rules', keys: ['checkin.time', 'checkout.time', 'cancellation.hours'] }
+        ];
+        const FIELDS = {
+            'hotel.name': { label: 'Hotel name', type: 'text', attrs: 'maxlength="100"' },
+            'hotel.email': { label: 'Contact email', type: 'email', attrs: 'maxlength="255"' },
+            'hotel.phone': { label: 'Reception phone', type: 'tel', attrs: 'maxlength="21"' },
+            'hotel.address': { label: 'Postal address', type: 'text', attrs: 'maxlength="255"' },
+            'currency': { label: 'Currency code', type: 'text', attrs: 'maxlength="3" style="text-transform:uppercase"' },
+            'tax.rate': { label: 'Tax rate (%)', type: 'number', attrs: 'min="0" max="100" step="0.01"' },
+            'checkin.time': { label: 'Check-in time', type: 'time', attrs: '' },
+            'checkout.time': { label: 'Check-out time', type: 'time', attrs: '' },
+            'cancellation.hours': { label: 'Free cancellation window (hours)', type: 'number', attrs: 'min="0" max="720" step="1"' }
+        };
+
+        let original = {};
+        const area = document.getElementById('settingsArea');
+        const form = document.getElementById('settingsForm');
+        const saveBar = document.getElementById('saveBar');
+        const pageAlert = document.getElementById('pageAlert');
+
+        document.getElementById('discardBtn').addEventListener('click', () => { render(lastSettings); pageAlert.innerHTML = ''; });
+        form.addEventListener('submit', save);
+        window.addEventListener('beforeunload', e => { if (changes().length) { e.preventDefault(); e.returnValue = ''; } });
+
+        let lastSettings = [];
+        load();
+
+        async function load() {
+            try {
+                lastSettings = await Mgmt.api('/api/admin/settings');
+                render(lastSettings);
+            } catch (err) {
+                area.innerHTML = Mgmt.errorState(err.message);
+                area.querySelector('[data-retry]').addEventListener('click', load);
+            }
+        }
+
+        function render(settings) {
+            original = Object.fromEntries(settings.map(s => [s.key, s.value]));
+            const byKey = Object.fromEntries(settings.map(s => [s.key, s]));
+            const known = new Set(GROUPS.flatMap(g => g.keys));
+            const extra = settings.filter(s => !known.has(s.key));
+            const groups = extra.length ? [...GROUPS, { title: 'Other', note: '', keys: extra.map(s => s.key) }] : GROUPS;
+
+            area.innerHTML = groups.map(g => `
+                <section class="card settings-group">
+                    <div class="section-head" style="margin-bottom:4px">
+                        <div>
+                            <h2 class="section-title">${Mgmt.esc(g.title)}</h2>
+                            <p class="section-note">${Mgmt.esc(g.note)}</p>
+                        </div>
+                    </div>
+                    ${g.keys.filter(k => byKey[k]).map(k => row(byKey[k])).join('')}
+                </section>`).join('');
+
+            area.querySelectorAll('[data-setting]').forEach(input => input.addEventListener('input', updateDirty));
+            area.querySelectorAll('[data-reset]').forEach(btn => btn.addEventListener('click', () => resetSetting(btn.dataset.reset)));
+            updateDirty();
+        }
+
+        function row(s) {
+            const f = FIELDS[s.key] || { label: s.key, type: 'text', attrs: '' };
+            const id = 'set-' + s.key.replace(/\W/g, '-');
+            return `
+                <div class="setting-row" data-row="${Mgmt.esc(s.key)}">
+                    <div>
+                        <label class="setting-name" for="${id}">${Mgmt.esc(f.label)}</label>
+                        <div class="setting-key">${Mgmt.esc(s.key)}</div>
+                        <div class="setting-desc">${Mgmt.esc(s.description || '')}</div>
+                    </div>
+                    <div>
+                        <input class="input" id="${id}" type="${f.type}" ${f.attrs} data-setting="${Mgmt.esc(s.key)}" value="${Mgmt.esc(s.value)}">
+                        <div class="setting-meta">Last updated ${Mgmt.dateTime(s.updatedAt)}</div>
+                    </div>
+                    <div><button class="icon-btn" type="button" data-reset="${Mgmt.esc(s.key)}" title="Restore the default value">Reset</button></div>
+                </div>`;
+        }
+
+        function changes() {
+            return [...area.querySelectorAll('[data-setting]')]
+                .filter(i => i.value !== original[i.dataset.setting])
+                .map(i => i.dataset.setting);
+        }
+
+        function updateDirty() {
+            const changed = changes();
+            area.querySelectorAll('[data-row]').forEach(r => r.classList.toggle('changed', changed.includes(r.dataset.row)));
+            area.querySelectorAll('.input.invalid').forEach(i => { if (!changed.includes(i.dataset.setting)) i.classList.remove('invalid'); });
+            saveBar.classList.toggle('show', changed.length > 0);
+            document.getElementById('changeCount').textContent = `${changed.length} unsaved change${changed.length === 1 ? '' : 's'}`;
+        }
+
+        // Step 12: send only changed values; the server validates all of them and saves nothing if one is invalid
+        async function save(event) {
+            event.preventDefault();
+            const changed = changes();
+            if (!changed.length) return;
+            const body = {};
+            changed.forEach(k => {
+                let v = area.querySelector(`[data-setting="${CSS.escape(k)}"]`).value;
+                if (k === 'currency') v = v.toUpperCase();
+                body[k] = v;
+            });
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            pageAlert.innerHTML = '';
+            try {
+                lastSettings = await Mgmt.api('/api/admin/settings', { method: 'PUT', body });
+                render(lastSettings);
+                Mgmt.applyBranding(lastSettings);
+                pageAlert.innerHTML = Mgmt.alertBox('success', `${changed.length} setting${changed.length === 1 ? '' : 's'} saved.`);
+                Mgmt.toast('Settings saved');
+            } catch (err) {
+                pageAlert.innerHTML = Mgmt.alertBox('error', err.message);
+                // Highlight the inputs the server complained about
+                changed.forEach(k => {
+                    const input = area.querySelector(`[data-setting="${CSS.escape(k)}"]`);
+                    input.classList.toggle('invalid', err.message.includes(k + ' '));
+                });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } finally {
+                saveBtn.disabled = false;
+            }
+        }
+
+        async function resetSetting(key) {
+            const label = (FIELDS[key] || {}).label || key;
+            const ok = await Mgmt.confirmDialog({
+                title: 'Reset setting',
+                message: `Restore “${label}” to its default value?`,
+                confirmLabel: 'Reset'
+            });
+            if (!ok) return;
+            // Keep other unsaved edits
+            const pending = Object.fromEntries(changes().filter(k => k !== key)
+                .map(k => [k, area.querySelector(`[data-setting="${CSS.escape(k)}"]`).value]));
+            try {
+                lastSettings = await Mgmt.api(`/api/admin/settings/${encodeURIComponent(key)}/reset`, { method: 'PUT' });
+                render(lastSettings);
+                Object.entries(pending).forEach(([k, v]) => { area.querySelector(`[data-setting="${CSS.escape(k)}"]`).value = v; });
+                updateDirty();
+                Mgmt.applyBranding(lastSettings);
+                Mgmt.toast(`${label} reset to default`);
+            } catch (err) {
+                Mgmt.toast(err.message, 'error');
+            }
+        }
+    })();
+</script>
+</body>
+</html>

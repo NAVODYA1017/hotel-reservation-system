@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revenue Report · Grand Horizon Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/management.css">
+</head>
+<body>
+
+<div id="chrome"></div>
+
+<main id="pageBody">
+    <section class="page-hero">
+        <div id="heroOrnament"></div>
+        <p class="eyebrow"><a href="reports.html" style="color:inherit">Reports</a> / Revenue</p>
+        <h1 class="page-title">Revenue Report</h1>
+        <p class="page-lead" id="periodLabel">Payments received, refunds and net revenue.</p>
+    </section>
+
+    <div class="container section">
+        <form class="filter-bar" id="filterForm" novalidate>
+            <div class="field">
+                <label for="from">From</label>
+                <input class="input" type="date" id="from" name="from" required>
+            </div>
+            <div class="field">
+                <label for="to">To</label>
+                <input class="input" type="date" id="to" name="to" required>
+            </div>
+            <div class="field">
+                <span class="label">Quick periods</span>
+                <div class="presets">
+                    <button type="button" class="preset" data-preset="this-month">This month</button>
+                    <button type="button" class="preset" data-preset="last-month">Last month</button>
+                    <button type="button" class="preset" data-preset="last-30">Last 30 days</button>
+                    <button type="button" class="preset" data-preset="this-year">This year</button>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-primary" type="submit">Generate</button>
+            </div>
+        </form>
+
+        <div id="reportArea" style="margin-top:24px"></div>
+    </div>
+</main>
+
+<div id="footer"></div>
+
+<script src="js/management.js"></script>
+<script>
+    (async function () {
+        const user = await Mgmt.init({ page: 'reports', roles: Mgmt.REPORT_ROLES });
+        if (!user) return;
+        document.getElementById('heroOrnament').innerHTML = Mgmt.ORNAMENT;
+
+        const form = document.getElementById('filterForm');
+        const fromInput = document.getElementById('from');
+        const toInput = document.getElementById('to');
+        const presetButtons = document.querySelectorAll('[data-preset]');
+        const area = document.getElementById('reportArea');
+        let lastReport = null;
+
+        const params = new URLSearchParams(location.search);
+        const [defFrom, defTo] = Mgmt.presetRange('this-month').map(Mgmt.isoDate);
+        fromInput.value = params.get('from') || defFrom;
+        toInput.value = params.get('to') || defTo;
+
+        presetButtons.forEach(btn => btn.addEventListener('click', () => {
+            const [s, e] = Mgmt.presetRange(btn.dataset.preset);
+            fromInput.value = Mgmt.isoDate(s);
+            toInput.value = Mgmt.isoDate(e);
+            presetButtons.forEach(b => b.classList.toggle('active', b === btn));
+            generate();
+        }));
+        [fromInput, toInput].forEach(i => i.addEventListener('input', () => presetButtons.forEach(b => b.classList.remove('active'))));
+        form.addEventListener('submit', e => { e.preventDefault(); generate(); });
+
+        generate();
+
+        async function generate() {
+            const from = fromInput.value, to = toInput.value;
+            if (!from || !to) {
+                area.innerHTML = Mgmt.alertBox('error', 'Choose both a start and an end date.');
+                return;
+            }
+            history.replaceState(null, '', `?from=${from}&to=${to}`);
+            area.innerHTML = `<div class="grid grid-4">${'<div class="skeleton" style="height:110px"></div>'.repeat(4)}</div>
+                              <div class="skeleton" style="height:320px;margin-top:20px"></div>`;
+            try {
+                const report = await Mgmt.api(`/api/admin/reports/revenue?from=${from}&to=${to}`);
+                lastReport = report;
+                render(report);
+            } catch (err) {
+                if (err.status === 400) {
+                    area.innerHTML = Mgmt.alertBox('error', err.message);
+                } else {
+                    // Extension 8a
+                    area.innerHTML = Mgmt.errorState(err.message, 'Retry report');
+                    area.querySelector('[data-retry]').addEventListener('click', generate);
+                }
+            }
+        }
+
+        function render(r) {
+            document.getElementById('periodLabel').textContent =
+                `${Mgmt.date(r.fromDate)} – ${Mgmt.date(r.toDate)} · generated ${Mgmt.dateTime(r.generatedAt)}`;
+
+            // Extension 6a
+            if (!r.payments || r.payments.length === 0) {
+                area.innerHTML = Mgmt.emptyState('No payments in this period', r.message);
+                return;
+            }
+
+            area.innerHTML = `
+                <div class="section-head no-print">
+                    <p class="section-note">${Mgmt.esc(r.message)}</p>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap">
+                        <button class="btn" type="button" id="csvBtn">Export CSV</button>
+                        <button class="btn" type="button" onclick="window.print()">Print</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-4">
+                    <div class="hero-figure" style="grid-column: span 2">
+                        <div>
+                            <div class="stat-label">Net revenue</div>
+                            <div class="hero-value">${Mgmt.money(r.netRevenue)}</div>
+                        </div>
+                        <div class="hero-split">
+                            <div><strong>${Mgmt.money(r.grossRevenue)}</strong>Gross collected</div>
+                            <div><strong>${Mgmt.money(r.refundedAmount)}</strong>Refunded</div>
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Successful payments</div>
+                        <div class="stat-value">${Mgmt.number(r.successfulPayments)}</div>
+                        <div class="stat-foot">${Mgmt.number(r.refundedPayments)} refunded</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Average payment</div>
+                        <div class="stat-value">${Mgmt.money(r.averagePaymentValue)}</div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top:20px">
+                    <h3 class="card-title">Daily net revenue</h3>
+                    <p class="card-sub">Successful payments per day, ${Mgmt.esc(Mgmt.date(r.fromDate))} – ${Mgmt.esc(Mgmt.date(r.toDate))}</p>
+                    <div id="chartDaily"></div>
+                </div>
+
+                <div class="grid grid-2" style="margin-top:20px">
+                    <div class="card">
+                        <h3 class="card-title">Net revenue by payment method</h3>
+                        <p class="card-sub">Card, cash and bank transfer</p>
+                        <div id="chartMethod"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Net revenue by booking type</h3>
+                        <p class="card-sub">Rooms compared with event halls</p>
+                        <div id="chartType"></div>
+                    </div>
+                </div>
+
+                <div class="section-head" style="margin-top:36px">
+                    <h2 class="section-title">Payment details</h2>
+                    <p class="section-note">${Mgmt.plural(r.payments.length, 'payment')}</p>
+                </div>
+                <div class="table-wrap">
+                    <table class="data">
+                        <thead>
+                            <tr><th>Payment</th><th>Reservation</th><th>Guest</th><th>Paid at</th><th>Method</th><th>Status</th><th class="num">Amount</th></tr>
+                        </thead>
+                        <tbody>
+                            ${r.payments.map(p => `
+                                <tr>
+                                    <td class="muted">#${Mgmt.esc(p.id)}</td>
+                                    <td>#${Mgmt.esc(p.reservationId)}</td>
+                                    <td class="cell-main">${Mgmt.esc(p.customerName)}</td>
+                                    <td>${Mgmt.dateTime(p.paidAt)}</td>
+                                    <td>${Mgmt.esc(Mgmt.titleCase(p.method))}</td>
+                                    <td>${Mgmt.statusBadge(p.status)}</td>
+                                    <td class="num">${Mgmt.money(p.amount)}</td>
+                                </tr>`).join('')}
+                        </tbody>
+                        <tfoot>
+                            <tr><td colspan="6">Net revenue</td><td class="num">${Mgmt.money(r.netRevenue)}</td></tr>
+                        </tfoot>
+                    </table>
+                </div>`;
+
+            renderDaily(r);
+            const moneyShort = v => Mgmt.money(v, { compact: true });
+            Mgmt.hbarChart(document.getElementById('chartMethod'),
+                Object.entries(r.revenueByPaymentMethod || {}).map(([k, v]) => ({ label: Mgmt.titleCase(k), value: v })),
+                { format: moneyShort });
+            Mgmt.hbarChart(document.getElementById('chartType'),
+                Object.entries(r.revenueByBookingType || {}).map(([k, v]) => ({ label: k === 'ROOM' ? 'Rooms' : 'Event halls', value: v })),
+                { format: moneyShort });
+
+            document.getElementById('csvBtn').addEventListener('click', exportCsv);
+        }
+
+        // Fill every day of the period (missing days = 0) so gaps in trading are visible
+        function renderDaily(r) {
+            const container = document.getElementById('chartDaily');
+            const start = new Date(r.fromDate + 'T00:00:00');
+            const end = new Date(r.toDate + 'T00:00:00');
+            const days = Math.round((end - start) / 86400000) + 1;
+            const daily = r.dailyRevenue || {};
+
+            if (days > 120) {
+                // Long periods: group by month so columns stay readable
+                const months = {};
+                Object.entries(daily).forEach(([day, v]) => {
+                    const key = day.slice(0, 7);
+                    months[key] = (months[key] || 0) + Number(v);
+                });
+                const points = [];
+                const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+                while (cursor <= end) {
+                    const key = Mgmt.isoDate(cursor).slice(0, 7);
+                    points.push({
+                        label: cursor.toLocaleDateString('en-GB', { month: 'short' }),
+                        tooltipLabel: cursor.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }),
+                        value: months[key] || 0
+                    });
+                    cursor.setMonth(cursor.getMonth() + 1);
+                }
+                container.previousElementSibling.textContent = 'Successful payments per month';
+                Mgmt.columnChart(container, points, { format: v => Mgmt.money(v), tickFormat: v => Mgmt.money(v, { compact: true }) });
+                return;
+            }
+
+            const points = [];
+            for (let i = 0; i < days; i++) {
+                const d = new Date(start);
+                d.setDate(start.getDate() + i);
+                const key = Mgmt.isoDate(d);
+                points.push({
+                    label: d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+                    tooltipLabel: d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }),
+                    value: daily[key] || 0
+                });
+            }
+            Mgmt.columnChart(container, points, { format: v => Mgmt.money(v), tickFormat: v => Mgmt.money(v, { compact: true }) });
+        }
+
+        function exportCsv() {
+            if (!lastReport) return;
+            const rows = lastReport.payments.map(p => [p.id, p.reservationId, p.customerName, p.paidAt, p.method, p.status, p.amount]);
+            rows.push([], ['Gross revenue', '', '', '', '', '', lastReport.grossRevenue],
+                ['Refunded', '', '', '', '', '', lastReport.refundedAmount],
+                ['Net revenue', '', '', '', '', '', lastReport.netRevenue]);
+            Mgmt.downloadCsv(`revenue-report_${lastReport.fromDate}_${lastReport.toDate}.csv`,
+                ['Payment ID', 'Reservation ID', 'Guest', 'Paid at', 'Method', 'Status', 'Amount'], rows);
+        }
+    })();
+</script>
+</body>
+</html>

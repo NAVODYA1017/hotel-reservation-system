@@ -1,64 +1,27 @@
 package com.hotel.reservationsystem.service;
 
+import com.hotel.reservationsystem.dto.InvoiceResponse;
 import com.hotel.reservationsystem.entity.Invoice;
 import com.hotel.reservationsystem.entity.Payment;
-import com.hotel.reservationsystem.exception.ResourceNotFoundException;
-import com.hotel.reservationsystem.repository.InvoiceRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
 
-@Service
-public class InvoiceService {
+/**
+ * UC-05 – Process Payment and Generate Invoice.
+ * Main Scenario step 9: "System generates an itemized invoice."
+ * Extension: step 11, "Customer views or downloads the invoice."
+ */
+public interface InvoiceService {
 
-    @Autowired
-    private InvoiceRepository invoiceRepository;
+    /** Called by PaymentServiceImpl immediately after a payment succeeds. */
+    Invoice generateInvoice(Payment payment);
 
-    /**
-     * Called by PaymentService right after a payment is recorded as SUCCESS.
-     * Generates a unique invoice number in the format INV-yyyyMMdd-001.
-     */
-    public Invoice generateInvoice(Payment payment) {
-        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String prefix = "INV-" + datePart + "-";
+    InvoiceResponse getInvoiceByNumber(String invoiceNumber);
 
-        long countToday = invoiceRepository.countByInvoiceNumberStartingWith(prefix);
-        String sequence = String.format("%03d", countToday + 1);
-        String invoiceNumber = prefix + sequence;
+    List<InvoiceResponse> getInvoicesForReservation(Long reservationId);
 
-        Invoice invoice = new Invoice();
-        invoice.setPayment(payment);
-        invoice.setInvoiceNumber(invoiceNumber);
+    List<InvoiceResponse> getInvoicesForCustomer(Long customerId);
 
-        Invoice saved = invoiceRepository.save(invoice);
-
-        // issuedAt is DB-generated (insertable = false), so re-fetch to get its real value
-        return invoiceRepository.findById(saved.getId()).orElse(saved);
-    }
-
-    public Invoice getInvoiceById(Long id) {
-        return invoiceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + id));
-    }
-
-    public Invoice getInvoiceByPaymentId(Long paymentId) {
-        return invoiceRepository.findByPaymentId(paymentId)
-                .orElseThrow(() -> new ResourceNotFoundException("No invoice found for payment id: " + paymentId));
-    }
-
-    /**
-     * DELETE - used directly (admin correcting a mistake) and internally by
-     * PaymentService.deletePayment() to satisfy the invoices.payment_id FK
-     * constraint before the payment row itself is removed.
-     */
-    public void deleteInvoiceByPaymentId(Long paymentId) {
-        invoiceRepository.findByPaymentId(paymentId).ifPresent(invoiceRepository::delete);
-    }
-
-    public void deleteInvoiceById(Long id) {
-        Invoice invoice = getInvoiceById(id);
-        invoiceRepository.delete(invoice);
-    }
+    /** Renders a printable PDF for "View/Download Invoice". */
+    byte[] generateInvoicePdf(String invoiceNumber);
 }

@@ -1,51 +1,63 @@
 package com.hotel.reservationsystem.controller;
 
+import com.hotel.reservationsystem.dto.ApiResponse;
 import com.hotel.reservationsystem.dto.PaymentRequest;
 import com.hotel.reservationsystem.dto.PaymentResponse;
 import com.hotel.reservationsystem.dto.RefundRequest;
-import com.hotel.reservationsystem.entity.Payment;
 import com.hotel.reservationsystem.service.PaymentService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
+/**
+ * UC-05 – Process Payment and Generate Invoice.
+ * REST surface consumed by the React "Payment & Billing" module.
+ */
 @RestController
 @RequestMapping("/api/payments")
+@RequiredArgsConstructor
 public class PaymentController {
 
-    @Autowired
-    private PaymentService paymentService;
+    private final PaymentService paymentService;
 
-    // POST http://localhost:8080/api/payments
+    /** Step 4-9: customer submits payment for a reservation. */
     @PostMapping
-    public ResponseEntity<PaymentResponse> makePayment(@RequestBody PaymentRequest request) {
-        Payment payment = paymentService.makePayment(
-                request.getReservationId(),
-                request.getAmount(),
-                request.getMethod()
-        );
-        return ResponseEntity.status(HttpStatus.CREATED).body(PaymentResponse.fromEntity(payment));
+    public ResponseEntity<ApiResponse<PaymentResponse>> makePayment(@Valid @RequestBody PaymentRequest request) {
+        PaymentResponse response = paymentService.processPayment(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok("Payment processed successfully.", response));
     }
 
-    // GET http://localhost:8080/api/payments/1
-    @GetMapping("/{id}")
-    public PaymentResponse getPayment(@PathVariable Long id) {
-        return PaymentResponse.fromEntity(paymentService.getPaymentById(id));
+    @GetMapping("/{paymentId}")
+    public ResponseEntity<ApiResponse<PaymentResponse>> getPayment(@PathVariable Long paymentId) {
+        return ResponseEntity.ok(ApiResponse.ok("Payment retrieved.", paymentService.getPaymentById(paymentId)));
     }
 
-    // GET http://localhost:8080/api/payments/reservation/1
     @GetMapping("/reservation/{reservationId}")
-    public PaymentResponse getPaymentByReservation(@PathVariable Long reservationId) {
-        return PaymentResponse.fromEntity(paymentService.getPaymentByReservationId(reservationId));
+    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getByReservation(@PathVariable Long reservationId) {
+        return ResponseEntity.ok(ApiResponse.ok("Payments retrieved.",
+                paymentService.getPaymentsForReservation(reservationId)));
     }
 
-    // PUT http://localhost:8080/api/payments/1/refund
-    @PutMapping("/{id}/refund")
-    public PaymentResponse refundPayment(@PathVariable Long id,
-                                         @RequestBody(required = false) RefundRequest request) {
-        String reason = request != null ? request.getReason() : null;
-        return PaymentResponse.fromEntity(paymentService.refundPayment(id, reason));
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getByCustomer(@PathVariable Long customerId) {
+        return ResponseEntity.ok(ApiResponse.ok("Payment history retrieved.",
+                paymentService.getPaymentsForCustomer(customerId)));
+    }
 
+    /** Receptionist / Hotel Manager view of every payment in the system. */
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getAllPayments() {
+        return ResponseEntity.ok(ApiResponse.ok("All payments retrieved.", paymentService.getAllPayments()));
+    }
+
+    /** Extension 10a: authorized staff issues a refund. */
+    @PostMapping("/refund")
+    public ResponseEntity<ApiResponse<PaymentResponse>> refund(@Valid @RequestBody RefundRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok("Refund processed.", paymentService.refundPayment(request)));
     }
 }

@@ -174,7 +174,7 @@ public class ReservationService {
             if (isBooked) {
                 throw new RuntimeException("Room is already booked for these new dates");
             }
-            
+
             // Recalculate total amount
             long nights = java.time.temporal.ChronoUnit.DAYS.between(request.getCheckIn(), request.getCheckOut());
             reservation.setTotalAmount(reservation.getRoom().getPrice().multiply(java.math.BigDecimal.valueOf(nights)));
@@ -182,7 +182,7 @@ public class ReservationService {
 
         reservation.setCheckIn(request.getCheckIn());
         reservation.setCheckOut(request.getCheckOut());
-        
+
         Reservation saved = reservationRepository.save(reservation);
         return mapToResponse(saved);
     }

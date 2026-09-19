@@ -1,16 +1,20 @@
 package com.hotel.reservationsystem.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
+/**
+ * Shared foundation entity (UC-03: Manage Event Halls and Packages).
+ * Kept here so the Payment & Billing module (UC-05) can compile and run
+ * standalone; owned/maintained by the Event Hall & Package Management member.
+ */
 @Entity
 @Table(name = "packages")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Package {
@@ -19,16 +23,15 @@ public class Package {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "hall_id", nullable = false)
-    private EventHall hall;
-
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 255)
     private String description;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
+
+    @Column(length = 255)
+    private String servicesIncluded;
 }

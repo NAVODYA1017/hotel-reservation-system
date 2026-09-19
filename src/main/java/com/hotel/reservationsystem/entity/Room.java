@@ -1,17 +1,22 @@
 package com.hotel.reservationsystem.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hotel.reservationsystem.entity.enums.RoomStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
+/**
+ * Shared foundation entity (UC-02: Manage Hotel Rooms).
+ * Kept here so the Payment & Billing module (UC-05) can compile and run
+ * standalone; owned/maintained by the Room Management member.
+ */
 @Entity
 @Table(name = "rooms")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Room {
@@ -20,19 +25,28 @@ public class Room {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "room_number", nullable = false, unique = true, length = 20)
+    @Column(nullable = false, unique = true, length = 20)
     private String roomNumber;
 
-    @Column(name = "room_type", nullable = false, length = 50)
+    @Column(nullable = false, length = 50)
     private String roomType;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+    private BigDecimal pricePerNight;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private RoomStatus status;
+    @Column(nullable = false, length = 20)
+    private RoomStatus status = RoomStatus.AVAILABLE;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 255)
     private String description;
+
+    private int capacity;
+
+    /** Alias for UC-04 (ReservationService), which reads this as "price". */
+    @Transient
+    @JsonIgnore
+    public BigDecimal getPrice() {
+        return pricePerNight;
+    }
 }

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regent Suite — The Regent Court</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Manrope:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+  <div th:replace="~{fragments/layout :: header(active='venues')}"></div>
+
+  <section style="padding-top:150px;">
+    <div class="wrap">
+      <div class="eyebrow" style="margin-bottom:14px;"
+        th:text="${venue.capacity >= 120 ? 'Event Venue' : (venue.capacity >= 4 ? 'Suite' : 'Room')}">Suite</div>
+      <div class="venue-hero-media"
+        th:style="${venue.imageUrl != null} ? 'background-image:url(' + venue.imageUrl + ');background-size:cover;' : ''">
+        <span id="venueName" th:if="${venue.imageUrl == null}" th:text="${venue.hallName}">Regent Suite</span>
+      </div>
+
+      <div class="venue-detail-grid">
+        <div>
+          <h2 style="font-size:36px;" th:text="${venue.hallName}">Regent Suite</h2>
+          <p style="color:var(--ivory-dim);margin-top:16px;line-height:1.7;font-size:15px;max-width:560px;"
+            th:text="${venue.description}">
+            A panoramic corner suite overlooking the garden pavilion, finished in warm brass and stone tones.
+            Ideal for wedding parties or guests who want direct access to the Sky Terrace event space.
+          </p>
+
+          <div class="venue-facts">
+            <div class="venue-fact">
+              <div class="k">Capacity</div>
+              <div class="v" th:text="${venue.capacity + ' guests'}">4 guests</div>
+            </div>
+            <div class="venue-fact">
+              <div class="k">View</div>
+              <div class="v" th:text="${venue.capacity >= 120 ? 'Event Hall' : 'Panoramic'}">Panoramic</div>
+            </div>
+            <div class="venue-fact">
+              <div class="k">Size</div>
+              <div class="v" th:text="${venue.capacity >= 120 ? '120 m²' : '62 m²'}">62 m²</div>
+            </div>
+            <div class="venue-fact">
+              <div class="k">Type</div>
+              <div class="v" th:text="${venue.capacity >= 120 ? 'Banquet' : 'Premium'}">King + Sofa Bed</div>
+            </div>
+          </div>
+
+          <h3 style="font-size:18px;margin-top:36px;margin-bottom:14px;">Amenities</h3>
+          <p style="color:var(--ivory-dim);font-size:14px;line-height:2;"
+            th:text="${venue.capacity >= 120 ? 'Professional audio setup · Advanced lighting · Customizable seating layout · Dedicated planner service' : 'Private terrace · Rain shower · Nespresso bar · Turndown service · Complimentary Wi-Fi · Minibar'}">
+            Private terrace · Rain shower · Nespresso bar · Turndown service · Complimentary Wi-Fi · Minibar
+          </p>
+        </div>
+
+        <div class="venue-sidebar">
+          <h3 style="font-size:18px;margin-bottom:6px;">
+            <span th:text="${'$' + (venue.capacity >= 120 ? (venue.capacity == 120 ? 1100 : 1800) : 640)}">$540</span>
+            <span style="font-size:13px;color:var(--ivory-dim);font-family:'Manrope',sans-serif;"
+              th:text="${venue.capacity >= 120 ? ' / event' : ' / night'}">/ night</span>
+          </h3>
+          <p class="field-hint" style="margin-bottom:20px;"
+            th:text="${'Includes access for up to ' + venue.capacity + ' attendees'}">Includes breakfast for up to 4
+            guests</p>
+          <a th:href="@{/bookings/new(venueId=${venue.venueId})}" class="submit-btn"
+            style="display:block;text-align:center;text-decoration:none;">Book Now</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div th:replace="~{fragments/layout :: footer}"></div>
+
+  <script src="/js/script.js"></script>
+</body>
+
+</html>

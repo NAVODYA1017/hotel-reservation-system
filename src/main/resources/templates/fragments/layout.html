@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ============ HEADER ============ -->
+<header th:fragment="header(active)">
+  <div class="wrap">
+    <div class="brand">
+      <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;">
+        <div class="brand-mark">R</div>
+        <div class="brand-name">The Regent Court</div>
+      </a>
+    </div>
+    <nav id="mainNav">
+      <a th:classappend="${active == 'venues'} ? 'active'" href="/venues">Rooms &amp; Venues</a>
+      <a th:classappend="${active == 'select'} ? 'active'" href="/requirements">Occasions</a>
+      <a th:classappend="${active == 'search'} ? 'active'" href="/reservation/search">Reserve</a>
+      <a th:classappend="${active == 'bookings'} ? 'active'" href="/my-bookings">My Bookings</a>
+      <th:block th:if="${session.currentUser == null}">
+        <a th:classappend="${active == 'login'} ? 'active'" href="/auth/login">Sign In</a>
+      </th:block>
+      <th:block th:if="${session.currentUser != null}">
+        <span class="user-greeting" th:text="${session.currentUser.name}"></span>
+        <a href="/auth/logout">Sign Out</a>
+      </th:block>
+      <a class="nav-cta" href="/reservation/search">Book Now</a>
+    </nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+  </div>
+</header>
+
+<!-- ============ FOOTER ============ -->
+<footer th:fragment="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h4>The Regent Court</h4>
+        <p>142 Marine Drive<br>Colombo, Sri Lanka</p>
+      </div>
+      <div>
+        <h4>Reservations</h4>
+        <a href="tel:+94112345678">+94 11 234 5678</a>
+        <a href="mailto:events@regentcourt.example">events@regentcourt.example</a>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <a href="/venues">Rooms &amp; Venues</a>
+        <a href="/requirements">Occasions</a>
+        <a href="/reservation/search">Reserve</a>
+        <a href="/admin/bookings">Admin</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 The Regent Court. SLIIT SE2030 group project — no real bookings are made.</span>
+      <span>Special Event Hotel Reservation System</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

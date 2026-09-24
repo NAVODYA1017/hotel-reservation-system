@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room & Hall Management - Ceylon Sanctuary</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Lato:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/room-admin/style.css">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand">Ceylon Sanctuary<br><span style="font-size:12px; font-family:'Lato', sans-serif; font-weight:300; letter-spacing:1px">Admin Dashboard</span></div>
+        <ul class="sidebar-menu">
+            <li>Dashboard</li>
+            <li>Manage Reservations</li>
+            <li class="active">Rooms & Halls</li>
+            <li>Customers</li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h1>Room & Hall Management (UC-02)</h1>
+            <button class="btn-primary" onclick="openNewModal()">+ Add New Room / Hall</button>
+        </div>
+
+        <div class="filter-bar">
+            <div class="field">
+                <label>Minimum Capacity</label>
+                <input type="number" id="filterCapacity" min="0" step="1" value="0">
+            </div>
+            <button class="btn-secondary" onclick="fetchRooms()">Apply Filter</button>
+            <button class="btn-secondary" onclick="resetFilter()">Reset</button>
+        </div>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>ID</th>
+                        <th>Hall Name</th>
+                        <th>Capacity</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr class="empty-row"><td colspan="7">Loading rooms...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add / Edit Modal -->
+    <div class="modal-overlay" id="roomModal">
+        <div class="modal">
+            <button class="close" onclick="closeModal()">&times;</button>
+            <h2 id="modalTitle">Add New Room / Hall</h2>
+            <input type="hidden" id="modalVenueId">
+
+            <div class="form-group">
+                <label>Hall Name *</label>
+                <input type="text" id="modalHallName" maxlength="100" placeholder="e.g. Grand Ballroom">
+                <div class="field-error" id="errHallName">Hall name is required.</div>
+            </div>
+
+            <div class="form-group">
+                <label>Capacity (guests) *</label>
+                <input type="number" id="modalCapacity" min="1" step="1" placeholder="e.g. 150">
+                <div class="field-error" id="errCapacity">Capacity must be a whole number greater than 0.</div>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="modalDescription" maxlength="500" placeholder="Brief description of the space..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Image URL</label>
+                <input type="text" id="modalImageUrl" placeholder="https://...">
+            </div>
+
+            <button class="btn-primary" style="width:100%" onclick="saveRoom()">Save Room</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="/room-admin/script.js"></script>
+</body>
+</html>

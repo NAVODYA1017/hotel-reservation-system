@@ -34,8 +34,8 @@ function CustomerNav() {
       <div className="c-nav-links">
         <button className={`c-nav-link${isActive('/') ? ' active' : ''}`} onClick={() => navigate('/')}>Home</button>
         <button className={`c-nav-link${isActive('/browse') ? ' active' : ''}`} onClick={() => navigate('/browse')}>Browse Rooms</button>
-        <button className="c-nav-link" onClick={() => navigate('/browse#amenities')}>Amenities</button>
-        <button className="c-nav-link" onClick={() => navigate('/browse#about')}>About</button>
+        <button className={`c-nav-link${isActive('/events') ? ' active' : ''}`} onClick={() => navigate('/events')}>Event Halls & Packages</button>
+        <button className="c-nav-link" onClick={() => navigate('/#amenities')}>Amenities</button>
       </div>
 
       <div className="c-nav-actions">

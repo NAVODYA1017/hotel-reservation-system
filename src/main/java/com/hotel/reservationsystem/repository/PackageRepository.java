@@ -1,17 +1,38 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : PackageRepository.java
 // UC   : UC-03 – Manage Event Halls and Packages
+// MEMBER: Panditharathne P. A. T. I. (IT25101982)
 // LAYER: Repository (Data Access Layer)
 //
-// Extends JpaRepository<Package, Long> to get free CRUD methods.
+// WHAT IS A REPOSITORY?
+//   A Spring Data JPA repository that abstracts database queries for
+//   the "packages" table, automatically generating SQL from method signatures.
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.repository;
 
-import com.hotel.reservationsystem.entity.Package;      // Entity this repo manages.
+// ── IMPORT EXPLANATIONS ─────────────────────────────────────────────────
+// Package        – The JPA Entity representing customizable event packages.
+// JpaRepository  – Spring Data framework interface providing full CRUD methods.
+// Repository     – Indicates a Data Access Object component in Spring's hierarchy.
+// Optional       – Container object which may or may not contain a non-null value.
+// ─────────────────────────────────────────────────────────────────────────
+import com.hotel.reservationsystem.entity.Package;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository  // Spring auto-generates the implementation at runtime.
+import java.util.Optional;
+
+@Repository // Spring component that encapsulates storage, retrieval, and search
 public interface PackageRepository extends JpaRepository<Package, Long> {
-    // Inherits: save(), findById(), findAll(), deleteById(), count(), existsById()
+
+    // ─────────────────────────────────────────────────────────────────
+    // CUSTOM QUERY METHODS
+    // ─────────────────────────────────────────────────────────────────
+
+    // existsByNameIgnoreCase → SELECT COUNT(*) > 0 FROM packages WHERE LOWER(name) = LOWER(?)
+    // Implements Extension 11a: "If a package already exists, system prevents duplicate creation."
+    boolean existsByNameIgnoreCase(String name);
+
+    // findByName → SELECT * FROM packages WHERE name = ?
+    Optional<Package> findByName(String name);
 }

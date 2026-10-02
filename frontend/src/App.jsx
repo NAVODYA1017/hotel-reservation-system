@@ -22,6 +22,7 @@ import Checkout    from './pages/customer/Checkout';
 import MyBookings  from './pages/customer/MyBookings';
 import GuestLogin  from './pages/customer/GuestLogin';
 import Profile     from './pages/customer/Profile';
+import BrowseEvents from './pages/customer/BrowseEvents';
 
 /* ═══════════════════════════════════════════
    ADMIN LAYOUT
@@ -183,6 +184,8 @@ function App() {
         {/* ── Customer-facing routes ── */}
         <Route path="/"              element={<Home />} />
         <Route path="/browse"        element={<BrowseRooms />} />
+        <Route path="/events"        element={<BrowseEvents />} />
+        <Route path="/event-halls"   element={<BrowseEvents />} />
         <Route path="/room/:id"      element={<RoomDetail />} />
         <Route path="/checkout"      element={<Checkout />} />
         <Route path="/my-bookings"   element={<MyBookings />} />

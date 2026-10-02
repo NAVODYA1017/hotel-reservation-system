@@ -22,4 +22,17 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     // Find all reservations linked to a specific room
     List<Reservation> findByRoom_Id(Long roomId);
+
+    // ── UC-03 EVENT HALL & PACKAGE CONSTRAINTS (Extension 7b & Open Issue 1) ──
+    // Checks if any reservations are linked to this event hall
+    boolean existsByHall_Id(Long hallId);
+
+    // Checks if any active (non-cancelled) reservations exist for this hall
+    boolean existsByHall_IdAndStatusNot(Long hallId, com.hotel.reservationsystem.entity.enums.ReservationStatus status);
+
+    // Checks if any reservations are linked to this event package
+    boolean existsByEventPackage_Id(Long packageId);
+
+    // Checks if any active (non-cancelled) reservations exist for this package
+    boolean existsByEventPackage_IdAndStatusNot(Long packageId, com.hotel.reservationsystem.entity.enums.ReservationStatus status);
 }

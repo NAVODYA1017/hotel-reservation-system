@@ -1,181 +1,132 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : RoomController.java
-// UC   : UC-02 – Manage Hotel Rooms
-// LAYER: Controller (REST API layer – receives HTTP requests from the
-//        React frontend and delegates business logic to the service/repository)
+// UC   : UC-02 – Manage Hotel Rooms (Teammate 2: Akmal R.N.M.A. - IT25102920)
+// LAYER: Controller (REST API layer – maps HTTP requests to RoomService)
+//
+// WHAT DOES THIS CONTROLLER DO?
+//   Exposes RESTful endpoints for Receptionists and Customers:
+//     - POST   /api/rooms               → Add a new room (Step 5, 9)
+//     - GET    /api/rooms               → List all rooms (Step 4)
+//     - GET    /api/rooms/{id}          → View one room (Step 6)
+//     - PUT    /api/rooms/{id}          → Update room details (Step 7, 9)
+//     - PUT    /api/rooms/{id}/status   → Change availability status (Step 10)
+//     - DELETE /api/rooms/{id}          → Delete a room (Step 5)
+//     - GET    /api/rooms/available     → List currently available rooms (Step 12)
+//     - GET    /api/rooms/status/{status} → Filter rooms by status
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.controller;
 
 // ── IMPORT EXPLANATIONS ─────────────────────────────────────────────────
-// Room             – The JPA entity class that maps to the "rooms" table in MySQL.
-// RoomRepository   – Spring Data JPA interface that provides built-in CRUD
-//                    methods (findAll, findById, save, deleteById) without
-//                    writing any SQL.
-// @Autowired       – Tells Spring to automatically inject (provide) an instance
-//                    of the required dependency (RoomRepository) at runtime.
-//                    This is called "Dependency Injection" (DI).
-// @RestController  – Combines @Controller + @ResponseBody. It tells Spring that
-//                    every method in this class returns data (JSON) directly,
-//                    NOT a view/HTML page.
-// @RequestMapping  – Sets a base URL path for all endpoints in this controller.
-// @GetMapping      – Maps HTTP GET requests to a method.
-// @PostMapping     – Maps HTTP POST requests to a method (used for CREATE).
-// @PutMapping      – Maps HTTP PUT requests to a method (used for UPDATE).
-// @DeleteMapping   – Maps HTTP DELETE requests to a method (used for DELETE).
-// @PathVariable    – Binds a value from the URL path (e.g. /api/rooms/5 → id=5)
-//                    to a method parameter.
-// @RequestBody     – Tells Spring to deserialize (convert) the incoming JSON
-//                    request body into a Java object.
-// ResponseEntity   – Lets us control the full HTTP response: status code,
-//                    headers, and body.
-// HttpStatus       – Enum of HTTP status codes (200 OK, 201 CREATED, 404 NOT FOUND, etc.).
-// List             – Java collection interface for ordered lists of elements.
+// RoomRequest, RoomResponse – DTOs preventing direct exposure of the JPA entity.
+// RoomStatus              – Enum for room status (AVAILABLE, MAINTENANCE, etc.).
+// RoomService             – Service containing business rules and validations.
+// @RestController         – Tells Spring every method returns JSON response data.
+// @RequestMapping         – Base URL path prefix for all endpoints in this class.
+// @GetMapping, @PostMapping, @PutMapping, @DeleteMapping – Standard HTTP verbs.
+// @PathVariable           – Extracts parameters from the URL path (/api/rooms/{id}).
+// @RequestBody            – Deserializes incoming JSON payload into RoomRequest DTO.
+// ResponseEntity          – Encapsulates HTTP status code and body.
+// HttpStatus              – Enum of standard HTTP status codes (200 OK, 201 CREATED, etc.).
 // ─────────────────────────────────────────────────────────────────────────
-import com.hotel.reservationsystem.entity.Room;
+import com.hotel.reservationsystem.dto.RoomRequest;
+import com.hotel.reservationsystem.dto.RoomResponse;
 import com.hotel.reservationsystem.entity.enums.RoomStatus;
-import com.hotel.reservationsystem.repository.RoomRepository;
+import com.hotel.reservationsystem.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
-// @RestController – marks this class as a REST API controller.
-//   → Every public method returns JSON data, not an HTML page.
-//   → Spring automatically serializes return values to JSON using Jackson.
 @RestController
-
-// @RequestMapping("/api/rooms") – all endpoints in this controller start with /api/rooms
-//   → e.g. GET /api/rooms, POST /api/rooms, GET /api/rooms/5
 @RequestMapping("/api/rooms")
 public class RoomController {
 
-    // @Autowired – Spring automatically injects the RoomRepository bean here.
-    //   → We do NOT create it with "new RoomRepository()".
-    //   → Spring creates and manages the lifecycle of all beans (Inversion of Control).
-    @Autowired
-    private RoomRepository roomRepository;
+    @Autowired // Dependency injection of RoomService business layer bean.
+    private RoomService roomService;
 
-    // ══════════════════════════════════════════════════════════════════════
-    // 1. CREATE – Add a new room to the database
-    //    HTTP: POST http://localhost:8080/api/rooms
-    //    Body: { "roomNumber": "103", "roomType": "Suite", "pricePerNight": 25000.00,
-    //            "status": "AVAILABLE", "description": "Ocean view suite", "capacity": 3 }
-    //    Response: 201 CREATED + the saved room object as JSON
-    // ══════════════════════════════════════════════════════════════════════
-    @PostMapping  // Maps POST requests to this method
-    public ResponseEntity<Room> createRoom(@RequestBody Room room) {
-        // @RequestBody – Spring reads the JSON from the request body and
-        //   converts it into a Room Java object (deserialization).
-        // roomRepository.save(room) – JPA's save() method:
-        //   → If the entity has NO id (or id = null), it performs an INSERT (create).
-        //   → If the entity HAS an id, it performs an UPDATE.
-        //   → Returns the saved entity with the auto-generated id populated.
-        Room savedRoom = roomRepository.save(room);
-
-        // ResponseEntity.status(HttpStatus.CREATED) – returns HTTP 201 (Created)
-        //   instead of the default 200 (OK), which is the correct status for
-        //   resource creation as per REST best practices.
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedRoom);
+    // ─────────────────────────────────────────────────────────────────
+    // 1. ADD NEW ROOM – POST /api/rooms
+    // ─────────────────────────────────────────────────────────────────
+    @PostMapping
+    public ResponseEntity<RoomResponse> createRoom(@RequestBody RoomRequest request) {
+        RoomResponse response = roomService.createRoom(request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // 2. READ ALL – Retrieve every room from the database
-    //    HTTP: GET http://localhost:8080/api/rooms
-    //    Response: 200 OK + JSON array of all rooms
-    // ══════════════════════════════════════════════════════════════════════
-    @GetMapping  // Maps GET requests (no path suffix) to this method
-    public List<Room> getAllRooms() {
-        // roomRepository.findAll() – JPA's built-in method that executes:
-        //   SELECT * FROM rooms;
-        //   → Returns a List<Room> containing every row in the rooms table.
-        return roomRepository.findAll();
+    // ─────────────────────────────────────────────────────────────────
+    // 2. LIST ALL ROOMS – GET /api/rooms
+    // ─────────────────────────────────────────────────────────────────
+    @GetMapping
+    public ResponseEntity<List<RoomResponse>> getAllRooms() {
+        List<RoomResponse> rooms = roomService.getAllRooms();
+        return ResponseEntity.ok(rooms);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // 3. READ ONE – Retrieve a single room by its primary key (id)
-    //    HTTP: GET http://localhost:8080/api/rooms/5
-    //    Response: 200 OK + the room JSON, or 404 NOT FOUND if id doesn't exist
-    // ══════════════════════════════════════════════════════════════════════
-    @GetMapping("/{id}")  // {id} is a path variable – value comes from the URL
-    public ResponseEntity<Room> getRoomById(@PathVariable Long id) {
-        // @PathVariable – extracts the {id} value from the URL.
-        //   e.g. GET /api/rooms/5 → id = 5
-        // roomRepository.findById(id) – JPA's built-in method that executes:
-        //   SELECT * FROM rooms WHERE id = ?;
-        //   → Returns an Optional<Room> (may or may not contain a value).
-        // .map(ResponseEntity::ok) – if found, wrap it in HTTP 200 OK.
-        // .orElse(ResponseEntity.notFound().build()) – if NOT found, return HTTP 404.
-        return roomRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    // ─────────────────────────────────────────────────────────────────
+    // 3. GET AVAILABLE ROOMS – GET /api/rooms/available
+    //    Placed BEFORE /{id} so Spring doesn't interpret "available" as an ID!
+    // ─────────────────────────────────────────────────────────────────
+    @GetMapping("/available")
+    public ResponseEntity<List<RoomResponse>> getAvailableRooms() {
+        List<RoomResponse> rooms = roomService.getAvailableRooms();
+        return ResponseEntity.ok(rooms);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    // 4. UPDATE – Modify an existing room's details
-    //    HTTP: PUT http://localhost:8080/api/rooms/5
-    //    Body: { "roomNumber": "103", "roomType": "Suite", "pricePerNight": 28000.00,
-    //            "status": "MAINTENANCE", "description": "Renovated suite", "capacity": 4 }
-    //    Response: 200 OK + the updated room JSON, or 404 NOT FOUND
-    // ══════════════════════════════════════════════════════════════════════
-    @PutMapping("/{id}")  // Maps PUT requests to /api/rooms/{id}
-    public ResponseEntity<Room> updateRoom(@PathVariable Long id, @RequestBody Room roomDetails) {
-        // First, check if the room exists in the database.
-        return roomRepository.findById(id)
-                .map(existingRoom -> {
-                    // Update only the fields that were sent in the request body.
-                    // existingRoom is the current database record.
-                    existingRoom.setRoomNumber(roomDetails.getRoomNumber());
-                    existingRoom.setRoomType(roomDetails.getRoomType());
-                    existingRoom.setPricePerNight(roomDetails.getPricePerNight());
-                    existingRoom.setStatus(roomDetails.getStatus());
-                    existingRoom.setDescription(roomDetails.getDescription());
-                    existingRoom.setCapacity(roomDetails.getCapacity());
-
-                    // roomRepository.save(existingRoom) – because existingRoom already
-                    //   has an id, JPA performs an UPDATE (not an INSERT).
-                    Room updatedRoom = roomRepository.save(existingRoom);
-                    return ResponseEntity.ok(updatedRoom);
-                })
-                // If findById returned empty, return 404 Not Found.
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    // ══════════════════════════════════════════════════════════════════════
-    // 5. DELETE – Remove a room from the database
-    //    HTTP: DELETE http://localhost:8080/api/rooms/5
-    //    Response: 204 NO CONTENT (success, nothing to return), or 404 NOT FOUND
-    // ══════════════════════════════════════════════════════════════════════
-    @DeleteMapping("/{id}")  // Maps DELETE requests to /api/rooms/{id}
-    public ResponseEntity<Void> deleteRoom(@PathVariable Long id) {
-        // Check if the room exists before attempting to delete.
-        if (roomRepository.existsById(id)) {
-            // roomRepository.deleteById(id) – JPA's built-in method that executes:
-            //   DELETE FROM rooms WHERE id = ?;
-            roomRepository.deleteById(id);
-            // HTTP 204 No Content – standard response for successful DELETE.
-            //   → The resource has been deleted, so there's no body to return.
-            return ResponseEntity.noContent().build();
-        }
-        // Room with this id doesn't exist → return HTTP 404 Not Found.
-        return ResponseEntity.notFound().build();
-    }
-
-    // ══════════════════════════════════════════════════════════════════════
-    // 6. FILTER – Get rooms filtered by status (AVAILABLE, OCCUPIED, MAINTENANCE)
-    //    HTTP: GET http://localhost:8080/api/rooms/status/AVAILABLE
-    //    Response: 200 OK + JSON array of matching rooms
-    // ══════════════════════════════════════════════════════════════════════
+    // ─────────────────────────────────────────────────────────────────
+    // 4. FILTER BY STATUS – GET /api/rooms/status/{status}
+    // ─────────────────────────────────────────────────────────────────
     @GetMapping("/status/{status}")
-    public List<Room> getRoomsByStatus(@PathVariable RoomStatus status) {
-        // Filter rooms from the database by their status.
-        // Uses Java Streams to filter the list in memory.
-        // stream() – converts the List to a Stream for functional-style processing.
-        // filter() – keeps only elements that match the condition.
-        // toList() – collects the filtered results back into a List.
-        return roomRepository.findAll().stream()
-                .filter(room -> room.getStatus() == status)
-                .toList();
+    public ResponseEntity<List<RoomResponse>> getRoomsByStatus(@PathVariable RoomStatus status) {
+        List<RoomResponse> rooms = roomService.getRoomsByStatus(status);
+        return ResponseEntity.ok(rooms);
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // 5. VIEW ONE ROOM BY ID – GET /api/rooms/{id}
+    // ─────────────────────────────────────────────────────────────────
+    @GetMapping("/{id}")
+    public ResponseEntity<RoomResponse> getRoomById(@PathVariable Long id) {
+        RoomResponse response = roomService.getRoomById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // 6. UPDATE ROOM DETAILS – PUT /api/rooms/{id}
+    // ─────────────────────────────────────────────────────────────────
+    @PutMapping("/{id}")
+    public ResponseEntity<RoomResponse> updateRoom(
+            @PathVariable Long id,
+            @RequestBody RoomRequest request) {
+        RoomResponse updated = roomService.updateRoom(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // 7. CHANGE ROOM STATUS – PUT /api/rooms/{id}/status
+    //    Body can be { "status": "MAINTENANCE" } or plain query/JSON
+    // ─────────────────────────────────────────────────────────────────
+    @PutMapping("/{id}/status")
+    public ResponseEntity<RoomResponse> updateRoomStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> statusBody) {
+        String statusStr = statusBody.get("status");
+        if (statusStr == null || statusStr.trim().isEmpty()) {
+            throw new IllegalArgumentException("Status value is required.");
+        }
+        RoomStatus newStatus = RoomStatus.valueOf(statusStr.trim().toUpperCase());
+        RoomResponse updated = roomService.updateRoomStatus(id, newStatus);
+        return ResponseEntity.ok(updated);
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // 8. DELETE A ROOM – DELETE /api/rooms/{id}
+    // ─────────────────────────────────────────────────────────────────
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> deleteRoom(@PathVariable Long id) {
+        roomService.deleteRoom(id);
+        return ResponseEntity.ok(Map.of("message", "Room with ID " + id + " has been successfully deleted."));
     }
 }

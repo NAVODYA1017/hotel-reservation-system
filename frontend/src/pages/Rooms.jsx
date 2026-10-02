@@ -30,7 +30,7 @@ const TYPE_ICON = {
 const TYPE_OPTIONS = ['Standard', 'Deluxe', 'Suite', 'Premium Suite'];
 const STATUS_OPTIONS = ['AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'RESERVED', 'OUT_OF_SERVICE'];
 
-function RoomCard({ room, onEdit }) {
+function RoomCard({ room, onEdit, onDelete }) {
   const icon = TYPE_ICON[room.type] || '🛏️';
   const isAvailable = room.status === 'AVAILABLE';
 
@@ -77,11 +77,14 @@ function RoomCard({ room, onEdit }) {
           ))}
         </div>
       </div>
-      <div className="room-card-footer">
+      <div className="room-card-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
           ID #{room.id}
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={() => onEdit(room)}>✏️ Edit</button>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button className="btn btn-secondary btn-sm" onClick={() => onEdit(room)}>✏️ Edit</button>
+          <button className="btn btn-danger btn-sm" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px' }} onClick={() => onDelete(room.id, room.roomNumber)} title="Delete Room">🗑️</button>
+        </div>
       </div>
     </div>
   );
@@ -182,25 +185,65 @@ function Rooms() {
   const [modal, setModal] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+  const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
 
-  useEffect(() => {
+  const fetchRooms = () => {
+    setLoading(true);
     axios.get('/api/rooms')
-      .then(res => setRooms(res.data))
+      .then(res => {
+        // Map backend fields to UI
+        const mapped = res.data.map(r => ({
+          ...r,
+          type: r.roomType || r.type || 'Standard',
+          floor: r.roomNumber?.length >= 3 ? parseInt(r.roomNumber.charAt(0)) : 1,
+          amenities: r.description || 'WiFi, AC, TV',
+        }));
+        setRooms(mapped);
+      })
       .catch(() => setRooms(MOCK_ROOMS))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchRooms();
   }, []);
 
   const handleSave = async (form) => {
+    const payload = {
+      roomNumber: form.roomNumber,
+      roomType: form.type,
+      pricePerNight: Number(form.pricePerNight),
+      capacity: Number(form.capacity),
+      status: form.status,
+      description: form.amenities,
+    };
+
     try {
       if (modal.room) {
-        setRooms(r => r.map(x => x.id === modal.room.id ? { ...x, ...form } : x));
+        await axios.put(`/api/rooms/${modal.room.id}`, payload);
+        showToast('Room updated successfully in MySQL!');
       } else {
-        setRooms(r => [...r, { ...form, id: Date.now() }]);
+        await axios.post('/api/rooms', payload);
+        showToast('Room added successfully to MySQL!');
       }
-    } catch {/* */}
-    showToast(modal.room ? 'Room updated!' : 'Room added!');
-    setModal(null);
+      fetchRooms();
+      setModal(null);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Operation failed';
+      showToast(msg, 'error');
+    }
+  };
+
+  const handleDelete = async (id, roomNumber) => {
+    if (!window.confirm(`Are you sure you want to remove Room ${roomNumber}?`)) return;
+    try {
+      await axios.delete(`/api/rooms/${id}`);
+      showToast(`Room ${roomNumber} deleted successfully.`);
+      fetchRooms();
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Cannot delete room: linked to reservations or foreign keys.';
+      showToast(msg, 'error');
+    }
   };
 
   const filtered = rooms.filter(r => {
@@ -297,7 +340,7 @@ function Rooms() {
       ) : viewMode === 'grid' ? (
         <div className="room-grid">
           {filtered.map(room => (
-            <RoomCard key={room.id} room={room} onEdit={r => setModal({ type: 'edit', room: r })} />
+            <RoomCard key={room.id} room={room} onEdit={r => setModal({ type: 'edit', room: r })} onDelete={handleDelete} />
           ))}
         </div>
       ) : (
@@ -331,7 +374,10 @@ function Rooms() {
                     <td><span className={`badge ${STATUS_BADGE[r.status] || 'badge-muted'}`}>{r.status}</span></td>
                     <td style={{ color: 'var(--text-muted)', fontSize: 12, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.amenities}</td>
                     <td style={{ textAlign: 'right' }}>
-                      <button className="btn btn-secondary btn-sm" onClick={() => setModal({ type: 'edit', room: r })}>✏️ Edit</button>
+                      <div style={{ display: 'inline-flex', gap: 6 }}>
+                        <button className="btn btn-secondary btn-sm" onClick={() => setModal({ type: 'edit', room: r })}>✏️ Edit</button>
+                        <button className="btn btn-danger btn-sm" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px' }} onClick={() => handleDelete(r.id, r.roomNumber)} title="Delete Room">🗑️</button>
+                      </div>
                     </td>
                   </tr>
                 ))}

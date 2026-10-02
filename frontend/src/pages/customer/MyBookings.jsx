@@ -31,7 +31,7 @@ const MOCK_BOOKINGS = [
   },
 ];
 
-function BookingCard({ booking, onCancel, onDelete }) {
+function BookingCard({ booking, onCancel, onDelete, onModify }) {
   const [expanded, setExpanded] = useState(false);
   const isPast = new Date(booking.checkOut) < new Date();
   const canCancel = ['CONFIRMED', 'PENDING'].includes(booking.status);
@@ -89,6 +89,16 @@ function BookingCard({ booking, onCancel, onDelete }) {
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           {canCancel && (
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => onModify(booking)}
+              style={{ border: '1px solid var(--border-subtle)' }}
+              title="Modify Dates (Extension 12a)"
+            >
+              ✏️ Modify Dates
+            </button>
+          )}
+          {canCancel && (
             <button className="btn btn-warning btn-sm" onClick={() => onCancel(booking)}>
               ❌ Cancel
             </button>
@@ -119,6 +129,7 @@ function MyBookings() {
   const [filter, setFilter] = useState('all');
   const [cancelModal, setCancelModal] = useState(null);
   const [deleteModal, setDeleteModal] = useState(null);
+  const [modifyModal, setModifyModal] = useState(null);
   const [toast, setToast] = useState(null);
 
   const showToast = (msg, type = 'success') => {
@@ -176,6 +187,22 @@ function MyBookings() {
       showToast(msg, 'error');
     } finally {
       setCancelModal(null);
+    }
+  };
+
+  const handleModify = async () => {
+    if (!modifyModal) return;
+    try {
+      const res = await axios.put(`/api/reservations/${modifyModal.id}`, {
+        checkIn: modifyModal.newCheckIn,
+        checkOut: modifyModal.newCheckOut,
+      });
+      showToast(`Reservation #${modifyModal.reservationId} modified successfully! New Total: LKR ${res.data.totalAmount?.toLocaleString()}`, 'success');
+      setModifyModal(null);
+      fetchBookings();
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to modify reservation. Overlapping dates or invalid range.';
+      showToast(msg, 'error');
     }
   };
 
@@ -291,11 +318,61 @@ function MyBookings() {
                 booking={b}
                 onCancel={b => setCancelModal(b)}
                 onDelete={b => setDeleteModal(b)}
+                onModify={b => setModifyModal({ ...b, newCheckIn: b.checkIn, newCheckOut: b.checkOut })}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Modify Dates Modal (Extension 12a) */}
+      {modifyModal && (
+        <div className="modal-overlay" onClick={() => setModifyModal(null)}>
+          <div className="modal" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-header-icon" style={{ background: 'rgba(217,119,6,0.15)', border: '1px solid rgba(217,119,6,0.3)' }}>✏️</div>
+              <div>
+                <div className="modal-title">Modify Stay Dates</div>
+                <div className="modal-subtitle">{modifyModal.reservationId} · {modifyModal.roomType}</div>
+              </div>
+              <button className="modal-close" onClick={() => setModifyModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ marginBottom: 16, fontSize: 13, color: 'var(--text-secondary)' }}>
+                Select your new arrival and departure dates. The system will check availability in real-time and recalculate your total stay amount.
+              </div>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">New Check-In Date *</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={modifyModal.newCheckIn}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={e => setModifyModal(m => ({ ...m, newCheckIn: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">New Check-Out Date *</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={modifyModal.newCheckOut}
+                    min={modifyModal.newCheckIn || new Date().toISOString().split('T')[0]}
+                    onChange={e => setModifyModal(m => ({ ...m, newCheckOut: e.target.value }))}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setModifyModal(null)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleModify}>Save New Dates</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cancel Confirmation Modal */}
       {cancelModal && (

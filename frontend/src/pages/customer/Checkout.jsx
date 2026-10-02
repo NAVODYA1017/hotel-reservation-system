@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
@@ -97,10 +97,9 @@ function Checkout() {
       setStep(4); // success
     } catch (err) {
       console.error('Reservation error:', err);
-      const msg = err.response?.data?.message || err.message || 'Booking could not be finalized.';
-      // Fallback display ref
-      setBookingRef(`LXS-${Date.now().toString().slice(-6)}`);
-      setStep(4);
+      const msg = err.response?.data?.message || err.message || 'Booking could not be finalized. Please check date availability.';
+      setError(msg);
+      setStep(1);
     } finally {
       setProcessing(false);
     }

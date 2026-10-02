@@ -1,3 +1,18 @@
+// ═══════════════════════════════════════════════════════════════════════
+// FILE    : ReservationResponse.java
+// USE CASE: UC-04 – Create and Manage Reservation
+// ACTORS  : Primary: Customer | Secondary: Receptionist
+// MEMBER  : Hettiarachchi K. N.
+// REG NO  : IT25104004
+// ROLE    : Data Transfer Object (DTO) – Outbound Response Body
+// ═══════════════════════════════════════════════════════════════════════
+//
+// ── VIVA ARCHITECTURE OVERVIEW ─────────────────────────────────────────
+// This DTO formats reservation records returned to the client. It flattens
+// nested JPA relationships (User, Room, EventHall, Package) into clean,
+// JSON-friendly properties, avoiding infinite circular serialization loops.
+// ═══════════════════════════════════════════════════════════════════════
+
 package com.hotel.reservationsystem.dto;
 
 import lombok.Data;
@@ -5,35 +20,39 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Outbound response payload representing a confirmed, pending, or modified booking.
+ */
 @Data
 public class ReservationResponse {
 
-    // Reservation info
+    // ── CORE BOOKING METRICS ──────────────────────────────────────────
     private Long id;
-    private String confirmationCode;
-    private String status;        // PENDING, CONFIRMED, CANCELLED, COMPLETED
+    private String confirmationCode; // e.g. "RES-3FA9B01C"
+    private String status;           // PENDING, CONFIRMED, CANCELLED, COMPLETED
     private LocalDate checkIn;
     private LocalDate checkOut;
     private BigDecimal totalAmount;
     private LocalDateTime createdAt;
 
-    // Customer info
+    // ── GUEST DETAILS ────────────────────────────────────────────────
     private Long userId;
     private String userName;
     private String userEmail;
     private String userPhone;
 
-    // What was booked (only one of these will be filled)
+    // ── ROOM DETAILS (if room booking) ────────────────────────────────
     private Long roomId;
-    private String roomNumber;    // e.g. "101"
-    private String roomType;      // e.g. "Deluxe"
+    private String roomNumber;       // e.g. "101"
+    private String roomType;         // e.g. "DELUXE"
 
+    // ── HALL & PACKAGE DETAILS (if hall booking) ──────────────────────
     private Long hallId;
-    private String hallName;      // e.g. "Grand Ballroom"
+    private String hallName;         // e.g. "Grand Sapphire Ballroom"
     private Long packageId;
-    private String packageName;   // e.g. "Wedding Essentials"
+    private String packageName;      // e.g. "Royal Heritage Wedding Bundle"
 
-    // Frontend compatibility helpers
+    // ── CONVENIENCE GETTERS FOR FRONTEND COMPATIBILITY ───────────────
     public String getReservationId() {
         return confirmationCode != null ? confirmationCode : "RES-" + id;
     }
@@ -54,4 +73,3 @@ public class ReservationResponse {
         return checkOut;
     }
 }
-

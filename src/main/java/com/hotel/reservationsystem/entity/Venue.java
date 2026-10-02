@@ -1,4 +1,4 @@
-package com.hotel.reservationsystem.entity;
+package com.sliit.se2030.hotel.room;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Positive;
 
 /**
  * Major Function: Room Management
- * Owner: Akmal (Room Management module)
+ * Owner: Panditharathne P A T I (IT25101982)
  * Sub-functions: view hall details/photos, manage halls and facilities.
  */
 @Entity

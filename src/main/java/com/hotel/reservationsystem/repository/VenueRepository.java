@@ -1,6 +1,5 @@
-package com.hotel.reservationsystem.repository;
+package com.sliit.se2030.hotel.room;
 
-import com.hotel.reservationsystem.entity.Venue;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 

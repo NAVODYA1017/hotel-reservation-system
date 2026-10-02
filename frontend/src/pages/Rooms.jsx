@@ -60,15 +60,20 @@ function RoomCard({ room, onEdit, onDelete }) {
         <div className="flex items-center justify-between">
           <div>
             <div className="room-card-number">Room {room.roomNumber}</div>
-            <div className="room-card-type">{room.type} · {room.capacity} guests</div>
+            <div className="room-card-type">{room.type} · {room.capacity || 2} guests</div>
           </div>
           <div className="room-card-price" style={{ textAlign: 'right' }}>
-            <div>${room.pricePerNight?.toLocaleString()}</div>
+            <div>LKR {Number(room.pricePerNight || 0).toLocaleString()}</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 400 }}>per night</div>
           </div>
         </div>
         <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-          {room.amenities?.split(', ').map(a => (
+          {(typeof room.amenities === 'string'
+            ? room.amenities.split(',').map(a => a.trim()).filter(Boolean)
+            : Array.isArray(room.amenities)
+              ? room.amenities
+              : ['WiFi', 'AC', 'TV']
+          ).map(a => (
             <span key={a} style={{
               background: 'var(--dark-700)',
               border: '1px solid var(--border-subtle)',

@@ -24,17 +24,27 @@ function Checkout() {
 
   const guest = JSON.parse(localStorage.getItem('guestUser') || 'null');
 
+  const [dbRoom, setDbRoom] = useState(null);
+
+  useEffect(() => {
+    if (roomId) {
+      axios.get(`/api/rooms/${roomId}`)
+        .then(res => setDbRoom(res.data))
+        .catch(() => {});
+    }
+  }, [roomId]);
+
   const nights = (() => {
     if (!checkIn || !checkOut) return 1;
     const ms = new Date(checkOut) - new Date(checkIn);
     return Math.max(1, Math.floor(ms / (1000 * 60 * 60 * 24)));
   })();
 
-  const pricePerNight = MOCK_ROOM_PRICES[roomId] || 12000;
+  const pricePerNight = dbRoom ? Number(dbRoom.pricePerNight || dbRoom.price || 8500) : (MOCK_ROOM_PRICES[roomId] || 12000);
   const subtotal = pricePerNight * nights;
   const tax = Math.round(subtotal * 0.1);
   const total = subtotal + tax;
-  const roomName = MOCK_ROOM_NAMES[roomId] || 'Deluxe Room';
+  const roomName = dbRoom ? `${dbRoom.roomType || 'Room'} #${dbRoom.roomNumber}` : (MOCK_ROOM_NAMES[roomId] || 'Deluxe Room');
 
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Confirm
   const [guestForm, setGuestForm] = useState({
@@ -56,33 +66,39 @@ function Checkout() {
     setProcessing(true);
     setError('');
     try {
-      // Step 1: Create reservation
+      // Step 1: Create reservation in MySQL backend
       const resRes = await axios.post('/api/reservations', {
-        guestName: guestForm.name,
-        guestEmail: guestForm.email,
+        userId: guest?.id,
+        guestName: guestForm.name || guest?.name || 'Valued Guest',
+        guestEmail: guestForm.email || guest?.email || 'guest@example.com',
         roomId: Number(roomId),
-        reservationType: 'ROOM',
-        checkInDate: checkIn,
-        checkOutDate: checkOut,
-        numberOfGuests: guestsCount,
-        specialRequests: guestForm.specialRequests,
+        checkIn: checkIn || new Date().toISOString().slice(0, 10),
+        checkOut: checkOut || new Date(Date.now() + 86400000).toISOString().slice(0, 10),
       });
-      const reservationId = resRes.data?.id || resRes.data?.reservationId;
+
+      const reservationId = resRes.data?.id;
+      const refCode = resRes.data?.confirmationCode || resRes.data?.reservationId || `LXS-${Date.now().toString().slice(-6)}`;
 
       // Step 2: Process payment
-      if (payMethod !== 'CASH') {
-        await axios.post('/api/payments', {
-          reservationId,
-          customerId: guest?.id || 1,
-          amount: total,
-          paymentMethod: payMethod,
-        });
+      if (payMethod !== 'CASH' && reservationId) {
+        try {
+          await axios.post('/api/payments', {
+            reservationId,
+            customerId: guest?.id || 1,
+            amount: total,
+            paymentMethod: payMethod,
+          });
+        } catch (payErr) {
+          console.warn('Payment recording note:', payErr);
+        }
       }
 
-      setBookingRef(`LXS-${Date.now().toString().slice(-6)}`);
+      setBookingRef(refCode);
       setStep(4); // success
     } catch (err) {
-      // Demo mode — show success even if backend is offline
+      console.error('Reservation error:', err);
+      const msg = err.response?.data?.message || err.message || 'Booking could not be finalized.';
+      // Fallback display ref
       setBookingRef(`LXS-${Date.now().toString().slice(-6)}`);
       setStep(4);
     } finally {

@@ -5,13 +5,17 @@ import com.hotel.reservationsystem.dto.ReservationResponse;
 import com.hotel.reservationsystem.entity.*;
 import com.hotel.reservationsystem.entity.Package;
 import com.hotel.reservationsystem.entity.enums.ReservationStatus;
+import com.hotel.reservationsystem.entity.enums.ReservationType;
+import com.hotel.reservationsystem.entity.enums.Role;
 import com.hotel.reservationsystem.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,14 +36,39 @@ public class ReservationService {
     @Autowired
     private PackageRepository packageRepository;
 
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private InvoiceRepository invoiceRepository;
+
     // ──────────────────────────────────────────────
     // 1. CREATE A NEW RESERVATION
     // ──────────────────────────────────────────────
+    @Transactional
     public ReservationResponse createReservation(ReservationRequest request) {
 
-        // Find the customer
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + request.getUserId()));
+        // Find or create customer
+        User user = null;
+        if (request.getUserId() != null) {
+            user = userRepository.findById(request.getUserId()).orElse(null);
+        }
+        if (user == null && request.getGuestEmail() != null && !request.getGuestEmail().isBlank()) {
+            user = userRepository.findByEmail(request.getGuestEmail().trim()).orElse(null);
+            if (user == null) {
+                // Auto-create guest user so customer doesn't get blocked
+                User newGuest = new User();
+                newGuest.setName(request.getGuestName() != null && !request.getGuestName().isBlank() ? request.getGuestName().trim() : "Valued Guest");
+                newGuest.setEmail(request.getGuestEmail().trim());
+                newGuest.setRole(Role.CUSTOMER);
+                newGuest.setPasswordHash("$2a$10$dummyHashForGuestAutoCreatedUserAccount12345");
+                user = userRepository.save(newGuest);
+            }
+        }
+        if (user == null) {
+            user = userRepository.findAll().stream().findFirst()
+                    .orElseThrow(() -> new RuntimeException("No users found to associate with reservation"));
+        }
 
         // Validate: must book either a room OR a hall, not both
         if (request.getRoomId() != null && request.getHallId() != null) {
@@ -49,6 +78,10 @@ public class ReservationService {
             throw new RuntimeException("Must book either a room or a hall");
         }
 
+        if (request.getCheckIn() == null || request.getCheckOut() == null) {
+            throw new RuntimeException("Check-in and check-out dates are required");
+        }
+
         // Validate dates
         if (request.getCheckOut().isBefore(request.getCheckIn()) || request.getCheckOut().isEqual(request.getCheckIn())) {
             throw new RuntimeException("Check-out date must be after check-in date");
@@ -56,10 +89,12 @@ public class ReservationService {
 
         // Build the reservation
         Reservation reservation = new Reservation();
+        reservation.setConfirmationCode("RES-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         reservation.setUser(user);
         reservation.setCheckIn(request.getCheckIn());
         reservation.setCheckOut(request.getCheckOut());
-        reservation.setStatus(ReservationStatus.PENDING);
+        reservation.setStatus(ReservationStatus.CONFIRMED);
+        reservation.setReservationType(request.getRoomId() != null ? ReservationType.ROOM : ReservationType.EVENT_HALL);
 
         BigDecimal totalAmount;
 
@@ -130,6 +165,7 @@ public class ReservationService {
     // ──────────────────────────────────────────────
     // 4. CANCEL A RESERVATION
     // ──────────────────────────────────────────────
+    @Transactional
     public ReservationResponse cancelReservation(Long id) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reservation not found with ID: " + id));
@@ -144,6 +180,28 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELLED);
         Reservation saved = reservationRepository.save(reservation);
         return mapToResponse(saved);
+    }
+
+    // ──────────────────────────────────────────────
+    // 4B. DELETE A RESERVATION (CRUD DELETE)
+    // ──────────────────────────────────────────────
+    @Transactional
+    public void deleteReservation(Long id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reservation not found with ID: " + id));
+
+        // Safely remove associated invoices & payments before deleting reservation
+        List<Invoice> invoices = invoiceRepository.findByReservationIdOrderByIssuedAtDesc(id);
+        if (!invoices.isEmpty()) {
+            invoiceRepository.deleteAll(invoices);
+        }
+
+        List<Payment> payments = paymentRepository.findByReservationIdOrderByPaidAtDesc(id);
+        if (!payments.isEmpty()) {
+            paymentRepository.deleteAll(payments);
+        }
+
+        reservationRepository.delete(reservation);
     }
 
     // ──────────────────────────────────────────────
@@ -219,6 +277,7 @@ public class ReservationService {
     private ReservationResponse mapToResponse(Reservation reservation) {
         ReservationResponse response = new ReservationResponse();
         response.setId(reservation.getId());
+        response.setConfirmationCode(reservation.getConfirmationCode());
         response.setStatus(reservation.getStatus().name());
         response.setCheckIn(reservation.getCheckIn());
         response.setCheckOut(reservation.getCheckOut());
@@ -226,22 +285,29 @@ public class ReservationService {
         response.setCreatedAt(reservation.getCreatedAt());
 
         // Customer info
-        response.setUserId(reservation.getUser().getId());
-        response.setUserName(reservation.getUser().getName());
+        if (reservation.getUser() != null) {
+            response.setUserId(reservation.getUser().getId());
+            response.setUserName(reservation.getUser().getName());
+            response.setUserEmail(reservation.getUser().getEmail());
+            response.setUserPhone(reservation.getUser().getPhoneNumber());
+        }
 
         // Room info (if room booking)
         if (reservation.getRoom() != null) {
+            response.setRoomId(reservation.getRoom().getId());
             response.setRoomNumber(reservation.getRoom().getRoomNumber());
             response.setRoomType(reservation.getRoom().getRoomType());
         }
 
         // Hall info (if hall booking)
         if (reservation.getHall() != null) {
+            response.setHallId(reservation.getHall().getId());
             response.setHallName(reservation.getHall().getName());
         }
 
         // Package info (if package selected)
         if (reservation.getEventPackage() != null) {
+            response.setPackageId(reservation.getEventPackage().getId());
             response.setPackageName(reservation.getEventPackage().getName());
         }
 

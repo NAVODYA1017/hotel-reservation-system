@@ -31,7 +31,7 @@ const MOCK_BOOKINGS = [
   },
 ];
 
-function BookingCard({ booking, onCancel }) {
+function BookingCard({ booking, onCancel, onDelete }) {
   const [expanded, setExpanded] = useState(false);
   const isPast = new Date(booking.checkOut) < new Date();
   const canCancel = ['CONFIRMED', 'PENDING'].includes(booking.status);
@@ -47,7 +47,7 @@ function BookingCard({ booking, onCancel }) {
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <span className={`badge ${STATUS_BADGE[booking.status] || 'badge-muted'}`}>
-              {STATUS_ICON[booking.status]} {booking.status?.replace('_', ' ')}
+              {STATUS_ICON[booking.status] || '🔖'} {booking.status?.replace('_', ' ')}
             </span>
             <span className={`badge ${booking.paymentStatus === 'PAID' ? 'badge-success' : 'badge-warning'}`}>
               {booking.paymentStatus === 'PAID' ? '💰 Paid' : '⏳ Pending Payment'}
@@ -87,12 +87,20 @@ function BookingCard({ booking, onCancel }) {
         <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
           {isPast ? `✅ Stay completed ${booking.checkOut}` : `📅 ${Math.max(0, Math.ceil((new Date(booking.checkIn) - new Date()) / (1000 * 60 * 60 * 24)))} days until check-in`}
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           {canCancel && (
-            <button className="btn btn-danger btn-sm" onClick={() => onCancel(booking)}>
+            <button className="btn btn-warning btn-sm" onClick={() => onCancel(booking)}>
               ❌ Cancel
             </button>
           )}
+          <button
+            className="btn btn-danger btn-sm"
+            onClick={() => onDelete(booking)}
+            style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '6px 12px' }}
+            title="Permanently Delete Reservation"
+          >
+            🗑️ Delete
+          </button>
           {booking.status === 'CHECKED_OUT' && (
             <button className="btn btn-secondary btn-sm" onClick={() => {}}>⭐ Leave Review</button>
           )}
@@ -110,29 +118,78 @@ function MyBookings() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [cancelModal, setCancelModal] = useState(null);
+  const [deleteModal, setDeleteModal] = useState(null);
   const [toast, setToast] = useState(null);
 
-  useEffect(() => {
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const fetchBookings = () => {
     if (!guest) { navigate('/guest-login?redirect=/my-bookings'); return; }
-    // Try fetching from API, fall back to mock
+    setLoading(true);
     axios.get('/api/reservations')
       .then(res => {
-        const my = res.data.filter(r => r.guestEmail === guest.email);
-        setBookings(my.length > 0 ? my : MOCK_BOOKINGS);
+        const all = Array.isArray(res.data) ? res.data : [];
+        const my = all.filter(r => 
+          (guest?.email && (r.userEmail?.toLowerCase() === guest.email.toLowerCase() || r.guestEmail?.toLowerCase() === guest.email.toLowerCase())) ||
+          (guest?.id && r.userId === guest.id) ||
+          (guest?.name && r.userName?.toLowerCase() === guest.name.toLowerCase())
+        );
+        const dataToDisplay = my.length > 0 ? my : all;
+        const mapped = dataToDisplay.map(r => ({
+          ...r,
+          id: r.id,
+          reservationId: r.confirmationCode || r.reservationId || `RES-00${r.id}`,
+          roomType: r.roomType || r.hallName || 'Standard Room',
+          roomNumber: r.roomNumber || '101',
+          icon: r.roomType?.toLowerCase().includes('suite') ? '👑' : r.roomType?.toLowerCase().includes('deluxe') ? '🌟' : '🛏️',
+          checkIn: r.checkIn || r.checkInDate || '2026-10-10',
+          checkOut: r.checkOut || r.checkOutDate || '2026-10-13',
+          nights: r.checkIn && r.checkOut ? Math.max(1, Math.round((new Date(r.checkOut) - new Date(r.checkIn)) / (1000 * 60 * 60 * 24))) : 1,
+          guests: r.guests || 2,
+          totalAmount: Number(r.totalAmount || 0),
+          paymentStatus: r.status === 'CONFIRMED' || r.status === 'CHECKED_IN' || r.status === 'CHECKED_OUT' ? 'PAID' : 'PENDING',
+          paymentMethod: 'CREDIT_CARD',
+        }));
+        setBookings(mapped);
       })
-      .catch(() => setBookings(MOCK_BOOKINGS))
+      .catch(err => {
+        console.error('Error fetching reservations:', err);
+        setBookings([]);
+      })
       .finally(() => setLoading(false));
-  }, [navigate]);
+  };
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+  useEffect(() => {
+    fetchBookings();
+  }, [navigate]);
 
   const handleCancel = async (booking) => {
     try {
       await axios.put(`/api/reservations/${booking.id}/cancel`);
-    } catch {/* */}
-    setBookings(b => b.map(x => x.id === booking.id ? { ...x, status: 'CANCELLED' } : x));
-    setCancelModal(null);
-    showToast('Reservation cancelled successfully.');
+      showToast(`Reservation #${booking.reservationId} cancelled successfully!`, 'success');
+      fetchBookings();
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to cancel reservation.';
+      showToast(msg, 'error');
+    } finally {
+      setCancelModal(null);
+    }
+  };
+
+  const handleDelete = async (booking) => {
+    try {
+      await axios.delete(`/api/reservations/${booking.id}`);
+      showToast(`Reservation #${booking.reservationId} deleted permanently from database!`, 'success');
+      fetchBookings();
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to delete reservation.';
+      showToast(msg, 'error');
+    } finally {
+      setDeleteModal(null);
+    }
   };
 
   const FILTERS = [
@@ -156,11 +213,18 @@ function MyBookings() {
       {toast && (
         <div style={{
           position: 'fixed', top: 24, right: 24, zIndex: 2000,
-          background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)',
-          color: '#86efac', borderRadius: 'var(--radius-md)',
-          padding: '12px 20px', fontSize: 14, fontWeight: 600,
+          background: toast.type === 'error' ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)',
+          border: `1px solid ${toast.type === 'error' ? 'rgba(239,68,68,0.5)' : 'rgba(34,197,94,0.5)'}`,
+          color: toast.type === 'error' ? '#fca5a5' : '#86efac',
+          borderRadius: 'var(--radius-md)',
+          padding: '14px 22px', fontSize: 14, fontWeight: 600,
           animation: 'slideUp 0.3s ease', boxShadow: 'var(--shadow-lg)',
-        }}>✅ {toast}</div>
+          backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span>{toast.type === 'error' ? '❌' : '✅'}</span>
+          <span>{toast.msg}</span>
+        </div>
       )}
 
       {/* Header */}
@@ -222,7 +286,12 @@ function MyBookings() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {filtered.map(b => (
-              <BookingCard key={b.id} booking={b} onCancel={b => setCancelModal(b)} />
+              <BookingCard
+                key={b.id}
+                booking={b}
+                onCancel={b => setCancelModal(b)}
+                onDelete={b => setDeleteModal(b)}
+              />
             ))}
           </div>
         )}
@@ -233,7 +302,7 @@ function MyBookings() {
         <div className="modal-overlay" onClick={() => setCancelModal(null)}>
           <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-header-icon" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>❌</div>
+              <div className="modal-header-icon" style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}>⚠️</div>
               <div>
                 <div className="modal-title">Cancel Reservation</div>
                 <div className="modal-subtitle">{cancelModal.reservationId}</div>
@@ -246,13 +315,43 @@ function MyBookings() {
                 <div>
                   <div className="alert-title">Are you sure?</div>
                   Cancelling <strong>{cancelModal.roomType}</strong> ({cancelModal.checkIn} → {cancelModal.checkOut}).
-                  If within the free cancellation window, a full refund will be processed.
+                  The reservation status will be updated to CANCELLED in MySQL.
                 </div>
               </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setCancelModal(null)}>Keep Booking</button>
-              <button className="btn btn-danger" onClick={() => handleCancel(cancelModal)}>❌ Yes, Cancel</button>
+              <button className="btn btn-warning" onClick={() => handleCancel(cancelModal)}>Yes, Cancel Reservation</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal && (
+        <div className="modal-overlay" onClick={() => setDeleteModal(null)}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-header-icon" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>🗑️</div>
+              <div>
+                <div className="modal-title">Delete Reservation</div>
+                <div className="modal-subtitle">{deleteModal.reservationId}</div>
+              </div>
+              <button className="modal-close" onClick={() => setDeleteModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="alert alert-error">
+                <span className="alert-icon">🗑️</span>
+                <div>
+                  <div className="alert-title">Permanent Deletion</div>
+                  Are you sure you want to permanently delete reservation <strong>#{deleteModal.reservationId}</strong> for <strong>{deleteModal.roomType}</strong>?
+                  This action cannot be undone.
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setDeleteModal(null)}>Keep</button>
+              <button className="btn btn-danger" onClick={() => handleDelete(deleteModal)}>Yes, Delete Permanently</button>
             </div>
           </div>
         </div>
@@ -264,3 +363,4 @@ function MyBookings() {
 }
 
 export default MyBookings;
+

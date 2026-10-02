@@ -131,41 +131,62 @@ function Reservations() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  useEffect(() => {
+  const fetchReservations = () => {
+    setLoading(true);
     axios.get('/api/reservations')
-      .then(res => setReservations(res.data))
-      .catch(() => setReservations(MOCK_RESERVATIONS))
+      .then(res => setReservations(Array.isArray(res.data) ? res.data : []))
+      .catch(() => setReservations([]))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchReservations();
   }, []);
 
   const handleSave = async (form) => {
     try {
+      const payload = {
+        guestName: form.guestName,
+        guestEmail: form.guestEmail,
+        roomId: Number(form.roomId),
+        checkIn: form.checkInDate,
+        checkOut: form.checkOutDate,
+      };
       if (modal.reservation) {
-        const { data } = await axios.put(`/api/reservations/${modal.reservation.id}`, form);
-        setReservations(r => r.map(x => x.id === modal.reservation.id ? data : x));
+        await axios.put(`/api/reservations/${modal.reservation.id}`, payload);
+        showToast('Reservation updated successfully in MySQL!');
       } else {
-        const { data } = await axios.post('/api/reservations', form);
-        setReservations(r => [...r, data]);
+        await axios.post('/api/reservations', payload);
+        showToast('Reservation created successfully in MySQL!');
       }
-    } catch {
-      if (modal.reservation) {
-        setReservations(r => r.map(x => x.id === modal.reservation.id ? { ...x, ...form } : x));
-      } else {
-        setReservations(r => [...r, { ...form, id: Date.now(), status: 'PENDING', totalAmount: 0 }]);
-      }
+      fetchReservations();
+      setModal(null);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Error saving reservation';
+      showToast(msg, 'error');
     }
-    showToast(modal.reservation ? 'Reservation updated!' : 'Reservation created!');
-    setModal(null);
   };
 
   const handleCancel = async (res) => {
     try {
-      const { data } = await axios.put(`/api/reservations/${res.id}/cancel`);
-      setReservations(r => r.map(x => x.id === res.id ? data : x));
-    } catch {
-      setReservations(r => r.map(x => x.id === res.id ? { ...x, status: 'CANCELLED' } : x));
+      await axios.put(`/api/reservations/${res.id}/cancel`);
+      showToast(`Reservation #${res.id} marked CANCELLED in MySQL.`, 'success');
+      fetchReservations();
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Error cancelling reservation';
+      showToast(msg, 'error');
     }
-    showToast('Reservation cancelled.', 'error');
+  };
+
+  const handleDelete = async (res) => {
+    try {
+      await axios.delete(`/api/reservations/${res.id}`);
+      showToast(`Reservation #${res.id} deleted permanently from MySQL!`, 'success');
+      fetchReservations();
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Error deleting reservation';
+      showToast(msg, 'error');
+    }
   };
 
   const filtered = reservations.filter(r => {
@@ -268,29 +289,37 @@ function Reservations() {
                   <tr key={r.id}>
                     <td style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>#{r.id}</td>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{r.guestName}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{r.guestEmail}</div>
+                      <div style={{ fontWeight: 600 }}>{r.guestName || r.userName || 'Guest'}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{r.guestEmail || r.userEmail || '—'}</div>
                     </td>
                     <td>
                       <span style={{ fontFamily: 'monospace', background: 'var(--dark-700)', padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>
-                        #{r.roomId}
+                        {r.roomNumber ? `Room ${r.roomNumber}` : r.hallName ? r.hallName : `#${r.roomId}`}
                       </span>
                     </td>
                     <td>
-                      <span className="badge badge-purple" style={{ fontSize: 10 }}>{r.reservationType?.replace('_', ' ')}</span>
+                      <span className="badge badge-purple" style={{ fontSize: 10 }}>{r.roomType || r.reservationType?.replace('_', ' ') || 'ROOM'}</span>
                     </td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{r.checkInDate}</td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{r.checkOutDate}</td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{r.checkInDate || r.checkIn}</td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{r.checkOutDate || r.checkOut}</td>
                     <td style={{ fontWeight: 700, color: 'var(--gold-300)' }}>
-                      {r.totalAmount > 0 ? `$${r.totalAmount.toLocaleString()}` : '—'}
+                      {r.totalAmount > 0 ? `LKR ${Number(r.totalAmount).toLocaleString()}` : '—'}
                     </td>
                     <td><span className={`badge ${STATUS_BADGE[r.status] || 'badge-muted'}`}>{r.status?.replace('_', ' ')}</span></td>
                     <td style={{ textAlign: 'right' }}>
                       <div className="flex gap-2 justify-end">
                         <button className="btn btn-secondary btn-sm" onClick={() => setModal({ type: 'edit', reservation: r })}>✏️ Edit</button>
                         {r.status !== 'CANCELLED' && r.status !== 'CHECKED_OUT' && (
-                          <button className="btn btn-danger btn-sm" onClick={() => handleCancel(r)}>❌</button>
+                          <button className="btn btn-warning btn-sm" onClick={() => handleCancel(r)} title="Cancel Reservation">❌ Cancel</button>
                         )}
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleDelete(r)}
+                          style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px' }}
+                          title="Permanently Delete Reservation"
+                        >
+                          🗑️
+                        </button>
                       </div>
                     </td>
                   </tr>

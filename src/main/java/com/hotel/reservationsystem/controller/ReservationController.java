@@ -66,4 +66,14 @@ public class ReservationController {
         ReservationResponse response = reservationService.cancelReservation(id);
         return ResponseEntity.ok(response);
     }
+
+    // ──────────────────────────────────────────────
+    // DELETE http://localhost:8080/api/reservations/5
+    // Delete a reservation (CRUD Delete)
+    // ──────────────────────────────────────────────
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
+        reservationService.deleteReservation(id);
+        return ResponseEntity.noContent().build();
+    }
 }

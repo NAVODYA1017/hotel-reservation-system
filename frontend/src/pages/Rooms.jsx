@@ -234,15 +234,22 @@ function Rooms() {
     }
   };
 
-  const handleDelete = async (id, roomNumber) => {
-    if (!window.confirm(`Are you sure you want to remove Room ${roomNumber}?`)) return;
+  const handleDeleteClick = (id, roomNumber) => {
+    setModal({ type: 'delete', room: { id, roomNumber } });
+  };
+
+  const confirmDelete = async () => {
+    if (!modal?.room) return;
+    const { id, roomNumber } = modal.room;
     try {
       await axios.delete(`/api/rooms/${id}`);
-      showToast(`Room ${roomNumber} deleted successfully.`);
+      showToast(`Room ${roomNumber} deleted successfully from MySQL!`, 'success');
       fetchRooms();
+      setModal(null);
     } catch (err) {
       const msg = err.response?.data?.message || 'Cannot delete room: linked to reservations or foreign keys.';
       showToast(msg, 'error');
+      setModal(null);
     }
   };
 
@@ -262,12 +269,19 @@ function Rooms() {
     <>
       {toast && (
         <div style={{
-          position: 'fixed', top: 24, right: 24, zIndex: 2000,
-          background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)',
-          color: '#86efac', borderRadius: 'var(--radius-md)',
-          padding: '12px 18px', fontSize: 14, fontWeight: 600,
-          animation: 'slideUp 0.3s ease', boxShadow: 'var(--shadow-lg)',
-        }}>✅ {toast}</div>
+          position: 'fixed', top: 24, right: 24, zIndex: 3000,
+          background: toast.type === 'error' ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)',
+          border: `1px solid ${toast.type === 'error' ? 'rgba(239,68,68,0.5)' : 'rgba(34,197,94,0.5)'}`,
+          color: toast.type === 'error' ? '#fca5a5' : '#86efac',
+          borderRadius: 'var(--radius-md)',
+          padding: '14px 22px', fontSize: 14, fontWeight: 600,
+          backdropFilter: 'blur(8px)',
+          animation: 'slideUp 0.3s ease', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span style={{ fontSize: 18 }}>{toast.type === 'error' ? '❌' : '✅'}</span>
+          <span>{typeof toast === 'string' ? toast : toast.msg}</span>
+        </div>
       )}
 
       {/* Summary */}
@@ -340,7 +354,7 @@ function Rooms() {
       ) : viewMode === 'grid' ? (
         <div className="room-grid">
           {filtered.map(room => (
-            <RoomCard key={room.id} room={room} onEdit={r => setModal({ type: 'edit', room: r })} onDelete={handleDelete} />
+            <RoomCard key={room.id} room={room} onEdit={r => setModal({ type: 'edit', room: r })} onDelete={handleDeleteClick} />
           ))}
         </div>
       ) : (
@@ -375,8 +389,8 @@ function Rooms() {
                     <td style={{ color: 'var(--text-muted)', fontSize: 12, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.amenities}</td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: 6 }}>
-                        <button className="btn btn-secondary btn-sm" onClick={() => setModal({ type: 'edit', room: r })}>✏️ Edit</button>
-                        <button className="btn btn-danger btn-sm" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px' }} onClick={() => handleDelete(r.id, r.roomNumber)} title="Delete Room">🗑️</button>
+                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => setModal({ type: 'edit', room: r })}>✏️ Edit</button>
+                        <button type="button" className="btn btn-danger btn-sm" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px' }} onClick={() => handleDeleteClick(r.id, r.roomNumber)} title="Delete Room">🗑️</button>
                       </div>
                     </td>
                   </tr>
@@ -389,6 +403,37 @@ function Rooms() {
 
       {(modal?.type === 'add' || modal?.type === 'edit') && (
         <RoomModal room={modal.room} onClose={() => setModal(null)} onSave={handleSave} />
+      )}
+
+      {modal?.type === 'delete' && (
+        <div className="modal-overlay" onClick={() => setModal(null)}>
+          <div className="modal" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-header-icon" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171' }}>🗑️</div>
+              <div>
+                <div className="modal-title">Delete Room {modal.room.roomNumber}?</div>
+                <div className="modal-subtitle">Confirm room removal</div>
+              </div>
+              <button type="button" className="modal-close" onClick={() => setModal(null)}>×</button>
+            </div>
+            <div className="modal-body" style={{ padding: '20px' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
+                Are you sure you want to permanently delete <strong>Room {modal.room.roomNumber}</strong> from the database? This cannot be undone.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setModal(null)}>Cancel</button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                style={{ background: '#ef4444', color: '#ffffff', fontWeight: 600 }}
+                onClick={confirmDelete}
+              >
+                ✓ Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import { 
   Building2, Calendar, Users, Search, Wifi, Waves, Utensils, Car, Wind, Coffee, Tv, Wine, MapPin, Phone, Mail, ChevronRight, Star, LogOut, CalendarDays, User as UserIcon
 } from 'lucide-react';

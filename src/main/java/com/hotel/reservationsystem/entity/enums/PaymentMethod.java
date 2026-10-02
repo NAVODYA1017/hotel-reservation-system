@@ -1,13 +1,13 @@
+// ═══════════════════════════════════════════════════════════════════════
+// Enum: PaymentMethod – Supported payment methods (UC-05).
+// Each value maps to a PaymentStrategy implementation in PaymentStrategyFactory.
+// This is part of the Strategy Design Pattern.
+// ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.entity.enums;
 
-/**
- * Supported payment methods for UC-05 (Process Payment and Generate Invoice).
- * Each value maps to a concrete PaymentStrategyFactory.PaymentStrategy implementation
- * (see service.PaymentStrategyFactory).
- */
 public enum PaymentMethod {
-    CREDIT_CARD,
-    DEBIT_CARD,
-    BANK_TRANSFER,
-    CASH
+    CREDIT_CARD,     // Processed by CardPaymentStrategy (validates card number, expiry, CVV).
+    DEBIT_CARD,      // Also processed by CardPaymentStrategy (same validation as credit card).
+    BANK_TRANSFER,   // Processed by BankTransferPaymentStrategy (requires bank name + reference).
+    CASH             // Processed by CashPaymentStrategy (always succeeds – money already received).
 }

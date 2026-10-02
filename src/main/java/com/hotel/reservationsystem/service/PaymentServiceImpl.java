@@ -128,7 +128,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public List<PaymentResponse> getPaymentsForCustomer(Long customerId) {
-        return paymentRepository.findByReservation_Customer_IdOrderByPaidAtDesc(customerId).stream()
+        return paymentRepository.findByReservation_User_IdOrderByPaidAtDesc(customerId).stream()
                 .map(p -> toDto(p, findInvoiceForPayment(p), p.getReservation()))
                 .toList();
     }

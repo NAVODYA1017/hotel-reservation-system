@@ -33,6 +33,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(ApiResponse.fail(ex.getMessage()));
     }
 
+    @ExceptionHandler(AuthenticationFailedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAuthFailed(AuthenticationFailedException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail(ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new LinkedHashMap<>();

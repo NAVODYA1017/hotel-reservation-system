@@ -70,7 +70,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Override
     public List<InvoiceResponse> getInvoicesForCustomer(Long customerId) {
-        return invoiceRepository.findByReservation_Customer_IdOrderByIssuedAtDesc(customerId)
+        return invoiceRepository.findByReservation_User_IdOrderByIssuedAtDesc(customerId)
                 .stream().map(this::toDto).toList();
     }
 

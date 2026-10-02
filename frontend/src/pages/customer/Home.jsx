@@ -283,27 +283,61 @@ function Home() {
 }
 
 /* Featured rooms component */
-const FEATURED = [
-  { id: 1, roomNumber: '101', type: 'Deluxe Room', capacity: 2, pricePerNight: 14200, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar'], view: 'City View' },
-  { id: 3, roomNumber: '201', type: 'Premier Suite', capacity: 4, pricePerNight: 28600, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar', 'Jacuzzi'], view: 'Pool View' },
-  { id: 5, roomNumber: '301', type: 'Presidential Suite', capacity: 6, pricePerNight: 52000, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar', 'Jacuzzi', 'Kitchen'], view: 'Ocean View' },
-];
-
 function FeaturedRooms({ onBook }) {
   const navigate = useNavigate();
+  const [featured, setFeatured] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get('/api/rooms/available')
+      .then(res => {
+        if (res.data && res.data.length > 0) {
+          const mapped = res.data.slice(0, 6).map(r => ({
+            ...r,
+            type: r.roomType || r.type || 'Standard Room',
+            pricePerNight: r.pricePerNight || r.price || 8500,
+            capacity: r.capacity || 2,
+            amenities: typeof r.description === 'string' 
+              ? r.description.split(',').map(s => s.trim()) 
+              : Array.isArray(r.amenities) ? r.amenities : ['WiFi', 'AC', 'TV'],
+            view: r.roomNumber?.startsWith('3') ? 'Ocean View' : r.roomNumber?.startsWith('2') ? 'Pool View' : 'Garden View',
+          }));
+          setFeatured(mapped);
+        } else {
+          setFeatured(FEATURED);
+        }
+      })
+      .catch(() => setFeatured(FEATURED))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
-    <div className="c-room-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-      {FEATURED.map(room => (
+    <div className="c-room-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+      {featured.map(room => (
         <CustomerRoomCard key={room.id} room={room} onClick={() => navigate(`/room/${room.id}`)} />
       ))}
     </div>
   );
 }
 
+const FEATURED = [
+  { id: 1, roomNumber: '101', type: 'Deluxe Room', capacity: 2, pricePerNight: 15000, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar'], view: 'City View' },
+  { id: 2, roomNumber: '102', type: 'Standard Room', capacity: 2, pricePerNight: 9000, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV'], view: 'Garden View' },
+];
+
 export function CustomerRoomCard({ room, onClick }) {
-  const imgUrl = room.type.toLowerCase().includes('suite') ? '/assets/images/suite.jpg' 
-               : room.type.toLowerCase().includes('deluxe') ? '/assets/images/deluxe.jpg' 
+  const rType = String(room.roomType || room.type || 'Standard');
+  const imgUrl = rType.toLowerCase().includes('suite') ? '/assets/images/suite.jpg' 
+               : rType.toLowerCase().includes('deluxe') ? '/assets/images/deluxe.jpg' 
                : '/assets/images/standard.jpg';
+
+  const amenitiesList = Array.isArray(room.amenities) 
+    ? room.amenities 
+    : typeof (room.description || room.amenities) === 'string'
+      ? (room.description || room.amenities).split(',').map(s => s.trim()).filter(Boolean)
+      : ['WiFi', 'AC', 'TV'];
+
+  const price = room.pricePerNight || room.price || 0;
 
   return (
     <div className="c-room-card" onClick={onClick}>
@@ -311,7 +345,7 @@ export function CustomerRoomCard({ room, onClick }) {
         <div className="c-room-img-overlay" />
         <div className="c-room-badges">
           <span className={`badge ${room.status === 'AVAILABLE' ? 'badge-success' : 'badge-error'}`}>
-            {room.status === 'AVAILABLE' ? '✓ Available' : 'Unavailable'}
+            {room.status === 'AVAILABLE' ? '✓ Available' : (room.status || 'Unavailable')}
           </span>
           {room.view && (
             <span style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', borderRadius: 20, fontSize: 11, padding: '3px 10px', fontWeight: 600 }}>
@@ -321,20 +355,20 @@ export function CustomerRoomCard({ room, onClick }) {
         </div>
       </div>
       <div className="c-room-body">
-        <div className="c-room-name">{room.type}</div>
+        <div className="c-room-name">{rType}</div>
         <div className="c-room-meta">
           <span className="c-room-meta-item"><Building2 size={12} style={{ marginRight: 4 }} /> Room {room.roomNumber}</span>
-          <span className="c-room-meta-item"><Users size={12} style={{ marginRight: 4 }} /> Up to {room.capacity} guests</span>
+          <span className="c-room-meta-item"><Users size={12} style={{ marginRight: 4 }} /> Up to {room.capacity || 2} guests</span>
         </div>
         <div className="c-room-amenities">
-          {(room.amenities || []).slice(0, 4).map(a => (
+          {amenitiesList.slice(0, 4).map(a => (
             <span key={a} className="c-amenity-tag">{a}</span>
           ))}
         </div>
         <div className="c-room-footer">
           <div>
             <div className="c-room-price-label">Starting from</div>
-            <div className="c-room-price">LKR {room.pricePerNight?.toLocaleString()}</div>
+            <div className="c-room-price">LKR {Number(price).toLocaleString()}</div>
             <div className="c-room-price-period">per night</div>
           </div>
           <button

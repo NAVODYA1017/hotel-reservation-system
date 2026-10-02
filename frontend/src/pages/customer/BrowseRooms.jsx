@@ -39,23 +39,33 @@ function BrowseRooms() {
   useEffect(() => {
     axios.get('/api/rooms')
       .then(res => {
-        const mapped = res.data.map(r => ({
-          ...r,
-          type: r.roomType || r.type || 'Standard Room',
-        }));
-        setRooms(mapped);
+        if (res.data && res.data.length > 0) {
+          const mapped = res.data.map(r => ({
+            ...r,
+            type: r.roomType || r.type || 'Standard Room',
+            pricePerNight: Number(r.pricePerNight || r.price || 8500),
+            capacity: Number(r.capacity || 2),
+            amenities: typeof r.description === 'string'
+              ? r.description.split(',').map(s => s.trim()).filter(Boolean)
+              : Array.isArray(r.amenities) ? r.amenities : ['WiFi', 'AC', 'TV'],
+            view: r.roomNumber?.startsWith('3') ? 'Ocean View' : r.roomNumber?.startsWith('2') ? 'Pool View' : 'Garden View',
+          }));
+          setRooms(mapped);
+        } else {
+          setRooms(MOCK_ROOMS);
+        }
       })
       .catch(() => setRooms(MOCK_ROOMS))
       .finally(() => setLoading(false));
   }, []);
 
-  const types = [...new Set(MOCK_ROOMS.map(r => r.type))];
+  const types = [...new Set(rooms.map(r => r.type).filter(Boolean))];
 
   const filtered = rooms
     .filter(r => !availOnly || r.status === 'AVAILABLE')
-    .filter(r => !typeFilter || r.type === typeFilter)
+    .filter(r => !typeFilter || r.type.toLowerCase().includes(typeFilter.toLowerCase()) || typeFilter.toLowerCase().includes(r.type.toLowerCase()))
     .filter(r => (r.pricePerNight || 0) <= maxPrice)
-    .filter(r => !guests || r.capacity >= guests)
+    .filter(r => !guests || (r.capacity || 2) >= guests)
     .filter(r => {
       const q = search.toLowerCase();
       return !q || r.type?.toLowerCase().includes(q) || r.roomNumber?.toLowerCase().includes(q);

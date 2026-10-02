@@ -29,12 +29,25 @@ function RoomDetail() {
   const today = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
-    axios.get(`/api/rooms`)
+    axios.get(`/api/rooms/${id}`)
       .then(res => {
-        const found = res.data.find(r => String(r.id) === id);
-        setRoom(found || MOCK_ROOMS[id] || MOCK_ROOMS[1]);
+        const r = res.data;
+        setRoom({
+          ...r,
+          type: r.roomType || r.type || 'Standard Room',
+          pricePerNight: Number(r.pricePerNight || r.price || 8500),
+          capacity: Number(r.capacity || 2),
+          amenities: typeof r.description === 'string' 
+            ? r.description.split(',').map(s => s.trim()).filter(Boolean)
+            : Array.isArray(r.amenities) ? r.amenities : ['WiFi', 'AC', 'Smart TV', 'In-room Safe'],
+          view: r.roomNumber?.startsWith('3') ? 'Ocean View' : r.roomNumber?.startsWith('2') ? 'Pool View' : 'Garden View',
+          size: r.roomNumber?.startsWith('3') ? '140 sqm' : r.roomNumber?.startsWith('2') ? '80 sqm' : '46 sqm',
+          description: r.description || 'Experience ultimate luxury with our beautifully appointed room, crafted for relaxation and comfort.',
+        });
       })
-      .catch(() => setRoom(MOCK_ROOMS[id] || MOCK_ROOMS[1]))
+      .catch(() => {
+        setRoom(MOCK_ROOMS[id] || MOCK_ROOMS[1]);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 

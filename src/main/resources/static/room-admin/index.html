@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Room & Hall Management - Ceylon Sanctuary</title>
+    <title>Room Management - Ceylon Sanctuary</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Lato:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/room-admin/style.css">
+    <link rel="stylesheet" href="/room-admin/style.css?v=2">
 </head>
 <body>
 
@@ -23,14 +23,29 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="header">
-            <h1>Room & Hall Management (UC-02)</h1>
-            <button class="btn-primary" onclick="openNewModal()">+ Add New Room / Hall</button>
+            <h1>Room Management</h1>
+            <button class="btn-primary" onclick="openNewModal()">+ Add New Room</button>
         </div>
 
         <div class="filter-bar">
             <div class="field">
-                <label>Minimum Capacity</label>
-                <input type="number" id="filterCapacity" min="0" step="1" value="0">
+                <label>Room Type</label>
+                <select id="filterRoomType">
+                    <option value="">All Types</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Status</label>
+                <select id="filterStatus">
+                    <option value="">All Status</option>
+                    <option value="AVAILABLE">Available</option>
+                    <option value="OCCUPIED">Occupied</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Floor</label>
+                <input type="number" id="filterFloor" min="1" placeholder="Floor">
             </div>
             <button class="btn-secondary" onclick="fetchRooms()">Apply Filter</button>
             <button class="btn-secondary" onclick="resetFilter()">Reset</button>
@@ -40,11 +55,11 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Photo</th>
                         <th>ID</th>
-                        <th>Hall Name</th>
-                        <th>Capacity</th>
-                        <th>Description</th>
+                        <th>Room Number</th>
+                        <th>Room Type</th>
+                        <th>Floor</th>
+                        <th>Price</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -60,29 +75,42 @@
     <div class="modal-overlay" id="roomModal">
         <div class="modal">
             <button class="close" onclick="closeModal()">&times;</button>
-            <h2 id="modalTitle">Add New Room / Hall</h2>
-            <input type="hidden" id="modalVenueId">
+            <h2 id="modalTitle">Add New Room</h2>
+            <input type="hidden" id="modalRoomId">
 
             <div class="form-group">
-                <label>Hall Name *</label>
-                <input type="text" id="modalHallName" maxlength="100" placeholder="e.g. Grand Ballroom">
-                <div class="field-error" id="errHallName">Hall name is required.</div>
+                <label>Room Number *</label>
+                <input type="text" id="modalRoomNumber" maxlength="20" placeholder="e.g. 101">
+                <div class="field-error" id="errRoomNumber">Room number is required.</div>
             </div>
 
             <div class="form-group">
-                <label>Capacity (guests) *</label>
-                <input type="number" id="modalCapacity" min="1" step="1" placeholder="e.g. 150">
-                <div class="field-error" id="errCapacity">Capacity must be a whole number greater than 0.</div>
+                <label>Room Type *</label>
+                <select id="modalRoomType">
+                    <option value="">Select Room Type</option>
+                </select>
+                <div class="field-error" id="errRoomType">Room type is required.</div>
             </div>
 
             <div class="form-group">
-                <label>Description</label>
-                <textarea id="modalDescription" maxlength="500" placeholder="Brief description of the space..."></textarea>
+                <label>Floor *</label>
+                <input type="number" id="modalFloor" min="1" placeholder="e.g. 1">
+                <div class="field-error" id="errFloor">Floor is required.</div>
             </div>
 
             <div class="form-group">
-                <label>Image URL</label>
-                <input type="text" id="modalImageUrl" placeholder="https://...">
+                <label>Price (per night) *</label>
+                <input type="number" id="modalPrice" min="0" step="0.01" placeholder="e.g. 100.00">
+                <div class="field-error" id="errPrice">Price is required.</div>
+            </div>
+
+            <div class="form-group">
+                <label>Status</label>
+                <select id="modalStatus">
+                    <option value="AVAILABLE">Available</option>
+                    <option value="OCCUPIED">Occupied</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                </select>
             </div>
 
             <button class="btn-primary" style="width:100%" onclick="saveRoom()">Save Room</button>
@@ -91,6 +119,6 @@
 
     <div id="toast" class="toast"></div>
 
-    <script src="/room-admin/script.js"></script>
+    <script src="/room-admin/script.js?v=2"></script>
 </body>
 </html>

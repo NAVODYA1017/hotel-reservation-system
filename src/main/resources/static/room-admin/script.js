@@ -1,14 +1,46 @@
 // Room Management Admin Dashboard - CRUD Operations
 
-const API_BASE = '/api/rooms';
+const API_BASE = '/api';
+let roomTypes = [];
+
+// Fetch room types on page load
+async function fetchRoomTypes() {
+    try {
+        const response = await fetch(`${API_BASE}/room-types`);
+        roomTypes = await response.json();
+        
+        // Populate filter dropdown
+        const filterSelect = document.getElementById('filterRoomType');
+        filterSelect.innerHTML = '<option value="">All Types</option>';
+        roomTypes.forEach(type => {
+            filterSelect.innerHTML += `<option value="${type.roomTypeId}">${type.typeName}</option>`;
+        });
+        
+        // Populate modal dropdown
+        const modalSelect = document.getElementById('modalRoomType');
+        modalSelect.innerHTML = '<option value="">Select Room Type</option>';
+        roomTypes.forEach(type => {
+            modalSelect.innerHTML += `<option value="${type.roomTypeId}">${type.typeName}</option>`;
+        });
+    } catch (error) {
+        console.error('Error fetching room types:', error);
+    }
+}
 
 // Fetch and display rooms
 async function fetchRooms() {
-    const minCapacity = document.getElementById('filterCapacity').value;
+    const roomTypeId = document.getElementById('filterRoomType').value;
+    const status = document.getElementById('filterStatus').value;
+    const floor = document.getElementById('filterFloor').value;
     const tableBody = document.getElementById('tableBody');
     
+    let url = `${API_BASE}/rooms?`;
+    if (roomTypeId) url += `roomTypeId=${roomTypeId}&`;
+    if (status) url += `status=${status}&`;
+    if (floor) url += `floor=${floor}&`;
+    
     try {
-        const response = await fetch(`${API_BASE}?minCapacity=${minCapacity}`);
+        const response = await fetch(url);
         const rooms = await response.json();
         
         if (rooms.length === 0) {
@@ -16,31 +48,29 @@ async function fetchRooms() {
             return;
         }
         
-        tableBody.innerHTML = rooms.map(room => `
+        tableBody.innerHTML = rooms.map(room => {
+            const roomType = roomTypes.find(t => t.roomTypeId === room.roomTypeId);
+            const statusColor = room.status === 'AVAILABLE' ? 'var(--brass-bright)' : 
+                               room.status === 'OCCUPIED' ? '#e74c3c' : '#f39c12';
+            
+            return `
             <tr>
+                <td>${room.roomId}</td>
+                <td><strong>${room.roomNumber}</strong></td>
+                <td>${roomType ? roomType.typeName : 'Unknown'}</td>
+                <td>${room.floor}</td>
+                <td>$${parseFloat(room.price).toFixed(2)}</td>
                 <td>
-                    ${room.imageUrl 
-                        ? `<img src="${room.imageUrl}" alt="${room.hallName}" onerror="this.style.display='none'">` 
-                        : '<span style="color:var(--ivory-dim);font-size:12px">No image</span>'}
-                </td>
-                <td>${room.venueId}</td>
-                <td><strong>${room.hallName}</strong></td>
-                <td>${room.capacity}</td>
-                <td>${room.description || '-'}</td>
-                <td>
-                    <span style="padding:4px 10px;border-radius:12px;font-size:11px;background:${room.active ? 'var(--brass-bright)' : '#666'};color:${room.active ? 'var(--bg)' : 'var(--ivory-dim)'}">
-                        ${room.active ? 'Active' : 'Inactive'}
+                    <span style="padding:4px 10px;border-radius:12px;font-size:11px;background:${statusColor};color:var(--bg)">
+                        ${room.status}
                     </span>
                 </td>
                 <td>
-                    <button onclick="editRoom(${room.venueId})" style="padding:6px 12px;margin-right:4px;border:1px solid var(--border);background:var(--surface-alt);color:var(--ivory);border-radius:4px;cursor:pointer">Edit</button>
-                    <button onclick="toggleStatus(${room.venueId}, ${room.active})" style="padding:6px 12px;margin-right:4px;border:1px solid var(--border);background:${room.active ? '#c0392b' : 'var(--brass-bright)'};color:${room.active ? 'white' : 'var(--bg)'};border-radius:4px;cursor:pointer">
-                        ${room.active ? 'Deactivate' : 'Activate'}
-                    </button>
-                    <button onclick="deleteRoom(${room.venueId})" style="padding:6px 12px;border:1px solid var(--border);background:#c0392b;color:white;border-radius:4px;cursor:pointer">Delete</button>
+                    <button onclick="editRoom(${room.roomId})" style="padding:6px 12px;margin-right:4px;border:1px solid var(--border);background:var(--surface-alt);color:var(--ivory);border-radius:4px;cursor:pointer">Edit</button>
+                    <button onclick="deleteRoom(${room.roomId})" style="padding:6px 12px;border:1px solid var(--border);background:#c0392b;color:white;border-radius:4px;cursor:pointer">Delete</button>
                 </td>
             </tr>
-        `).join('');
+        `}).join('');
     } catch (error) {
         console.error('Error fetching rooms:', error);
         tableBody.innerHTML = '<tr class="empty-row"><td colspan="7">Error loading rooms</td></tr>';
@@ -49,48 +79,50 @@ async function fetchRooms() {
 
 // Reset filter
 function resetFilter() {
-    document.getElementById('filterCapacity').value = 0;
+    document.getElementById('filterRoomType').value = '';
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterFloor').value = '';
     fetchRooms();
 }
 
 // Open modal for new room
 function openNewModal() {
-    document.getElementById('modalTitle').textContent = 'Add New Room / Hall';
-    document.getElementById('modalVenueId').value = '';
-    document.getElementById('modalHallName').value = '';
-    document.getElementById('modalCapacity').value = '';
-    document.getElementById('modalDescription').value = '';
-    document.getElementById('modalImageUrl').value = '';
+    document.getElementById('modalTitle').textContent = 'Add New Room';
+    document.getElementById('modalRoomId').value = '';
+    document.getElementById('modalRoomNumber').value = '';
+    document.getElementById('modalRoomType').value = '';
+    document.getElementById('modalFloor').value = '';
+    document.getElementById('modalPrice').value = '';
+    document.getElementById('modalStatus').value = 'AVAILABLE';
     
     // Hide errors
-    document.getElementById('errHallName').classList.remove('visible');
-    document.getElementById('errCapacity').classList.remove('visible');
+    document.getElementById('errRoomNumber').classList.remove('visible');
+    document.getElementById('errRoomType').classList.remove('visible');
+    document.getElementById('errFloor').classList.remove('visible');
+    document.getElementById('errPrice').classList.remove('visible');
     
     document.getElementById('roomModal').classList.add('active');
 }
 
 // Edit existing room
-async function editRoom(venueId) {
+async function editRoom(roomId) {
     try {
-        const response = await fetch(`${API_BASE}?minCapacity=0`);
-        const rooms = await response.json();
-        const room = rooms.find(r => r.venueId === venueId);
+        const response = await fetch(`${API_BASE}/rooms/${roomId}`);
+        const room = await response.json();
         
-        if (!room) {
-            showToast('Room not found');
-            return;
-        }
-        
-        document.getElementById('modalTitle').textContent = 'Edit Room / Hall';
-        document.getElementById('modalVenueId').value = room.venueId;
-        document.getElementById('modalHallName').value = room.hallName;
-        document.getElementById('modalCapacity').value = room.capacity;
-        document.getElementById('modalDescription').value = room.description || '';
-        document.getElementById('modalImageUrl').value = room.imageUrl || '';
+        document.getElementById('modalTitle').textContent = 'Edit Room';
+        document.getElementById('modalRoomId').value = room.roomId;
+        document.getElementById('modalRoomNumber').value = room.roomNumber;
+        document.getElementById('modalRoomType').value = room.roomTypeId;
+        document.getElementById('modalFloor').value = room.floor;
+        document.getElementById('modalPrice').value = room.price;
+        document.getElementById('modalStatus').value = room.status;
         
         // Hide errors
-        document.getElementById('errHallName').classList.remove('visible');
-        document.getElementById('errCapacity').classList.remove('visible');
+        document.getElementById('errRoomNumber').classList.remove('visible');
+        document.getElementById('errRoomType').classList.remove('visible');
+        document.getElementById('errFloor').classList.remove('visible');
+        document.getElementById('errPrice').classList.remove('visible');
         
         document.getElementById('roomModal').classList.add('active');
     } catch (error) {
@@ -106,50 +138,66 @@ function closeModal() {
 
 // Save room (create or update)
 async function saveRoom() {
-    const venueId = document.getElementById('modalVenueId').value;
-    const hallName = document.getElementById('modalHallName').value.trim();
-    const capacity = parseInt(document.getElementById('modalCapacity').value);
-    const description = document.getElementById('modalDescription').value.trim();
-    const imageUrl = document.getElementById('modalImageUrl').value.trim();
+    const roomId = document.getElementById('modalRoomId').value;
+    const roomNumber = document.getElementById('modalRoomNumber').value.trim();
+    const roomTypeId = document.getElementById('modalRoomType').value;
+    const floor = document.getElementById('modalFloor').value;
+    const price = document.getElementById('modalPrice').value;
+    const status = document.getElementById('modalStatus').value;
     
     // Validation
     let hasError = false;
     
-    if (!hallName) {
-        document.getElementById('errHallName').classList.add('visible');
+    if (!roomNumber) {
+        document.getElementById('errRoomNumber').classList.add('visible');
         hasError = true;
     } else {
-        document.getElementById('errHallName').classList.remove('visible');
+        document.getElementById('errRoomNumber').classList.remove('visible');
     }
     
-    if (!capacity || capacity < 1) {
-        document.getElementById('errCapacity').classList.add('visible');
+    if (!roomTypeId) {
+        document.getElementById('errRoomType').classList.add('visible');
         hasError = true;
     } else {
-        document.getElementById('errCapacity').classList.remove('visible');
+        document.getElementById('errRoomType').classList.remove('visible');
+    }
+    
+    if (!floor || floor < 1) {
+        document.getElementById('errFloor').classList.add('visible');
+        hasError = true;
+    } else {
+        document.getElementById('errFloor').classList.remove('visible');
+    }
+    
+    if (!price || price < 0) {
+        document.getElementById('errPrice').classList.add('visible');
+        hasError = true;
+    } else {
+        document.getElementById('errPrice').classList.remove('visible');
     }
     
     if (hasError) return;
     
     const roomData = {
-        hallName,
-        capacity,
-        description: description || null,
-        imageUrl: imageUrl || null
+        roomNumber,
+        roomTypeId: parseInt(roomTypeId),
+        floor: parseInt(floor),
+        price: parseFloat(price),
+        status
     };
     
     try {
         let response;
-        if (venueId) {
+        if (roomId) {
             // Update
-            response = await fetch(`${API_BASE}/${venueId}`, {
+            response = await fetch(`${API_BASE}/rooms/${roomId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(roomData)
             });
         } else {
             // Create
-            response = await fetch(API_BASE, {
+            response = await fetch(`${API_BASE}/rooms`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(roomData)
@@ -159,9 +207,10 @@ async function saveRoom() {
         if (response.ok) {
             closeModal();
             fetchRooms();
-            showToast(venueId ? 'Room updated successfully' : 'Room created successfully');
+            showToast(roomId ? 'Room updated successfully' : 'Room created successfully');
         } else {
-            showToast('Error saving room');
+            const error = await response.json();
+            showToast(error.message || 'Error saving room');
         }
     } catch (error) {
         console.error('Error saving room:', error);
@@ -169,33 +218,14 @@ async function saveRoom() {
     }
 }
 
-// Toggle room active status
-async function toggleStatus(venueId, currentStatus) {
-    try {
-        const response = await fetch(`${API_BASE}/${venueId}/deactivate`, {
-            method: 'PUT'
-        });
-        
-        if (response.ok) {
-            fetchRooms();
-            showToast(currentStatus ? 'Room deactivated' : 'Room activated');
-        } else {
-            showToast('Error updating status');
-        }
-    } catch (error) {
-        console.error('Error toggling status:', error);
-        showToast('Error updating status');
-    }
-}
-
 // Delete room
-async function deleteRoom(venueId) {
+async function deleteRoom(roomId) {
     if (!confirm('Are you sure you want to delete this room? This action cannot be undone.')) {
         return;
     }
     
     try {
-        const response = await fetch(`${API_BASE}/${venueId}`, {
+        const response = await fetch(`${API_BASE}/rooms/${roomId}`, {
             method: 'DELETE'
         });
         
@@ -224,7 +254,7 @@ function showToast(message) {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    fetchRooms();
+    fetchRoomTypes().then(() => fetchRooms());
     
     // Close modal on outside click
     document.getElementById('roomModal').addEventListener('click', (e) => {

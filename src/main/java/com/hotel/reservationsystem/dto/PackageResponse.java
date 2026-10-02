@@ -1,12 +1,10 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : PackageResponse.java
-// UC   : UC-03 – Manage Event Halls and Packages
-// MEMBER: Panditharathne P. A. T. I. (IT25101982)
 // LAYER: DTO (Data Transfer Object)
 //
 // WHAT DOES THIS CLASS DO?
 //   Delivers formatted event package information to the frontend
-//   and customer browsing catalog (Main Scenario Step 4 & 12).
+//   and customer browsing catalog.
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.dto;
 

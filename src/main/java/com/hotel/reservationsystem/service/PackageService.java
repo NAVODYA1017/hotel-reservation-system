@@ -1,15 +1,13 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : PackageService.java
-// UC   : UC-03 – Manage Event Halls and Packages
-// MEMBER: Panditharathne P. A. T. I. (IT25101982)
 // LAYER: Service (Business Logic Layer)
 //
 // WHAT DOES THIS SERVICE DO?
 //   Implements business rules and CRUD workflows for customizable event
 //   packages (catering, decor, multimedia). Handles:
-//     - Extension 10a: Price & incomplete package validation
-//     - Extension 11a: Duplicate package prevention
-//     - Open Issue 1: Reservation safety before package deletion
+//     - Price & incomplete package validation
+//     - Duplicate package prevention
+//     - Reservation safety before package deletion
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.service;
 

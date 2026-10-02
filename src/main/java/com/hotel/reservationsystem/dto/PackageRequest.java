@@ -1,12 +1,9 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : PackageRequest.java
-// UC   : UC-03 – Manage Event Halls and Packages
-// MEMBER: Panditharathne P. A. T. I. (IT25101982)
 // LAYER: DTO (Data Transfer Object)
 //
 // WHAT DOES THIS CLASS DO?
-//   Captures the data submitted by an Event Coordinator when creating
-//   or updating an event package (Main Scenario Step 10).
+//   Captures the data submitted when creating or updating an event package.
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.dto;
 

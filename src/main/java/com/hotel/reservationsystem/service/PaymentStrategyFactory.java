@@ -13,11 +13,9 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * UC-05 – Process Payment and Generate Invoice.
- * Owned by: Payment & Billing Management (Ranaweera R.A.Y.N. / IT25104079).
+ * Strategy and Factory pattern implementation for payment processing.
  *
- * Everything the "choose the right payment gateway and run it" job needs
- * lives in this one class, instead of being spread across a separate
+ * Resolves the appropriate payment gateway strategy:
  * interface / three strategy files / a result type. The design is still
  * Strategy + Factory (see the nested {@link PaymentStrategy} interface and
  * its three implementations below) — it is just packaged as one file:

@@ -1,16 +1,14 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : PackageController.java
-// UC   : UC-03 – Manage Event Halls and Packages
-// MEMBER: Panditharathne P. A. T. I. (IT25101982)
 // LAYER: Controller (Presentation / REST API Layer)
 //
 // WHAT DOES THIS CONTROLLER DO?
 //   Exposes REST endpoints for managing event packages and services:
-//     - POST   /api/packages     → Create a new event package (Step 9, 10, 11)
-//     - GET    /api/packages     → List all event packages (Step 4 & 12)
+//     - POST   /api/packages     → Create a new event package
+//     - GET    /api/packages     → List all event packages
 //     - GET    /api/packages/{id}→ Get package by ID
-//     - PUT    /api/packages/{id}→ Update package details (Step 9)
-//     - DELETE /api/packages/{id}→ Delete package (Open Issue 1)
+//     - PUT    /api/packages/{id}→ Update package details
+//     - DELETE /api/packages/{id}→ Delete package
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.controller;
 

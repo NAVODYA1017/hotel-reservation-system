@@ -1,16 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE    : ReservationResponse.java
-// USE CASE: UC-04 – Create and Manage Reservation
-// ACTORS  : Primary: Customer | Secondary: Receptionist
-// MEMBER  : Hettiarachchi K. N.
-// REG NO  : IT25104004
 // ROLE    : Data Transfer Object (DTO) – Outbound Response Body
 // ═══════════════════════════════════════════════════════════════════════
 //
-// ── VIVA ARCHITECTURE OVERVIEW ─────────────────────────────────────────
+// ── PURPOSE & ARCHITECTURE ─────────────────────────────────────────────
 // This DTO formats reservation records returned to the client. It flattens
 // nested JPA relationships (User, Room, EventHall, Package) into clean,
-// JSON-friendly properties, avoiding infinite circular serialization loops.
+// JSON-friendly properties, avoiding circular serialization issues.
 // ═══════════════════════════════════════════════════════════════════════
 
 package com.hotel.reservationsystem.dto;

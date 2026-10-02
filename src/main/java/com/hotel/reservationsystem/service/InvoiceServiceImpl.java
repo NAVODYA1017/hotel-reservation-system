@@ -21,8 +21,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * UC-05 – Process Payment and Generate Invoice.
- * Owned by: Payment & Billing Management (Ranaweera R.A.Y.N. / IT25104079).
+ * Invoice generation and PDF management service implementation.
  */
 @Service
 @RequiredArgsConstructor

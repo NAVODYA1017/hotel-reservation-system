@@ -1,15 +1,13 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : EventHallController.java
-// UC   : UC-03 – Manage Event Halls and Packages
-// MEMBER: Panditharathne P. A. T. I. (IT25101982)
 // LAYER: Controller (Presentation / REST API Layer)
 //
 // WHAT DOES THIS CONTROLLER DO?
-//   Exposes REST endpoints for the Event Coordinator and Customer
-//   to perform operations on hotel event halls:
+//   Exposes REST endpoints for the management and customer browsing
+//   of hotel event halls:
 //     - POST   /api/event-halls              → Create a new event hall
-//     - GET    /api/event-halls              → List all halls (Admin view)
-//     - GET    /api/event-halls/available    → List available halls (Customer view)
+//     - GET    /api/event-halls              → List all halls
+//     - GET    /api/event-halls/available    → List available halls
 //     - GET    /api/event-halls/{id}         → View single hall details
 //     - PUT    /api/event-halls/{id}         → Update hall information
 //     - PATCH  /api/event-halls/{id}/availability → Toggle availability

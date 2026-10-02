@@ -1,15 +1,14 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : RoomService.java
-// UC   : UC-02 – Manage Hotel Rooms (Teammate 2: Akmal R.N.M.A. - IT25102920)
 // LAYER: Service (Business Logic Layer)
 //
 // WHAT DOES THIS CLASS DO?
 //   Implements the core business rules for hotel room management:
-//     1. Adding new rooms with duplicate room number validation (Extension 5a)
-//     2. Input validation for price, capacity, and room types (Extension 7a, 8a)
+//     1. Adding new rooms with duplicate room number validation
+//     2. Input validation for price, capacity, and room types
 //     3. Updating room specifications and pricing
-//     4. Updating availability status with occupancy guards (Extension 10a)
-//     5. Safe room deletion with reservation foreign-key checks (Open Issue 1)
+//     4. Updating availability status with occupancy guards
+//     5. Safe room deletion with reservation foreign-key checks
 //     6. Retrieving all rooms and filtering available rooms for guests
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.service;

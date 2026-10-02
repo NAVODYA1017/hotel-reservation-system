@@ -1,25 +1,21 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE    : ReservationController.java
-// USE CASE: UC-04 – Create and Manage Reservation
-// ACTORS  : Primary: Customer | Secondary: Receptionist, Event Coordinator
-// MEMBER  : Hettiarachchi K. N.
-// REG NO  : IT25104004
 // ROLE    : Presentation / REST Controller Layer
 // ═══════════════════════════════════════════════════════════════════════
 //
-// ── VIVA ARCHITECTURE OVERVIEW ─────────────────────────────────────────
+// ── ARCHITECTURE & RESPONSIBILITIES ────────────────────────────────────
 // This controller exposes RESTful HTTP endpoints for managing hotel and hall
 // reservations. It acts as the contract boundary between the React frontend
 // and Spring Boot service layer.
 //
 // ── ENDPOINTS SUMMARY ──────────────────────────────────────────────────
-// • POST   /api/reservations            → Create new booking (Steps 1–11)
-// • GET    /api/reservations            → List all bookings (Receptionist/Admin)
+// • POST   /api/reservations            → Create new booking
+// • GET    /api/reservations            → List all bookings
 // • GET    /api/reservations/{id}       → Retrieve booking by ID
-// • GET    /api/reservations/user/{uid} → Customer booking history (Step 12)
-// • PUT    /api/reservations/{id}       → Modify dates/stay (Extension 12a)
-// • PUT    /api/reservations/{id}/cancel→ Cancel booking (Extension 12b)
-// • DELETE /api/reservations/{id}       → Hard delete booking
+// • GET    /api/reservations/user/{uid} → Customer booking history
+// • PUT    /api/reservations/{id}       → Modify dates/stay
+// • PUT    /api/reservations/{id}/cancel→ Cancel booking
+// • DELETE /api/reservations/{id}       → Delete booking
 // ═══════════════════════════════════════════════════════════════════════
 
 package com.hotel.reservationsystem.controller;

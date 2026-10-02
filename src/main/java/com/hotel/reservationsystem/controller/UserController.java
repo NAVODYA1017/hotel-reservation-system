@@ -1,6 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : UserController.java
-// UC   : UC-01 – User Account Management (Teammate 1: Sandeepani H.G.K. - IT25102000)
 // LAYER: Controller (REST API layer)
 //
 // WHAT DOES THIS CONTROLLER DO?

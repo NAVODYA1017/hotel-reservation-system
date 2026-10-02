@@ -1,17 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE    : ReservationRequest.java
-// USE CASE: UC-04 – Create and Manage Reservation
-// ACTORS  : Primary: Customer | Secondary: Receptionist
-// MEMBER  : Hettiarachchi K. N.
-// REG NO  : IT25104004
 // ROLE    : Data Transfer Object (DTO) – Inbound Request Body
 // ═══════════════════════════════════════════════════════════════════════
 //
-// ── VIVA ARCHITECTURE OVERVIEW ─────────────────────────────────────────
-// This DTO encapsulates data transmitted from the customer browser or
-// receptionist front desk when creating or modifying a reservation.
-// Using DTOs prevents over-posting attacks and decouples the internal JPA
-// entity schema from the public API contract.
+// ── PURPOSE & ARCHITECTURE ─────────────────────────────────────────────
+// This DTO encapsulates data transmitted from the client when creating or
+// modifying a reservation. Decouples the internal JPA entity schema from
+// the public API contract.
 // ═══════════════════════════════════════════════════════════════════════
 
 package com.hotel.reservationsystem.dto;

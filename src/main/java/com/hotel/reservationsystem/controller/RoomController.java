@@ -1,17 +1,16 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : RoomController.java
-// UC   : UC-02 – Manage Hotel Rooms (Teammate 2: Akmal R.N.M.A. - IT25102920)
 // LAYER: Controller (REST API layer – maps HTTP requests to RoomService)
 //
 // WHAT DOES THIS CONTROLLER DO?
 //   Exposes RESTful endpoints for Receptionists and Customers:
-//     - POST   /api/rooms               → Add a new room (Step 5, 9)
-//     - GET    /api/rooms               → List all rooms (Step 4)
-//     - GET    /api/rooms/{id}          → View one room (Step 6)
-//     - PUT    /api/rooms/{id}          → Update room details (Step 7, 9)
-//     - PUT    /api/rooms/{id}/status   → Change availability status (Step 10)
-//     - DELETE /api/rooms/{id}          → Delete a room (Step 5)
-//     - GET    /api/rooms/available     → List currently available rooms (Step 12)
+//     - POST   /api/rooms               → Add a new room
+//     - GET    /api/rooms               → List all rooms
+//     - GET    /api/rooms/{id}          → View one room
+//     - PUT    /api/rooms/{id}          → Update room details
+//     - PUT    /api/rooms/{id}/status   → Change availability status
+//     - DELETE /api/rooms/{id}          → Delete a room
+//     - GET    /api/rooms/available     → List currently available rooms
 //     - GET    /api/rooms/status/{status} → Filter rooms by status
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.controller;

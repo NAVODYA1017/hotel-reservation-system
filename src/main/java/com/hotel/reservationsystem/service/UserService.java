@@ -1,6 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : UserService.java
-// UC   : UC-01 – User Account Management (Teammate 1: Sandeepani H.G.K. - IT25102000)
 // LAYER: Service (Business Logic Layer)
 //
 // WHAT DOES THIS CLASS DO?

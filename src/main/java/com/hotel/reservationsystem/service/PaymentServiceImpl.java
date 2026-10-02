@@ -27,15 +27,14 @@ import com.hotel.reservationsystem.service.PaymentStrategyFactory.PaymentGateway
 import com.hotel.reservationsystem.service.PaymentStrategyFactory.PaymentStrategy;
 
 /**
- * UC-05 – Process Payment and Generate Invoice.
- * Owned by: Payment & Billing Management (Ranaweera R.A.Y.N. / IT25104079).
+ * Process Payment and Generate Invoice service implementation.
  *
- * Implements the Main Scenario end-to-end:
- *  3. amount payable is read from the reservation's balance due
- *  6. validation is delegated to the resolved {@link PaymentStrategy}
- *  7. the strategy "processes" the charge
- *  8. the payment + reservation balance are persisted
- *  9. an itemized invoice is generated via {@link InvoiceService}
+ * Implements the payment processing lifecycle:
+ *  - Reads amount payable from the reservation balance due
+ *  - Delegates validation to the resolved PaymentStrategy
+ *  - Processes the transaction charge
+ *  - Persists payment and updates reservation status
+ *  - Generates itemized invoice via InvoiceService
  */
 @Service
 @RequiredArgsConstructor

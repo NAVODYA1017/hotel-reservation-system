@@ -1,6 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : RoomRepository.java
-// UC   : UC-02 – Manage Hotel Rooms (Teammate 2: Akmal R.N.M.A. - IT25102920)
 // LAYER: Repository (Data Access Layer – talks to MySQL database)
 //
 // WHAT IS A REPOSITORY?

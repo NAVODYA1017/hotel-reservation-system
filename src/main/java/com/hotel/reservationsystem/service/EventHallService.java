@@ -1,15 +1,13 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : EventHallService.java
-// UC   : UC-03 – Manage Event Halls and Packages
-// MEMBER: Panditharathne P. A. T. I. (IT25101982)
 // LAYER: Service (Business Logic Layer)
 //
 // WHAT DOES THIS SERVICE DO?
 //   Contains business rules, validations, and lifecycle operations for
-//   hotel event halls. Enforces use-case rules:
-//     - Extension 7a: Required hall information validation
-//     - Extension 7b: Reserved hall availability protection
-//     - Open Issue 1: Active reservation safety on deletion
+//   hotel event halls. Enforces operational integrity rules:
+//     - Required hall information validation
+//     - Reserved hall availability protection
+//     - Active reservation safety on deletion
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.service;
 

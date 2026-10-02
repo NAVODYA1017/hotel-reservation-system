@@ -1,16 +1,14 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : RoomRequest.java
-// UC   : UC-02 – Manage Hotel Rooms (Teammate 2: Akmal R.N.M.A. - IT25102920)
 // LAYER: DTO (Data Transfer Object)
 //
 // WHAT IS A DTO?
 //   A DTO (Data Transfer Object) is a plain Java object used to transfer
-//   data between the client (React frontend) and the server (Spring Boot).
+//   data between the client and the server.
 //   It isolates the database entity from the external API contract.
 //
 // WHAT DOES THIS CLASS DO?
-//   Captures the data submitted by a receptionist when creating or
-//   updating a hotel room in the system.
+//   Captures the data submitted when creating or updating a hotel room.
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.dto;
 

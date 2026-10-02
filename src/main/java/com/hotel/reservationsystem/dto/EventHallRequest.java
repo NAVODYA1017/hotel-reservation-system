@@ -1,7 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE : EventHallRequest.java
-// UC   : UC-03 – Manage Event Halls and Packages
-// MEMBER: Panditharathne P. A. T. I. (IT25101982)
 // LAYER: DTO (Data Transfer Object)
 //
 // WHAT IS A DTO?

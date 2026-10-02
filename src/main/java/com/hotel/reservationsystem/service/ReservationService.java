@@ -1,26 +1,21 @@
 // ═══════════════════════════════════════════════════════════════════════
 // FILE    : ReservationService.java
-// USE CASE: UC-04 – Create and Manage Reservation
-// ACTORS  : Primary: Customer | Secondary: Receptionist, Event Coordinator
-// MEMBER  : Hettiarachchi K. N.
-// REG NO  : IT25104004
 // ROLE    : Service Layer (Business Logic & Transaction Management)
 // ═══════════════════════════════════════════════════════════════════════
 //
-// ── VIVA ARCHITECTURE OVERVIEW ─────────────────────────────────────────
+// ── ARCHITECTURE & RESPONSIBILITIES ────────────────────────────────────
 // This service encapsulates the core booking engine of the Hotel Reservation
-// System. It enforces strict transactional integrity, real-time availability
-// validation, conflict detection algorithms, and automatic cost calculations.
+// System. It enforces transactional integrity, real-time availability
+// validation, date conflict detection algorithms, and dynamic pricing calculations.
 //
-// ── KEY BUSINESS RULES & EXTENSIONS IMPLEMENTED ───────────────────────
-// • Main Scenario Step 4 & 5 : Real-time availability verification
-// • Main Scenario Step 7     : Dynamic pricing calculation (nights * rate or hall + package)
-// • Main Scenario Step 10 & 11: Creates reservation & generates unique booking confirmation (RES-XXXXXXXX)
-// • Extension 4a             : If room or hall is unavailable (e.g. MAINTENANCE / inactive), rejects with guidance
-// • Extension 8a             : Overlapping date conflict check prevents double booking
-// • Extension 12a            : Modify existing booking dates with automated price recalculation and overlap re-check
-// • Extension 12b            : Cancel booking (soft-update to CANCELLED), releasing inventory for other guests
-// • Open Issue 1             : Modification & cancellation business rules, audit trail preservation
+// ── KEY CAPABILITIES ───────────────────────────────────────────────────
+// • Real-time availability verification for rooms and event halls
+// • Dynamic pricing calculation (nights * rate or hall + package)
+// • Unique booking confirmation generation (RES-XXXXXXXX)
+// • Room and hall status validation (e.g. MAINTENANCE / inactive checks)
+// • Overlapping date conflict detection to prevent double bookings
+// • Stay modification with automated price recalculation and overlap re-check
+// • Booking cancellation, releasing inventory while preserving audit trails
 // ═══════════════════════════════════════════════════════════════════════
 
 package com.hotel.reservationsystem.service;

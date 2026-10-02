@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/event-halls")
+@RequestMapping({"/api/event-halls", "/api/halls"})
 public class EventHallController {
 
     @Autowired

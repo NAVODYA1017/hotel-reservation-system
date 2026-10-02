@@ -23,6 +23,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     // Find all reservations linked to a specific room
     List<Reservation> findByRoom_Id(Long roomId);
 
+    // Find all reservations created by a specific user (UC-04 Page 9)
+    List<Reservation> findByUser_Id(Long userId);
+
     // ── UC-03 EVENT HALL & PACKAGE CONSTRAINTS (Extension 7b & Open Issue 1) ──
     // Checks if any reservations are linked to this event hall
     boolean existsByHall_Id(Long hallId);

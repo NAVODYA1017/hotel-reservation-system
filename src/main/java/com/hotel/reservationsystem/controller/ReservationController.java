@@ -48,6 +48,16 @@ public class ReservationController {
     }
 
     // ──────────────────────────────────────────────
+    // GET http://localhost:8080/api/reservations/user/5
+    // View all bookings by a customer (UC-04)
+    // ──────────────────────────────────────────────
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ReservationResponse>> getReservationsByUserId(@PathVariable Long userId) {
+        List<ReservationResponse> list = reservationService.getReservationsByUserId(userId);
+        return ResponseEntity.ok(list);
+    }
+
+    // ──────────────────────────────────────────────
     // PUT http://localhost:8080/api/reservations/5
     // Modify an existing reservation
     // ──────────────────────────────────────────────

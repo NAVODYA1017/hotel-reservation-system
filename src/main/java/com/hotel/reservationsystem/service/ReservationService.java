@@ -163,6 +163,16 @@ public class ReservationService {
     }
 
     // ──────────────────────────────────────────────
+    // 3B. GET ALL RESERVATIONS BY USER ID (UC-04)
+    // ──────────────────────────────────────────────
+    public List<ReservationResponse> getReservationsByUserId(Long userId) {
+        return reservationRepository.findByUser_Id(userId)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    // ──────────────────────────────────────────────
     // 4. CANCEL A RESERVATION
     // ──────────────────────────────────────────────
     @Transactional

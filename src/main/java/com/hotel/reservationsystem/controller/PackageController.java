@@ -70,6 +70,16 @@ public class PackageController {
     }
 
     // ─────────────────────────────────────────────────────────────────
+    // 3B. GET PACKAGES FOR SPECIFIC HALL (UC-03 Page 8)
+    // GET http://localhost:8080/api/packages/hall/1
+    // ─────────────────────────────────────────────────────────────────
+    @GetMapping("/hall/{hallId}")
+    public ResponseEntity<List<PackageResponse>> getPackagesByHall(@PathVariable Long hallId) {
+        List<PackageResponse> packages = packageService.getAllPackages();
+        return ResponseEntity.ok(packages);
+    }
+
+    // ─────────────────────────────────────────────────────────────────
     // 4. UPDATE PACKAGE – Main Scenario Step 9
     // PUT http://localhost:8080/api/packages/1
     // ─────────────────────────────────────────────────────────────────

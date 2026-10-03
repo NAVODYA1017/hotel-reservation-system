@@ -514,7 +514,7 @@ function InvoiceViewModal({ invoiceData, booking, onClose, onDownloadPdf }) {
         <div className="modal-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <div>
             <div className="modal-title" style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.1em', color: 'var(--gold-400)' }}>
-              GRITSTONE HAVEN INVOICE
+              ALIYA RESORT INVOICE
             </div>
             <div className="modal-subtitle">Official Itemized Tax Invoice #{invNumber}</div>
           </div>
@@ -524,7 +524,7 @@ function InvoiceViewModal({ invoiceData, booking, onClose, onDownloadPdf }) {
         <div className="modal-body" style={{ padding: 28 }}>
           <div className="invoice-header-bar">
             <div>
-              <div style={{ fontFamily: "'Cinzel', serif", fontSize: 18, color: 'var(--gold-400)', letterSpacing: '0.12em' }}>GRITSTONE HAVEN</div>
+              <div style={{ fontFamily: "'Cinzel', serif", fontSize: 18, color: 'var(--gold-400)', letterSpacing: '0.12em' }}>ALIYA RESORT</div>
               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
                 Ella Highland Ridge, Wild Countryside<br />
                 VAT Registration No: VAT-88291039

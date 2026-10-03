@@ -130,7 +130,7 @@ function Checkout() {
               Countryside Sanctuary Reserved
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: 16, marginBottom: 32 }}>
-              Your retreat at Gritstone Haven is confirmed. A raw haven awaits your arrival.
+              Your retreat at Aliya Resort is confirmed. A raw sanctuary awaits your arrival.
             </p>
             <div style={{
               background: '#1a1c18', border: '1px solid rgba(197,160,89,0.3)',

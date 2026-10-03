@@ -188,7 +188,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 + ".totals td{border:none;font-weight:bold;}"
                 + ".muted{color:#7c7060;font-size:12px;}"
                 + "</style></head><body>"
-                + "<h1>Cinnamon Grand &mdash; Hotel Reservation System</h1>"
+                + "<h1>Aliya Resort &mdash; Official Tax Invoice</h1>"
                 + "<p class='muted'>Invoice " + dto.getInvoiceNumber() + " &bull; Issued " + dto.getIssuedAt().format(fmt) + "</p>"
                 + "<p><strong>Bill To:</strong> " + dto.getCustomerName() + " (" + dto.getCustomerEmail() + ")<br/>"
                 + "<strong>Reservation:</strong> " + dto.getReservationConfirmationCode() + "</p>"

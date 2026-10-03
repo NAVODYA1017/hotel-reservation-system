@@ -29,7 +29,7 @@ function CustomerNav() {
     <nav className={`c-nav${scrolled ? ' scrolled' : ''}`}>
       <div className="c-nav-inner">
         <button className="c-nav-logo" onClick={() => navigate('/')}>
-          <span className="c-nav-logo-name">Gritstone Haven</span>
+          <span className="c-nav-logo-name">Aliya Resort</span>
         </button>
 
         <div className="c-nav-links">
@@ -162,7 +162,7 @@ const AMENITIES = [
 ];
 
 const TESTIMONIALS = [
-  { name: 'Elena Rostova', from: 'Architect, Berlin', text: 'Gritstone Haven is a masterclass in raw, honest countryside design. Waking up to mist rolling over the gritstone outcrops was unforgettable.', stars: 5 },
+  { name: 'Elena Rostova', from: 'Architect, Berlin', text: 'Aliya Resort is a masterclass in raw, honest countryside design. Waking up to mist rolling over the gritstone outcrops was unforgettable.', stars: 5 },
   { name: 'Marcus Vance', from: 'Melbourne, Australia', text: 'Escape the concrete is no exaggeration. Total seclusion, crackling timber fire, and impeccable craftsmanship throughout the apartment.', stars: 5 },
   { name: 'Naveen Senanayake', from: 'Colombo, Sri Lanka', text: 'The perfect antidote to urban exhaustion. Seamless online booking, effortless stay, and incredible peaceful stillness.', stars: 5 },
 ];
@@ -288,7 +288,7 @@ function Home() {
                 The Countryside Ridge, Ella Highland
               </h3>
               <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 14, marginBottom: 20 }}>
-                Gritstone Haven is carved into the hillside wilderness, offering private panoramic vistas over green valleys and rocky peaks. Arrive by 4x4 or arrange a sanctuary shuttle pickup from the central railway station.
+                Aliya Resort is carved into the hillside wilderness, offering private panoramic vistas over green valleys and rocky peaks. Arrive by 4x4 or arrange a sanctuary shuttle pickup from the central railway station.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: 'var(--text-muted)' }}>
                 <div>📍 <strong>Coordinates:</strong> 6.8667° N, 81.0466° E (Ella Highland Ridge)</div>
@@ -474,10 +474,10 @@ export function CustomerFooter() {
         <div className="c-footer-grid">
           <div>
             <span className="c-footer-brand-name" style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.14em', color: 'var(--gold-400)' }}>
-              Gritstone Haven
+              Aliya Resort
             </span>
             <p className="c-footer-desc">
-              A raw, secluded haven carved from the wild countryside. Escape the concrete and discover authentic rustic solitude.
+              A premier countryside sanctuary retreat. Discover authentic rustic luxury, wild landscapes, and peaceful solitude.
             </p>
             <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
               <div style={{ width: 36, height: 36, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -504,12 +504,12 @@ export function CustomerFooter() {
             <div className="c-footer-heading">Territory Location</div>
             <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MapPin size={14} /> Ella Highland Ridge, Wild Countryside</span>
             <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Phone size={14} /> +94 57 222 8900</span>
-            <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Mail size={14} /> sanctuary@gritstonehaven.com</span>
+            <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Mail size={14} /> reservations@aliyaresort.com</span>
             <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Calendar size={14} /> Year-Round Retreat Access</span>
           </div>
         </div>
         <div className="c-footer-bottom" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <span>© {new Date().getFullYear()} Gritstone Haven Countryside Sanctuary. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} Aliya Resort Countryside Sanctuary. All rights reserved.</span>
           <div style={{ display: 'flex', gap: 20 }}>
             {['Privacy Policy', 'Reservation Terms', 'Countryside Wilderness Policy'].map(l => (
               <span key={l} style={{ cursor: 'pointer' }}>{l}</span>

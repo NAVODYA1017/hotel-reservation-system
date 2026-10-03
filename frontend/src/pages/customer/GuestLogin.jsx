@@ -121,7 +121,7 @@ function GuestLogin() {
               {tab === 'login' ? 'Sanctuary Access' : 'Join The Haven'}
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-              {tab === 'login' ? 'Sign in to manage your Gritstone Haven reservations & invoices' : 'Create an account to book secluded countryside apartments'}
+              {tab === 'login' ? 'Sign in to manage your Aliya Resort reservations & invoices' : 'Create an account to book secluded countryside apartments'}
             </div>
           </div>
 

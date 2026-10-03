@@ -2,42 +2,44 @@
    LUXESTAY Hotel Management - Design System
    ============================================ */
 
-/* CSS Custom Properties */
+/* CSS Custom Properties - Gritstone Haven Countryside Grunge */
 :root {
-  --gold-300: #f5d97a;
-  --gold-400: #e8bc3a;
-  --gold-500: #c9a030;
-  --gold-600: #a07825;
+  --gold-300: #e2c185;
+  --gold-400: #c5a059;
+  --gold-500: #ad8742;
+  --gold-600: #8c6a2e;
 
-  --dark-900: #0d0b14;
-  --dark-800: #13101e;
-  --dark-750: #18152a;
-  --dark-700: #1e1a33;
-  --dark-600: #2a2545;
-  --dark-500: #352f5a;
-  --dark-400: #4a4375;
+  --dark-950: #0e0f0d;
+  --dark-900: #141513;
+  --dark-800: #1a1c18;
+  --dark-750: #20221e;
+  --dark-700: #272a24;
+  --dark-600: #33372f;
+  --dark-500: #44493e;
+  --dark-400: #5d6355;
 
-  --surface-card: rgba(24, 21, 42, 0.95);
-  --surface-hover: rgba(53, 47, 90, 0.5);
+  --surface-card: rgba(26, 28, 24, 0.96);
+  --surface-hover: rgba(45, 49, 41, 0.65);
 
-  --text-primary: #f0ecff;
-  --text-secondary: #9d97c3;
-  --text-muted: #635e8a;
+  --text-primary: #f5f2eb;
+  --text-secondary: #c5bfb3;
+  --text-muted: #848075;
 
-  --border-subtle: rgba(255,255,255,0.07);
-  --border-gold: rgba(201,160,48,0.4);
+  --border-subtle: rgba(255,255,255,0.10);
+  --border-gold: rgba(197,160,89,0.38);
 
   --sidebar-w: 260px;
   --topbar-h: 64px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
 
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 20px rgba(0,0,0,0.4);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
-  --shadow-gold: 0 0 20px rgba(201,160,48,0.25);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.35);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.45);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.55);
+  --shadow-gold: 0 0 20px rgba(197,160,89,0.22);
 
   --t-fast: 150ms ease;
   --t-base: 250ms ease;
@@ -61,8 +63,8 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(201,160,48,0.05) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139,92,246,0.07) 0%, transparent 60%);
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(197,160,89,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(78,91,75,0.06) 0%, transparent 60%);
   pointer-events: none;
   z-index: 0;
 }

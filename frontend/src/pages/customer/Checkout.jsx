@@ -119,28 +119,28 @@ function Checkout() {
         {step === 4 ? (
           /* SUCCESS */
           <div className="success-hero">
-            <span className="success-icon">🎉</span>
-            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 40, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12 }}>
-              Booking Confirmed!
+            <span className="success-icon">🌲</span>
+            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
+              Countryside Sanctuary Reserved
             </h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: 18, marginBottom: 32 }}>
-              Your reservation at LuxeStay Grand is confirmed. We look forward to welcoming you!
+            <p style={{ color: 'var(--text-secondary)', fontSize: 16, marginBottom: 32 }}>
+              Your retreat at Gritstone Haven is confirmed. A raw haven awaits your arrival.
             </p>
             <div style={{
-              background: 'var(--surface-card)', border: '2px solid var(--border-gold)',
-              borderRadius: 'var(--radius-xl)', padding: 36, maxWidth: 520, margin: '0 auto 36px',
+              background: '#1a1c18', border: '1px solid rgba(197,160,89,0.3)',
+              borderRadius: 2, padding: 32, maxWidth: 520, margin: '0 auto 36px',
             }}>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 700, marginBottom: 8 }}>Booking Reference</div>
-              <div style={{ fontFamily: 'monospace', fontSize: 32, fontWeight: 800, color: 'var(--gold-300)', marginBottom: 24 }}>{bookingRef}</div>
+              <div style={{ fontSize: 11, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700, marginBottom: 8 }}>Haven Reference Code</div>
+              <div style={{ fontFamily: 'monospace', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 24 }}>{bookingRef}</div>
               <hr className="divider" style={{ marginBottom: 20 }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {[
-                  ['Room', roomName],
-                  ['Check-in', checkIn],
-                  ['Check-out', checkOut],
-                  ['Guests', guestsCount],
-                  ['Total Paid', `LKR ${total.toLocaleString()}`],
-                  ['Payment', payMethod.replace('_', ' ')],
+                  ['Space', roomName],
+                  ['Arrival', checkIn],
+                  ['Departure', checkOut],
+                  ['Guests', `${guestsCount} Person(s)`],
+                  ['Total Amount', `LKR ${total.toLocaleString()}`],
+                  ['Payment Status', payMethod === 'CASH' ? 'Pay upon Check-in' : 'Confirmed & Paid'],
                 ].map(([k, v]) => (
                   <div key={k} className="flex justify-between">
                     <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{k}</span>
@@ -150,8 +150,12 @@ function Checkout() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 14, justifyContent: 'center' }}>
-              <button className="btn btn-secondary" onClick={() => navigate('/my-bookings')}>📋 My Bookings</button>
-              <button className="hero-btn-primary" style={{ borderRadius: 'var(--radius-md)' }} onClick={() => navigate('/')}>🏠 Back to Home</button>
+              <button className="btn-escape" onClick={() => navigate('/my-bookings')}>
+                MY RESERVATIONS & INVOICES →
+              </button>
+              <button className="btn btn-secondary" style={{ borderRadius: 2 }} onClick={() => navigate('/')}>
+                Back to Haven Home
+              </button>
             </div>
           </div>
         ) : (

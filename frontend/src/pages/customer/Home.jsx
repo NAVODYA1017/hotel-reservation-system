@@ -27,48 +27,70 @@ function CustomerNav() {
   return (
     <nav className={`c-nav${scrolled ? ' scrolled' : ''}`}>
       <button className="c-nav-logo" onClick={() => navigate('/')}>
-        <Building2 className="c-nav-logo-icon" size={28} />
-        <span className="c-nav-logo-name" style={{ textTransform: 'uppercase', letterSpacing: '2px' }}>Aliya Resort</span>
+        <span className="c-nav-logo-name">Gritstone Haven</span>
       </button>
 
       <div className="c-nav-links">
-        <button className={`c-nav-link${isActive('/') ? ' active' : ''}`} onClick={() => navigate('/')}>Home</button>
-        <button className={`c-nav-link${isActive('/browse') ? ' active' : ''}`} onClick={() => navigate('/browse')}>Browse Rooms</button>
-        <button className={`c-nav-link${isActive('/events') ? ' active' : ''}`} onClick={() => navigate('/events')}>Event Halls & Packages</button>
-        <button className="c-nav-link" onClick={() => navigate('/#amenities')}>Amenities</button>
+        <button className={`c-nav-link${isActive('/browse') ? ' active' : ''}`} onClick={() => navigate('/browse')}>
+          THE SPACE
+        </button>
+        <button className="c-nav-link" onClick={() => {
+          if (location.pathname !== '/') navigate('/#amenities');
+          else document.getElementById('amenities')?.scrollIntoView({ behavior: 'smooth' });
+        }}>
+          AMENITIES
+        </button>
+        <button className="c-nav-link" onClick={() => {
+          if (location.pathname !== '/') navigate('/#location');
+          else document.getElementById('location')?.scrollIntoView({ behavior: 'smooth' });
+        }}>
+          LOCATION
+        </button>
+        <button className={`c-nav-link${isActive('/events') ? ' active' : ''}`} onClick={() => navigate('/events')}>
+          GATHERINGS
+        </button>
       </div>
 
       <div className="c-nav-actions">
         {guest ? (
           <>
-            <button className="btn btn-secondary btn-sm" onClick={() => navigate('/my-bookings')}>
-              <CalendarDays size={16} style={{ marginRight: 6 }} /> My Bookings
+            <button className="btn btn-secondary btn-sm" onClick={() => navigate('/my-bookings')} style={{ borderRadius: 2 }}>
+              <CalendarDays size={14} style={{ marginRight: 6 }} /> My Bookings
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div 
                 className="user-avatar" 
-                style={{ width: 32, height: 32, fontSize: 13, cursor: 'pointer' }}
+                style={{ width: 32, height: 32, fontSize: 13, cursor: 'pointer', borderRadius: 2, background: 'var(--gold-400)', color: '#141513' }}
                 onClick={() => navigate('/profile')}
                 title="My Profile"
               >
                 {guest.name?.charAt(0).toUpperCase()}
               </div>
-              <button className="btn btn-ghost btn-sm" onClick={handleLogout}>Logout</button>
+              <button className="btn btn-ghost btn-sm" onClick={handleLogout} style={{ borderRadius: 2 }}>Logout</button>
             </div>
           </>
         ) : (
           <>
-            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/guest-login')}>Sign In</button>
-            <button className="btn btn-primary btn-sm" onClick={() => navigate('/guest-login?tab=register')}>
-              Register
+            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/guest-login')} style={{ borderRadius: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: 12 }}>
+              Sign In
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => navigate('/guest-login?tab=register')} style={{ borderRadius: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: 12 }}>
+              Join Haven
             </button>
           </>
         )}
         <button
-          className="btn btn-secondary btn-sm"
+          className="hero-btn-primary"
+          onClick={() => navigate('/browse')}
+          style={{ padding: '8px 18px', fontSize: 12, letterSpacing: '0.14em' }}
+        >
+          BOOK NOW →
+        </button>
+        <button
+          className="btn btn-ghost btn-sm"
           onClick={() => navigate('/admin')}
-          title="Staff Login"
-          style={{ fontSize: 11 }}
+          title="Staff Portal"
+          style={{ fontSize: 11, color: 'var(--text-muted)' }}
         >
           🔒 Staff
         </button>
@@ -89,36 +111,36 @@ function HeroSearch({ onSearch }) {
   return (
     <div className="search-bar-hero">
       <div className="search-bar-field">
-        <span className="search-bar-label"><Calendar size={14} style={{ marginRight: 6 }} /> Check-in</span>
+        <span className="search-bar-label"><Calendar size={13} style={{ marginRight: 6 }} /> Arrival</span>
         <input className="search-bar-input" type="date" value={checkIn} min={today}
-          onChange={e => setCheckIn(e.target.value)} placeholder="Select date" />
+          onChange={e => setCheckIn(e.target.value)} />
       </div>
       <div className="search-bar-field">
-        <span className="search-bar-label"><Calendar size={14} style={{ marginRight: 6 }} /> Check-out</span>
+        <span className="search-bar-label"><Calendar size={13} style={{ marginRight: 6 }} /> Departure</span>
         <input className="search-bar-input" type="date" value={checkOut} min={checkIn || today}
-          onChange={e => setCheckOut(e.target.value)} placeholder="Select date" />
+          onChange={e => setCheckOut(e.target.value)} />
       </div>
       <div className="search-bar-field" style={{ minWidth: 100 }}>
-        <span className="search-bar-label"><Users size={14} style={{ marginRight: 6 }} /> Guests</span>
+        <span className="search-bar-label"><Users size={13} style={{ marginRight: 6 }} /> Guests</span>
         <input className="search-bar-input" type="number" value={guests} min={1} max={20}
           onChange={e => setGuests(e.target.value)} style={{ width: 60 }} />
       </div>
-      <div className="search-bar-field" style={{ minWidth: 120 }}>
-        <span className="search-bar-label"><Building2 size={14} style={{ marginRight: 6 }} /> Room Type</span>
+      <div className="search-bar-field" style={{ minWidth: 150 }}>
+        <span className="search-bar-label"><Building2 size={13} style={{ marginRight: 6 }} /> Space Type</span>
         <select className="search-bar-input" value={type} onChange={e => setType(e.target.value)}>
-          <option value="">Any Type</option>
-          <option value="Standard">Standard</option>
-          <option value="Deluxe">Deluxe</option>
-          <option value="Suite">Suite</option>
-          <option value="Premium Suite">Premium Suite</option>
+          <option value="">All Spaces</option>
+          <option value="Standard">Standard Cabin</option>
+          <option value="Deluxe">Deluxe Stone Haven</option>
+          <option value="Suite">Countryside Suite</option>
+          <option value="Premium Suite">Master Cliff Suite</option>
         </select>
       </div>
       <button
         className="hero-btn-primary"
-        style={{ borderRadius: 'var(--radius-md)', padding: '12px 24px', fontSize: 14, flexShrink: 0 }}
+        style={{ padding: '14px 28px', fontSize: 12, flexShrink: 0, margin: 4 }}
         onClick={() => onSearch({ checkIn, checkOut, guests, type })}
       >
-        <Search size={16} style={{ marginRight: 6 }} /> Search
+        <Search size={14} style={{ marginRight: 6 }} /> SEARCH HAVEN
       </button>
     </div>
   );
@@ -126,20 +148,20 @@ function HeroSearch({ onSearch }) {
 
 /* ---- HOME PAGE ---- */
 const AMENITIES = [
-  { icon: <Waves size={32} />, title: 'Infinity Pool', desc: 'Olympic-sized rooftop infinity pool with panoramic views' },
-  { icon: <Wind size={32} />, title: 'Luxury Spa', desc: 'Full-service spa with massages, facials & wellness treatments' },
-  { icon: <Utensils size={32} />, title: 'Fine Dining', desc: '3 award-winning restaurants with world-class chefs' },
-  { icon: <Coffee size={32} />, title: 'Fitness Center', desc: 'State-of-the-art gym, yoga studio & personal training' },
-  { icon: <Tv size={32} />, title: 'Event Halls', desc: 'Grand ballrooms for weddings, conferences & celebrations' },
-  { icon: <Car size={32} />, title: 'Valet Parking', desc: '24/7 secure valet and chauffeur services' },
-  { icon: <Wine size={32} />, title: 'Concierge', desc: 'Round-the-clock personalized concierge at your service' },
-  { icon: <Wifi size={32} />, title: 'Ultra-Fast Wi-Fi', desc: 'Complimentary high-speed internet throughout the property' },
+  { icon: <Wind size={30} />, title: 'Wild Air & Solitude', desc: 'Carved high into secluded mountain countryside with zero city noise' },
+  { icon: <Waves size={30} />, title: 'Stone Dip Pool', desc: 'Natural spring-fed mountain dipping pool nestled in raw rock faces' },
+  { icon: <Utensils size={30} />, title: 'Fire Hearth Dining', desc: 'Locally foraged ingredients and woodfired culinary craftsmanship' },
+  { icon: <Coffee size={30} />, title: 'Artisan Roastery', desc: 'Fresh single-origin mountain roast brewed every sunrise' },
+  { icon: <Tv size={30} />, title: 'Country Gathering Halls', desc: 'Architectural timber spaces for acoustic evenings and private retreats' },
+  { icon: <Car size={30} />, title: 'Rugged Trail Access', desc: 'Private 4x4 trail guidance and covered country parking' },
+  { icon: <Wine size={30} />, title: 'Cellar & Provisions', desc: 'Curated natural wines and seasonal provisions delivered to your space' },
+  { icon: <Wifi size={30} />, title: 'Starlink High-Speed', desc: 'High-speed remote connectivity across all apartments and cabins' },
 ];
 
 const TESTIMONIALS = [
-  { name: 'Amara Wijerama', from: 'Colombo, Sri Lanka', text: 'Absolutely breathtaking experience. The suite was immaculate, the staff went above and beyond. Will definitely return for our anniversary!', stars: 5 },
-  { name: 'James Thornton', from: 'London, UK', text: 'Aliya Resort redefined luxury for me. The pool view at sunset is something I will never forget. Five-star in every sense.', stars: 5 },
-  { name: 'Priya Nalakshmi', from: 'Chennai, India', text: 'The perfect venue for our corporate retreat. The event team was phenomenal and the rooms made our international guests feel truly pampered.', stars: 5 },
+  { name: 'Elena Rostova', from: 'Architect, Berlin', text: 'Gritstone Haven is a masterclass in raw, honest countryside design. Waking up to mist rolling over the gritstone outcrops was unforgettable.', stars: 5 },
+  { name: 'Marcus Vance', from: 'Melbourne, Australia', text: 'Escape the concrete is no exaggeration. Total seclusion, crackling timber fire, and impeccable craftsmanship throughout the apartment.', stars: 5 },
+  { name: 'Naveen Senanayake', from: 'Colombo, Sri Lanka', text: 'The perfect antidote to urban exhaustion. Seamless online booking, effortless stay, and incredible peaceful stillness.', stars: 5 },
 ];
 
 function Home() {
@@ -158,106 +180,140 @@ function Home() {
     <div className="customer-shell">
       <CustomerNav />
 
-      {/* Hero */}
+      {/* Hero - Countryside Apartment Template (Wix Reference) */}
       <section className="hero" style={{ 
-        backgroundImage: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url(/assets/images/hero.jpg)',
+        backgroundImage: 'linear-gradient(rgba(19,21,18,0.35), rgba(19,21,18,0.7)), url(/assets/images/hero.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
       }}>
         <div className="hero-bg" />
         <div className="hero-bg-pattern" />
-        <div className="hero-content">
-          <div className="hero-badge" style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }}>⭐ Sri Lanka's #1 Luxury Hotel</div>
-          <h1 className="hero-title">
-            Experience the Art<br />of <span>Luxury Living</span>
-          </h1>
-          <p className="hero-subtitle">
-            Nestled in the heart of paradise, Aliya Resort offers an unparalleled blend of
-            timeless elegance and modern sophistication — where every moment becomes a memory.
-          </p>
 
-          <HeroSearch onSearch={handleSearch} />
-
-          <div className="hero-actions">
-            <button className="hero-btn-primary" onClick={() => navigate('/browse')}>
-              <Building2 size={16} style={{ marginRight: 6 }} /> Browse Our Rooms
-            </button>
-            <button className="hero-btn-secondary" onClick={() => navigate('/browse#amenities')}>
-              <Star size={16} style={{ marginRight: 6 }} /> View Amenities
+        <div className="hero-split">
+          <div className="hero-left">
+            <h1 className="hero-title">
+              Escape the Concrete.<br />
+              Find Your Grit
+            </h1>
+          </div>
+          <div className="hero-right">
+            <p className="hero-subtitle">
+              A raw, secluded haven carved from the wild countryside
+            </p>
+            <button className="btn-escape" onClick={() => navigate('/browse')}>
+              BOOK YOUR ESCAPE →
             </button>
           </div>
+        </div>
 
-          <div className="hero-stats">
-            <div>
-              <span className="hero-stat-val">150+</span>
-              <span className="hero-stat-label">Luxury Rooms</span>
-            </div>
-            <div>
-              <span className="hero-stat-val">98%</span>
-              <span className="hero-stat-label">Guest Satisfaction</span>
-            </div>
-            <div>
-              <span className="hero-stat-val">25+</span>
-              <span className="hero-stat-label">Years of Excellence</span>
-            </div>
-            <div>
-              <span className="hero-stat-val">12</span>
-              <span className="hero-stat-label">International Awards</span>
-            </div>
+        <HeroSearch onSearch={handleSearch} />
+
+        <div className="hero-stats">
+          <div>
+            <span className="hero-stat-val">04</span>
+            <span className="hero-stat-label">Architectural Spaces</span>
+          </div>
+          <div>
+            <span className="hero-stat-val">100%</span>
+            <span className="hero-stat-label">Secluded Countryside</span>
+          </div>
+          <div>
+            <span className="hero-stat-val">4.9 ★</span>
+            <span className="hero-stat-label">Guest Solitude Rating</span>
+          </div>
+          <div>
+            <span className="hero-stat-val">24/7</span>
+            <span className="hero-stat-label">Haven Caretaker</span>
           </div>
         </div>
       </section>
 
-      {/* Featured Rooms */}
-      <section className="c-section" id="rooms">
+      {/* The Living Spaces */}
+      <section className="c-section" id="spaces">
         <div className="section-header">
-          <div className="section-badge">Our Accommodations</div>
-          <h2 className="section-title">Handcrafted Rooms & Suites</h2>
-          <p className="section-subtitle">Every room is a sanctuary — thoughtfully designed with premium furnishings and all the comforts you deserve.</p>
+          <div className="section-badge">The Sanctuary</div>
+          <h2 className="section-title">Carved Countryside Living Spaces</h2>
+          <p className="section-subtitle">Minimalist raw timber, stone finishes, and floor-to-ceiling wilderness views in every sanctuary apartment.</p>
         </div>
         <FeaturedRooms onBook={() => navigate('/browse')} />
         <div style={{ textAlign: 'center', marginTop: 40 }}>
-          <button className="hero-btn-primary" onClick={() => navigate('/browse')}>
-            View All Rooms →
+          <button className="btn-escape" onClick={() => navigate('/browse')}>
+            EXPLORE ALL SPACES →
           </button>
         </div>
       </section>
 
       {/* Amenities */}
-      <section className="c-section" id="amenities" style={{ background: 'rgba(0,0,0,0.2)' }}>
+      <section className="c-section" id="amenities" style={{ background: '#161814', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="section-header">
-          <div className="section-badge">Facilities & Services</div>
-          <h2 className="section-title">World-Class Amenities</h2>
-          <p className="section-subtitle">From our infinity pool to the award-winning spa, every facility is crafted to exceed expectations.</p>
+          <div className="section-badge">Living Untamed</div>
+          <h2 className="section-title">Amenities of the Wild Haven</h2>
+          <p className="section-subtitle">Curated modern comforts blended with raw country elements for quiet restoration.</p>
         </div>
         <div className="amenities-grid">
           {AMENITIES.map(a => (
-            <div key={a.title} className="amenity-card">
-              <span className="amenity-icon">{a.icon}</span>
-              <div className="amenity-title">{a.title}</div>
+            <div key={a.title} className="amenity-card" style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2 }}>
+              <span className="amenity-icon" style={{ color: 'var(--gold-400)' }}>{a.icon}</span>
+              <div className="amenity-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 16 }}>{a.title}</div>
               <div className="amenity-desc">{a.desc}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="c-section">
+      {/* Location Section */}
+      <section className="c-section" id="location">
         <div className="section-header">
-          <div className="section-badge">Guest Reviews</div>
-          <h2 className="section-title">What Our Guests Say</h2>
-          <p className="section-subtitle">Genuine stories from guests who've experienced the Aliya Resort difference.</p>
+          <div className="section-badge">The Territory</div>
+          <h2 className="section-title">Hidden in the Mountain Mist</h2>
+          <p className="section-subtitle">Located away from highways and dense townships — accessible via countryside ridge roads.</p>
+        </div>
+        <div style={{
+          maxWidth: 1000, margin: '0 auto', background: '#1a1c18', border: '1px solid rgba(255,255,255,0.10)',
+          borderRadius: 2, padding: 36, display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 32, alignItems: 'center'
+        }}>
+          <div>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: 'var(--text-primary)', marginBottom: 12 }}>
+              The Countryside Ridge, Ella Highland
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 14, marginBottom: 20 }}>
+              Gritstone Haven is carved into the hillside wilderness, offering private panoramic vistas over green valleys and rocky peaks. Arrive by 4x4 or arrange a sanctuary shuttle pickup from the central railway station.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: 'var(--text-muted)' }}>
+              <div>📍 <strong>Coordinates:</strong> 6.8667° N, 81.0466° E (Ella Highland Ridge)</div>
+              <div>🚗 <strong>Access:</strong> Scenic Mountain Ridge Road, 25 mins from Ella Town</div>
+              <div>🚁 <strong>Helipad:</strong> Private landing paddock on upper clearing</div>
+            </div>
+          </div>
+          <div style={{
+            height: 240, background: 'url(/assets/images/hero.jpg) center/cover', border: '1px solid rgba(255,255,255,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative'
+          }}>
+            <button className="btn-escape" onClick={() => navigate('/browse')} style={{ zIndex: 1 }}>
+              RESERVE DATES →
+            </button>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="c-section" style={{ background: '#161814' }}>
+        <div className="section-header">
+          <div className="section-badge">Guest Impressions</div>
+          <h2 className="section-title">Words From the Wilderness</h2>
+          <p className="section-subtitle">Untouched silence and honest reviews from those who retreated to our sanctuary.</p>
         </div>
         <div className="testimonials-grid">
           {TESTIMONIALS.map(t => (
-            <div key={t.name} className="testimonial-card">
+            <div key={t.name} className="testimonial-card" style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2 }}>
               <div className="testimonial-stars" style={{ display: 'flex', gap: 2 }}>
-                {[...Array(t.stars)].map((_, i) => <Star key={i} size={16} fill="var(--gold-400)" color="var(--gold-400)" />)}
+                {[...Array(t.stars)].map((_, i) => <Star key={i} size={14} fill="var(--gold-400)" color="var(--gold-400)" />)}
               </div>
               <p className="testimonial-text">{t.text}</p>
               <div className="testimonial-author">
-                <div className="testimonial-avatar">{t.name.charAt(0)}</div>
+                <div className="testimonial-avatar" style={{ borderRadius: 2, background: 'var(--gold-400)', color: '#141513' }}>{t.name.charAt(0)}</div>
                 <div>
                   <div className="testimonial-name">{t.name}</div>
                   <div className="testimonial-from">{t.from}</div>
@@ -268,13 +324,13 @@ function Home() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="c-section-sm" style={{ textAlign: 'center', background: 'linear-gradient(135deg, rgba(201,160,48,0.08), rgba(139,92,246,0.06))' }}>
-        <div className="section-badge">Ready to Book?</div>
-        <h2 className="section-title" style={{ marginTop: 16 }}>Begin Your Luxury Journey</h2>
-        <p className="section-subtitle" style={{ marginBottom: 36 }}>Reserve your room today and experience the epitome of Sri Lankan hospitality.</p>
-        <button className="hero-btn-primary" onClick={() => navigate('/browse')} style={{ fontSize: 17, padding: '18px 44px' }}>
-          🏨 Book Your Stay Now
+      {/* Countryside CTA */}
+      <section className="c-section-sm" style={{ textAlign: 'center', background: '#121410', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="section-badge">Wild Solitude Awaits</div>
+        <h2 className="section-title" style={{ marginTop: 14 }}>Ready to Escape the Concrete?</h2>
+        <p className="section-subtitle" style={{ marginBottom: 32 }}>Choose your space and experience raw countryside architecture.</p>
+        <button className="btn-escape" onClick={() => navigate('/browse')} style={{ fontSize: 13, padding: '16px 36px' }}>
+          BOOK YOUR RETREAT →
         </button>
       </section>
 
@@ -300,8 +356,8 @@ function FeaturedRooms({ onBook }) {
             capacity: r.capacity || 2,
             amenities: typeof r.description === 'string' 
               ? r.description.split(',').map(s => s.trim()) 
-              : Array.isArray(r.amenities) ? r.amenities : ['WiFi', 'AC', 'TV'],
-            view: r.roomNumber?.startsWith('3') ? 'Ocean View' : r.roomNumber?.startsWith('2') ? 'Pool View' : 'Garden View',
+              : Array.isArray(r.amenities) ? r.amenities : ['Fireplace', 'Terrace', 'Mountain View'],
+            view: r.roomNumber?.startsWith('3') ? 'Cliff Peak' : r.roomNumber?.startsWith('2') ? 'Pine Ridge' : 'Wild Meadow',
           }));
           setFeatured(mapped);
         } else {
@@ -322,12 +378,12 @@ function FeaturedRooms({ onBook }) {
 }
 
 const FEATURED = [
-  { id: 1, roomNumber: '101', type: 'Deluxe Room', capacity: 2, pricePerNight: 15000, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar'], view: 'City View' },
-  { id: 2, roomNumber: '102', type: 'Standard Room', capacity: 2, pricePerNight: 9000, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV'], view: 'Garden View' },
+  { id: 1, roomNumber: '101', type: 'Deluxe Stone Haven', capacity: 2, pricePerNight: 15000, status: 'AVAILABLE', amenities: ['Fireplace', 'Stone Bath', 'Terrace', 'Wi-Fi'], view: 'Wild Meadow' },
+  { id: 2, roomNumber: '102', type: 'Standard Cabin', capacity: 2, pricePerNight: 9000, status: 'AVAILABLE', amenities: ['Timber Deck', 'Fire Pit', 'Kitchenette'], view: 'Pine Ridge' },
 ];
 
 export function CustomerRoomCard({ room, onClick }) {
-  const rType = String(room.roomType || room.type || 'Standard');
+  const rType = String(room.roomType || room.type || 'Standard Cabin');
   const imgUrl = rType.toLowerCase().includes('suite') ? '/assets/images/suite.jpg' 
                : rType.toLowerCase().includes('deluxe') ? '/assets/images/deluxe.jpg' 
                : '/assets/images/standard.jpg';
@@ -336,48 +392,49 @@ export function CustomerRoomCard({ room, onClick }) {
     ? room.amenities 
     : typeof (room.description || room.amenities) === 'string'
       ? (room.description || room.amenities).split(',').map(s => s.trim()).filter(Boolean)
-      : ['WiFi', 'AC', 'TV'];
+      : ['Fireplace', 'Timber Deck', 'Wild Vista'];
 
   const price = room.pricePerNight || room.price || 0;
 
   return (
-    <div className="c-room-card" onClick={onClick}>
+    <div className="c-room-card" onClick={onClick} style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 2 }}>
       <div className="c-room-img" style={{ backgroundImage: `url(${imgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', minHeight: '240px' }}>
         <div className="c-room-img-overlay" />
         <div className="c-room-badges">
-          <span className={`badge ${room.status === 'AVAILABLE' ? 'badge-success' : 'badge-error'}`}>
-            {room.status === 'AVAILABLE' ? '✓ Available' : (room.status || 'Unavailable')}
+          <span className={`badge ${room.status === 'AVAILABLE' ? 'badge-success' : 'badge-error'}`} style={{ borderRadius: 2, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            {room.status === 'AVAILABLE' ? '✓ AVAILABLE' : (room.status || 'UNAVAILABLE')}
           </span>
           {room.view && (
-            <span style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', borderRadius: 20, fontSize: 11, padding: '3px 10px', fontWeight: 600 }}>
+            <span style={{ background: 'rgba(0,0,0,0.7)', color: '#f5f2eb', borderRadius: 2, fontSize: 11, padding: '3px 10px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               {room.view}
             </span>
           )}
         </div>
       </div>
       <div className="c-room-body">
-        <div className="c-room-name">{rType}</div>
+        <div className="c-room-name" style={{ fontFamily: "'Playfair Display', serif", fontSize: 20 }}>{rType}</div>
         <div className="c-room-meta">
-          <span className="c-room-meta-item"><Building2 size={12} style={{ marginRight: 4 }} /> Room {room.roomNumber}</span>
-          <span className="c-room-meta-item"><Users size={12} style={{ marginRight: 4 }} /> Up to {room.capacity || 2} guests</span>
+          <span className="c-room-meta-item"><Building2 size={12} style={{ marginRight: 4 }} /> Space #{room.roomNumber}</span>
+          <span className="c-room-meta-item"><Users size={12} style={{ marginRight: 4 }} /> Sleeps {room.capacity || 2}</span>
         </div>
         <div className="c-room-amenities">
           {amenitiesList.slice(0, 4).map(a => (
-            <span key={a} className="c-amenity-tag">{a}</span>
+            <span key={a} className="c-amenity-tag" style={{ background: '#22251f', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>{a}</span>
           ))}
         </div>
-        <div className="c-room-footer">
+        <div className="c-room-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <div>
-            <div className="c-room-price-label">Starting from</div>
-            <div className="c-room-price">LKR {Number(price).toLocaleString()}</div>
+            <div className="c-room-price-label">Rates from</div>
+            <div className="c-room-price" style={{ color: 'var(--gold-400)', fontFamily: "'Playfair Display', serif" }}>LKR {Number(price).toLocaleString()}</div>
             <div className="c-room-price-period">per night</div>
           </div>
           <button
-            className="btn btn-primary"
+            className="hero-btn-primary"
+            style={{ padding: '8px 18px', fontSize: 12, letterSpacing: '0.12em' }}
             disabled={room.status !== 'AVAILABLE'}
             onClick={e => { e.stopPropagation(); onClick(); }}
           >
-            Book Now
+            RESERVE SPACE →
           </button>
         </div>
       </div>
@@ -388,47 +445,48 @@ export function CustomerRoomCard({ room, onClick }) {
 /* ---- FOOTER ---- */
 export function CustomerFooter() {
   return (
-    <footer className="c-footer">
+    <footer className="c-footer" style={{ background: '#0e100d', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
       <div className="c-footer-grid">
         <div>
-          <span className="c-footer-brand-name"><Building2 size={24} style={{ marginRight: 8, display: 'inline-block', verticalAlign: 'middle' }} /> Aliya Resort</span>
+          <span className="c-footer-brand-name" style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.14em', color: 'var(--gold-400)' }}>
+            Gritstone Haven
+          </span>
           <p className="c-footer-desc">
-            Sri Lanka's premier luxury resort, offering unparalleled comfort and world-class service
-            since 2001. Where every stay becomes a cherished memory.
+            A raw, secluded haven carved from the wild countryside. Escape the concrete and discover authentic rustic solitude.
           </p>
           <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
-            <div style={{ width: 36, height: 36, background: 'var(--dark-700)', border: '1px solid var(--border-subtle)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <Wine size={16} />
+            <div style={{ width: 36, height: 36, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Wine size={16} color="var(--gold-400)" />
             </div>
-            <div style={{ width: 36, height: 36, background: 'var(--dark-700)', border: '1px solid var(--border-subtle)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <Coffee size={16} />
+            <div style={{ width: 36, height: 36, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Coffee size={16} color="var(--gold-400)" />
             </div>
           </div>
         </div>
         <div>
-          <div className="c-footer-heading">Explore</div>
-          {['Rooms & Suites', 'Dining', 'Spa & Wellness', 'Events & Weddings', 'Offers'].map(l => (
+          <div className="c-footer-heading">The Spaces</div>
+          {['Standard Cabins', 'Deluxe Stone Haven', 'Countryside Suites', 'Cliffside Apartments', 'Private Paddock'].map(l => (
             <span key={l} className="c-footer-link">{l}</span>
           ))}
         </div>
         <div>
-          <div className="c-footer-heading">Guest Services</div>
-          {['My Bookings', 'Online Check-in', 'Room Service', 'Concierge', 'FAQs'].map(l => (
+          <div className="c-footer-heading">Sanctuary</div>
+          {['Wilderness Amenities', 'Trail Maps', 'Fire Hearth Dining', 'My Bookings', 'Care Policies'].map(l => (
             <span key={l} className="c-footer-link">{l}</span>
           ))}
         </div>
         <div>
-          <div className="c-footer-heading">Contact</div>
-          <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MapPin size={14} /> 123 Paradise Road, Tropical Island</span>
-          <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Phone size={14} /> +94 11 234 5678</span>
-          <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Mail size={14} /> reservations@aliyaresort.com</span>
-          <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Calendar size={14} /> 24/7 Reservations</span>
+          <div className="c-footer-heading">Territory Location</div>
+          <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MapPin size={14} /> Ella Highland Ridge, Wild Countryside</span>
+          <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Phone size={14} /> +94 57 222 8900</span>
+          <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Mail size={14} /> sanctuary@gritstonehaven.com</span>
+          <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Calendar size={14} /> Year-Round Retreat Access</span>
         </div>
       </div>
-      <div className="c-footer-bottom">
-        <span>© {new Date().getFullYear()} Aliya Resort. All rights reserved.</span>
+      <div className="c-footer-bottom" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <span>© {new Date().getFullYear()} Gritstone Haven Countryside Sanctuary. All rights reserved.</span>
         <div style={{ display: 'flex', gap: 20 }}>
-          {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map(l => (
+          {['Privacy Policy', 'Reservation Terms', 'Countryside Wilderness Policy'].map(l => (
             <span key={l} style={{ cursor: 'pointer' }}>{l}</span>
           ))}
         </div>

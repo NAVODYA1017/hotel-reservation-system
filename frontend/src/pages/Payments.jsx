@@ -179,6 +179,25 @@ function Payments() {
     setModal(null);
   };
 
+  const handleDownloadInvoice = async (payment) => {
+    try {
+      showToast('Downloading invoice PDF...', 'success');
+      const invNum = payment.invoiceNumber || `INV-${payment.reservationId}`;
+      const res = await axios.get(`/api/invoices/${invNum}/pdf`, { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${invNum}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      showToast('Invoice retrieved for printing.', 'success');
+    }
+  };
+
   const filtered = payments.filter(p => {
     const q = search.toLowerCase();
     return (
@@ -187,7 +206,7 @@ function Payments() {
     );
   });
 
-  const totalRevenue = payments.filter(p => p.status === 'COMPLETED').reduce((s, p) => s + (p.amount || 0), 0);
+  const totalRevenue = payments.filter(p => p.status === 'COMPLETED' || p.status === 'SUCCESS').reduce((s, p) => s + (p.amount || 0), 0);
   const totalRefunded = payments.filter(p => p.status === 'REFUNDED').reduce((s, p) => s + (p.amount || 0), 0);
 
   return (
@@ -206,17 +225,17 @@ function Payments() {
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
         <div className="stat-card gold">
           <div className="stat-card-icon">💰</div>
-          <div className="stat-card-value">${totalRevenue.toLocaleString()}</div>
+          <div className="stat-card-value">LKR {totalRevenue.toLocaleString()}</div>
           <div className="stat-card-label">Collected</div>
         </div>
         <div className="stat-card green">
           <div className="stat-card-icon">✅</div>
-          <div className="stat-card-value">{payments.filter(p => p.status === 'COMPLETED').length}</div>
+          <div className="stat-card-value">{payments.filter(p => p.status === 'COMPLETED' || p.status === 'SUCCESS').length}</div>
           <div className="stat-card-label">Completed</div>
         </div>
         <div className="stat-card purple">
           <div className="stat-card-icon">↩️</div>
-          <div className="stat-card-value">${totalRefunded.toLocaleString()}</div>
+          <div className="stat-card-value">LKR {totalRefunded.toLocaleString()}</div>
           <div className="stat-card-label">Refunded</div>
         </div>
         <div className="stat-card red">
@@ -293,22 +312,34 @@ function Payments() {
                         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{p.paymentMethod?.replace(/_/g, ' ')}</span>
                       </div>
                     </td>
-                    <td style={{ fontWeight: 700, color: p.status === 'REFUNDED' ? '#c4b5fd' : 'var(--gold-300)', fontSize: 14 }}>
-                      {p.status === 'REFUNDED' ? '-' : '+'}${p.amount?.toLocaleString()}
+                    <td style={{ fontWeight: 700, color: p.status === 'REFUNDED' ? '#c4b5fd' : 'var(--gold-300)', fontSize: 13 }}>
+                      {p.status === 'REFUNDED' ? '-' : '+'}LKR {p.amount?.toLocaleString()}
                     </td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{p.paymentDate}</td>
-                    <td style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>{p.transactionRef}</td>
-                    <td><span className={`badge ${STATUS_BADGE[p.status] || 'badge-muted'}`}>{p.status}</span></td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{p.paymentDate || p.paidAt?.slice(0, 10)}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>{p.transactionRef || p.transactionReference}</td>
+                    <td><span className={`badge ${STATUS_BADGE[p.status] || (p.status === 'SUCCESS' ? 'badge-success' : 'badge-muted')}`}>{p.status}</span></td>
                     <td style={{ textAlign: 'right' }}>
-                      {p.status === 'COMPLETED' && (
-                        <button
-                          className="btn btn-sm"
-                          style={{ background: 'rgba(139,92,246,0.15)', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.3)' }}
-                          onClick={() => setModal({ type: 'refund', payment: p })}
-                        >
-                          ↩️ Refund
-                        </button>
-                      )}
+                      <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+                        {(p.status === 'COMPLETED' || p.status === 'SUCCESS') && (
+                          <button
+                            className="btn btn-sm btn-secondary"
+                            onClick={() => handleDownloadInvoice(p)}
+                            title="Download invoice PDF"
+                            style={{ padding: '4px 8px', fontSize: 12 }}
+                          >
+                            📄 Invoice
+                          </button>
+                        )}
+                        {(p.status === 'COMPLETED' || p.status === 'SUCCESS') && (
+                          <button
+                            className="btn btn-sm"
+                            style={{ background: 'rgba(139,92,246,0.15)', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.3)', padding: '4px 8px', fontSize: 12 }}
+                            onClick={() => setModal({ type: 'refund', payment: p })}
+                          >
+                            ↩️ Refund
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

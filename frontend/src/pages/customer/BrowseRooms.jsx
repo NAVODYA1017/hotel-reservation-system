@@ -92,31 +92,31 @@ function BrowseRooms() {
 
       {/* Page Header */}
       <div style={{
-        padding: '40px 60px 0',
-        background: 'linear-gradient(180deg, rgba(201,160,48,0.05) 0%, transparent 100%)',
-        borderBottom: '1px solid var(--border-subtle)',
+        padding: '40px 54px 0',
+        background: 'linear-gradient(180deg, rgba(197,160,89,0.06) 0%, transparent 100%)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}>
-        <div className="section-badge" style={{ marginBottom: 12 }}>Our Accommodations</div>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 700, marginBottom: 8, color: 'var(--text-primary)' }}>
-          Browse Rooms & Suites
+        <div className="section-badge" style={{ marginBottom: 12 }}>The Countryside Spaces</div>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 34, fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)' }}>
+          Living Spaces & Cabins
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 15, marginBottom: 28 }}>
-          {filtered.length} rooms available · Choose your perfect sanctuary
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 28 }}>
+          {filtered.length} raw countryside sanctuary space(s) available for your retreat
         </p>
 
         {/* Search filter bar */}
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', paddingBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--dark-750)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 14px' }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>📅 Check-in</span>
-            <input type="date" className="search-bar-input" style={{ width: 130, fontSize: 13, background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none' }} value={checkIn} onChange={e => setCheckIn(e.target.value)} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, padding: '8px 14px' }}>
+            <span style={{ fontSize: 11, color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Arrival</span>
+            <input type="date" className="search-bar-input" style={{ width: 130, fontSize: 13, background: 'transparent', border: 'none', color: '#f5f2eb', outline: 'none' }} value={checkIn} onChange={e => setCheckIn(e.target.value)} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--dark-750)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 14px' }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>📅 Check-out</span>
-            <input type="date" className="search-bar-input" style={{ width: 130, fontSize: 13, background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none' }} value={checkOut} onChange={e => setCheckOut(e.target.value)} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, padding: '8px 14px' }}>
+            <span style={{ fontSize: 11, color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Departure</span>
+            <input type="date" className="search-bar-input" style={{ width: 130, fontSize: 13, background: 'transparent', border: 'none', color: '#f5f2eb', outline: 'none' }} value={checkOut} onChange={e => setCheckOut(e.target.value)} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--dark-750)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 14px' }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>👥 Guests</span>
-            <input type="number" min={1} max={20} style={{ width: 50, fontSize: 13, background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none' }} value={guests} onChange={e => setGuests(Number(e.target.value))} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, padding: '8px 14px' }}>
+            <span style={{ fontSize: 11, color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Guests</span>
+            <input type="number" min={1} max={20} style={{ width: 50, fontSize: 13, background: 'transparent', border: 'none', color: '#f5f2eb', outline: 'none' }} value={guests} onChange={e => setGuests(Number(e.target.value))} />
           </div>
         </div>
       </div>
@@ -125,23 +125,24 @@ function BrowseRooms() {
         {/* Sidebar Filters */}
         <div style={{
           width: 280, flexShrink: 0, padding: '28px 24px',
-          borderRight: '1px solid var(--border-subtle)',
-          position: 'sticky', top: 72, height: 'calc(100vh - 72px)', overflowY: 'auto',
+          borderRight: '1px solid rgba(255,255,255,0.08)',
+          background: '#161814',
+          position: 'sticky', top: 76, height: 'calc(100vh - 76px)', overflowY: 'auto',
         }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 20 }}>🔧 Filters</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 20 }}>Refine Selection</div>
 
           {/* Search */}
           <div className="form-group" style={{ marginBottom: 20 }}>
-            <label className="form-label">Search</label>
-            <input className="form-input" placeholder="Room type or number..." value={search} onChange={e => setSearch(e.target.value)} style={{ fontSize: 13 }} />
+            <label className="form-label" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Search Space</label>
+            <input className="form-input" placeholder="Space type or number..." value={search} onChange={e => setSearch(e.target.value)} style={{ fontSize: 13, borderRadius: 2, background: '#1a1c18' }} />
           </div>
 
           {/* Available only */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, padding: '12px 14px', background: 'var(--dark-750)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }} onClick={() => setAvailOnly(v => !v)}>
-            <div style={{ width: 18, height: 18, border: `2px solid ${availOnly ? 'var(--gold-400)' : 'var(--border-subtle)'}`, borderRadius: 4, background: availOnly ? 'var(--gold-400)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {availOnly && <span style={{ color: 'var(--dark-900)', fontSize: 11, fontWeight: 700 }}>✓</span>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, padding: '12px 14px', background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2, cursor: 'pointer' }} onClick={() => setAvailOnly(v => !v)}>
+            <div style={{ width: 16, height: 16, border: `1px solid ${availOnly ? 'var(--gold-400)' : 'rgba(255,255,255,0.2)'}`, borderRadius: 2, background: availOnly ? 'var(--gold-400)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {availOnly && <span style={{ color: '#141513', fontSize: 11, fontWeight: 700 }}>✓</span>}
             </div>
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>Available rooms only</span>
+            <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, letterSpacing: '0.04em' }}>Available spaces only</span>
           </div>
 
           {/* Room Type */}

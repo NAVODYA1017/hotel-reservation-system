@@ -58,10 +58,10 @@ function AdminSidebar({ currentUser, onLogout }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">🏢</div>
+        <div className="sidebar-logo-icon" style={{ borderRadius: 2, background: 'rgba(197,160,89,0.15)', color: 'var(--gold-400)' }}>🌲</div>
         <div>
-          <span className="sidebar-logo-name">Aliya Resort</span>
-          <span className="sidebar-logo-sub">Admin Portal</span>
+          <span className="sidebar-logo-name" style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.08em' }}>Gritstone Haven</span>
+          <span className="sidebar-logo-sub">Sanctuary Management</span>
         </div>
       </div>
 
@@ -110,7 +110,7 @@ function AdminSidebar({ currentUser, onLogout }) {
 
 function AdminTopbar({ currentUser }) {
   const location = useLocation();
-  const meta = PAGE_META[location.pathname] || { title: 'Aliya Resort Admin', subtitle: '' };
+  const meta = PAGE_META[location.pathname] || { title: 'Gritstone Haven Sanctuary Admin', subtitle: '' };
   const now = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (

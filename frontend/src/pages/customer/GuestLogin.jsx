@@ -117,11 +117,11 @@ function GuestLogin() {
             }}>
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22h16"/><path d="M4 22V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v18"/><path d="M14 18V8a2 2 0 0 0-4 0v10"/><path d="M9 22v-4h6v4"/></svg>
             </div>
-            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
-              {tab === 'login' ? 'Welcome Back' : 'Create Account'}
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+              {tab === 'login' ? 'Sanctuary Access' : 'Join The Haven'}
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-              {tab === 'login' ? 'Sign in to manage your Aliya Resort reservations' : 'Join Aliya Resort for exclusive member benefits'}
+              {tab === 'login' ? 'Sign in to manage your Gritstone Haven reservations & invoices' : 'Create an account to book secluded countryside apartments'}
             </div>
           </div>
 

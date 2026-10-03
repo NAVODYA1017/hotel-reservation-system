@@ -110,30 +110,22 @@ function RoomDetail() {
           {/* Left: Room Info */}
           <div>
             {/* Main Image */}
-            <div className="room-detail-hero" style={{ marginBottom: 16 }}>
-              <span style={{ zIndex: 1, position: 'relative' }}>{ROOM_ICONS[activeImg]}</span>
-            </div>
-
-            {/* Thumbnail strip */}
-            <div style={{ display: 'flex', gap: 10, marginBottom: 32 }}>
-              {ROOM_ICONS.map((icon, i) => (
-                <div
-                  key={i}
-                  onClick={() => setActiveImg(i)}
-                  style={{
-                    width: 80, height: 60,
-                    borderRadius: 'var(--radius-md)',
-                    background: 'var(--dark-700)',
-                    border: `2px solid ${activeImg === i ? 'var(--gold-400)' : 'var(--border-subtle)'}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 24, cursor: 'pointer',
-                    transition: 'all var(--t-fast)',
-                  }}
-                >
-                  {icon}
-                </div>
-              ))}
-            </div>
+            <div
+              className="room-detail-hero"
+              style={{
+                backgroundImage: `url(${
+                  (room.type || '').toLowerCase().includes('suite') ? '/assets/images/suite.jpg' :
+                  (room.type || '').toLowerCase().includes('deluxe') ? '/assets/images/deluxe.jpg' :
+                  '/assets/images/standard.jpg'
+                })`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                borderRadius: 2,
+                border: '1px solid rgba(255,255,255,0.12)',
+                marginBottom: 20,
+                height: 380,
+              }}
+            />
 
             {/* Room Title */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>

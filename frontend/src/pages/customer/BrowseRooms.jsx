@@ -40,7 +40,7 @@ function BrowseRooms() {
   useEffect(() => {
     axios.get('/api/rooms')
       .then(res => {
-        if (res.data && res.data.length > 0) {
+        if (Array.isArray(res.data)) {
           const mapped = res.data.map(r => ({
             ...r,
             type: r.roomType || r.type || 'Standard Room',
@@ -53,10 +53,10 @@ function BrowseRooms() {
           }));
           setRooms(mapped);
         } else {
-          setRooms(MOCK_ROOMS);
+          setRooms([]);
         }
       })
-      .catch(() => setRooms(MOCK_ROOMS))
+      .catch(() => setRooms([]))
       .finally(() => setLoading(false));
   }, []);
 

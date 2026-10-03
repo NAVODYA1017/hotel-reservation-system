@@ -47,7 +47,7 @@ function RoomDetail() {
         });
       })
       .catch(() => {
-        setRoom(MOCK_ROOMS[id] || MOCK_ROOMS[1]);
+        setRoom(null);
       })
       .finally(() => setLoading(false));
   }, [id]);

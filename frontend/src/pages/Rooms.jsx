@@ -206,7 +206,7 @@ function Rooms() {
         }));
         setRooms(mapped);
       })
-      .catch(() => setRooms(MOCK_ROOMS))
+      .catch(() => setRooms([]))
       .finally(() => setLoading(false));
   };
 

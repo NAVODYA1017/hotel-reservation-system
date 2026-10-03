@@ -363,7 +363,7 @@ function FeaturedRooms({ onBook }) {
   useEffect(() => {
     axios.get('/api/rooms/available')
       .then(res => {
-        if (res.data && res.data.length > 0) {
+        if (Array.isArray(res.data)) {
           const mapped = res.data.slice(0, 6).map(r => ({
             ...r,
             type: r.roomType || r.type || 'Standard Room',
@@ -376,15 +376,23 @@ function FeaturedRooms({ onBook }) {
           }));
           setFeatured(mapped);
         } else {
-          setFeatured(FEATURED);
+          setFeatured([]);
         }
       })
-      .catch(() => setFeatured(FEATURED))
+      .catch(() => setFeatured([]))
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
     return <LoadingScreen text="Carving Featured Sanctuaries..." />;
+  }
+
+  if (featured.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)', fontSize: 15 }}>
+        No sanctuary spaces are currently listed in the database.
+      </div>
+    );
   }
 
   return (
@@ -396,10 +404,7 @@ function FeaturedRooms({ onBook }) {
   );
 }
 
-const FEATURED = [
-  { id: 1, roomNumber: '101', type: 'Deluxe Stone Haven', capacity: 2, pricePerNight: 15000, status: 'AVAILABLE', amenities: ['Fireplace', 'Stone Bath', 'Terrace', 'Wi-Fi'], view: 'Wild Meadow' },
-  { id: 2, roomNumber: '102', type: 'Standard Cabin', capacity: 2, pricePerNight: 9000, status: 'AVAILABLE', amenities: ['Timber Deck', 'Fire Pit', 'Kitchenette'], view: 'Pine Ridge' },
-];
+const FEATURED = [];
 
 export function CustomerRoomCard({ room, onClick }) {
   const rType = String(room.roomType || room.type || 'Standard Cabin');

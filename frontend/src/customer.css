@@ -96,11 +96,17 @@
   padding: 0;
 }
 
-.c-nav-logo-icon {
-  color: var(--gold-400);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.c-nav-logo-img {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+  transition: transform var(--t-base, 0.2s ease), filter var(--t-base, 0.2s ease);
+}
+
+.c-nav-logo:hover .c-nav-logo-img {
+  transform: scale(1.08);
+  filter: drop-shadow(0 3px 12px rgba(197, 160, 89, 0.55));
 }
 
 .c-nav-logo-name {

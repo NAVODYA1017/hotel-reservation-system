@@ -59,12 +59,20 @@ const PAGE_META = {
 
 function AdminSidebar({ currentUser, onLogout }) {
   const location = useLocation();
+  const navigate = useNavigate();
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo">
-        <div className="sidebar-logo-icon" style={{ borderRadius: 4, background: 'rgba(197,160,89,0.15)', color: 'var(--gold-400)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Building2 size={18} />
-        </div>
+      <div
+        className="sidebar-logo"
+        onClick={() => navigate('/')}
+        title="View Aliya Resort Website"
+        style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, userSelect: 'none' }}
+      >
+        <img
+          src="/assets/images/logo.png"
+          alt="Aliya Resort"
+          style={{ width: 36, height: 36, objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(197, 160, 89, 0.4))', flexShrink: 0 }}
+        />
         <div>
           <span className="sidebar-logo-name" style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.08em' }}>ALIYA RESORT</span>
           <span className="sidebar-logo-sub">Resort Management</span>

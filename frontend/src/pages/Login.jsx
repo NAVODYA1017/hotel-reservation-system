@@ -67,10 +67,12 @@ function Login() {
       </div>
 
       <div className="login-card" style={{ position: 'relative', zIndex: 1 }}>
-        <div className="login-logo">
-          <div className="login-logo-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Building2 size={24} color="var(--gold-400)" />
-          </div>
+        <div className="login-logo" onClick={() => navigate('/')} title="Return to Aliya Resort Home" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <img
+            src="/assets/images/logo.png"
+            alt="Aliya Resort"
+            style={{ width: 44, height: 44, objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(197, 160, 89, 0.4))' }}
+          />
           <div>
             <h1 className="login-title">Aliya Resort</h1>
             <p className="login-subtitle">Staff Administration Portal</p>

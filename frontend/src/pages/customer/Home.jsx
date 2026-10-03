@@ -35,7 +35,8 @@ function CustomerNav() {
   return (
     <nav className={navClass}>
       <div className="c-nav-inner">
-        <button className="c-nav-logo" onClick={() => navigate('/')}>
+        <button className="c-nav-logo" onClick={() => navigate('/')} title="Aliya Resort — Return to Home">
+          <img src="/assets/images/logo.png" alt="Aliya Resort Emblem" className="c-nav-logo-img" />
           <span className="c-nav-logo-name">Aliya Resort</span>
         </button>
 
@@ -465,9 +466,12 @@ export function CustomerFooter() {
       <div className="c-footer-inner">
         <div className="c-footer-grid">
           <div>
-            <span className="c-footer-brand-name" style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.14em', color: 'var(--gold-400)' }}>
-              Aliya Resort
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+              <img src="/assets/images/logo.png" alt="Aliya Resort Emblem" style={{ height: 38, width: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))' }} />
+              <span className="c-footer-brand-name" style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.14em', color: 'var(--gold-400)', fontSize: 20 }}>
+                Aliya Resort
+              </span>
+            </div>
             <p className="c-footer-desc">
               A premier countryside sanctuary retreat. Discover authentic rustic luxury, wild landscapes, and peaceful solitude.
             </p>

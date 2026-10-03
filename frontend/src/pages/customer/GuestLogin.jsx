@@ -108,16 +108,17 @@ function GuestLogin() {
         }}>
           {/* Logo */}
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <div style={{
-              width: 64, height: 64,
-              background: 'linear-gradient(135deg, var(--gold-400), var(--gold-600))',
-              borderRadius: 'var(--radius-md)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--dark-900)', margin: '0 auto 14px',
-              boxShadow: 'var(--shadow-gold)',
-            }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22h16"/><path d="M4 22V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v18"/><path d="M14 18V8a2 2 0 0 0-4 0v10"/><path d="M9 22v-4h6v4"/></svg>
-            </div>
+            <button
+              onClick={() => navigate('/')}
+              title="Return to Aliya Resort Home"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 auto 14px' }}
+            >
+              <img
+                src="/assets/images/logo.png"
+                alt="Aliya Resort"
+                style={{ width: 68, height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 4px 12px rgba(197, 160, 89, 0.45))' }}
+              />
+            </button>
             <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
               {tab === 'login' ? 'Sanctuary Access' : 'Join The Haven'}
             </div>

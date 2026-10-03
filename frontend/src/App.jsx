@@ -24,21 +24,25 @@ import GuestLogin  from './pages/customer/GuestLogin';
 import Profile     from './pages/customer/Profile';
 import BrowseEvents from './pages/customer/BrowseEvents';
 
+import { 
+  LayoutDashboard, Calendar, BedDouble, Sparkles, CreditCard, Users as UsersIcon, BarChart3, Settings as SettingsIcon, Globe, Building2, LogOut
+} from 'lucide-react';
+
 /* ═══════════════════════════════════════════
    ADMIN LAYOUT
 ═══════════════════════════════════════════ */
 const ADMIN_NAV = [
-  { group: 'Overview',       items: [{ to: '/admin',              icon: '📊', label: 'Dashboard',    exact: true }] },
+  { group: 'Overview',       items: [{ to: '/admin',              icon: <LayoutDashboard size={17} />, label: 'Dashboard',    exact: true }] },
   { group: 'Operations',     items: [
-    { to: '/admin/reservations', icon: '🗓️', label: 'Reservations' },
-    { to: '/admin/rooms',        icon: '🛏️', label: 'Rooms'         },
-    { to: '/admin/event-halls',  icon: '🎭', label: 'Event Halls'   },
-    { to: '/admin/payments',     icon: '💳', label: 'Payments'      },
+    { to: '/admin/reservations', icon: <Calendar size={17} />, label: 'Reservations' },
+    { to: '/admin/rooms',        icon: <BedDouble size={17} />, label: 'Rooms'         },
+    { to: '/admin/event-halls',  icon: <Sparkles size={17} />,  label: 'Event Halls'   },
+    { to: '/admin/payments',     icon: <CreditCard size={17} />, label: 'Payments'      },
   ]},
   { group: 'Administration', items: [
-    { to: '/admin/users',    icon: '👥', label: 'Users & Roles' },
-    { to: '/admin/reports',  icon: '📈', label: 'Reports'       },
-    { to: '/admin/settings', icon: '⚙️', label: 'Settings'      },
+    { to: '/admin/users',    icon: <UsersIcon size={17} />,   label: 'Users & Roles' },
+    { to: '/admin/reports',  icon: <BarChart3 size={17} />,   label: 'Reports'       },
+    { to: '/admin/settings', icon: <SettingsIcon size={17} />, label: 'Settings'      },
   ]},
 ];
 
@@ -58,7 +62,9 @@ function AdminSidebar({ currentUser, onLogout }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon" style={{ borderRadius: 2, background: 'rgba(197,160,89,0.15)', color: 'var(--gold-400)' }}>🌲</div>
+        <div className="sidebar-logo-icon" style={{ borderRadius: 4, background: 'rgba(197,160,89,0.15)', color: 'var(--gold-400)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Building2 size={18} />
+        </div>
         <div>
           <span className="sidebar-logo-name" style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.08em' }}>ALIYA RESORT</span>
           <span className="sidebar-logo-sub">Resort Management</span>
@@ -75,7 +81,7 @@ function AdminSidebar({ currentUser, onLogout }) {
                 : location.pathname.startsWith(item.to);
               return (
                 <NavLink key={item.to} to={item.to} className={`nav-item${isActive ? ' active' : ''}`}>
-                  <span className="nav-item-icon">{item.icon}</span>
+                  <span className="nav-item-icon" style={{ display: 'inline-flex', alignItems: 'center' }}>{item.icon}</span>
                   {item.label}
                 </NavLink>
               );
@@ -87,7 +93,7 @@ function AdminSidebar({ currentUser, onLogout }) {
       {/* Back to customer site */}
       <div style={{ padding: '0 12px 8px' }}>
         <NavLink to="/" className="nav-item" style={{ borderColor: 'rgba(201,160,48,0.2)', background: 'rgba(201,160,48,0.04)' }}>
-          <span className="nav-item-icon">🌐</span>
+          <span className="nav-item-icon" style={{ display: 'inline-flex', alignItems: 'center' }}><Globe size={17} /></span>
           Customer Site
         </NavLink>
       </div>
@@ -101,7 +107,7 @@ function AdminSidebar({ currentUser, onLogout }) {
             <span className="user-name truncate">{currentUser?.name || 'Admin'}</span>
             <span className="user-role">{currentUser?.role || 'System Admin'} · Logout</span>
           </div>
-          <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>→</span>
+          <span style={{ color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center' }}><LogOut size={14} /></span>
         </div>
       </div>
     </aside>

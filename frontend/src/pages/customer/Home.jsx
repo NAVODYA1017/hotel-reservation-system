@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import LoadingScreen from '../../components/LoadingScreen';
 import { 
-  Building2, Calendar, Users, Search, Wifi, Waves, Utensils, Car, Wind, Coffee, Tv, Wine, MapPin, Phone, Mail, ChevronRight, Star, LogOut, CalendarDays, User as UserIcon
+  Building2, Calendar, Users, Search, Wifi, Waves, Utensils, Car, Wind, Coffee, Tv, Wine, MapPin, Phone, Mail, ChevronRight, Star, LogOut, CalendarDays, User as UserIcon, Compass
 } from 'lucide-react';
 
 function CustomerNav() {
@@ -203,7 +203,7 @@ function Home() {
               <span className="hero-stat-label">Secluded Countryside</span>
             </div>
             <div>
-              <span className="hero-stat-val">4.9 ★</span>
+              <span className="hero-stat-val">4.9 / 5</span>
               <span className="hero-stat-label">Guest Solitude Rating</span>
             </div>
             <div>
@@ -270,10 +270,10 @@ function Home() {
               <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 14, marginBottom: 20 }}>
                 Aliya Resort is carved into the hillside wilderness, offering private panoramic vistas over green valleys and rocky peaks. Arrive by 4x4 or arrange a sanctuary shuttle pickup from the central railway station.
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: 'var(--text-muted)' }}>
-                <div>📍 <strong>Coordinates:</strong> 6.8667° N, 81.0466° E (Ella Highland Ridge)</div>
-                <div>🚗 <strong>Access:</strong> Scenic Mountain Ridge Road, 25 mins from Ella Town</div>
-                <div>🚁 <strong>Helipad:</strong> Private landing paddock on upper clearing</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MapPin size={15} color="var(--gold-400)" /> <strong>Coordinates:</strong> 6.8667° N, 81.0466° E (Ella Highland Ridge)</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Car size={15} color="var(--gold-400)" /> <strong>Access:</strong> Scenic Mountain Ridge Road, 25 mins from Ella Town</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Compass size={15} color="var(--gold-400)" /> <strong>Helipad:</strong> Private landing paddock on upper clearing</div>
               </div>
             </div>
             <div style={{

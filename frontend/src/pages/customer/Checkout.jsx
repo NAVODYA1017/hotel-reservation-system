@@ -3,12 +3,13 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
 import LoadingScreen from '../../components/LoadingScreen';
+import { CreditCard, Building, Banknote, ShieldCheck, BedDouble, User, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const PAYMENT_METHODS = [
-  { id: 'CREDIT_CARD', icon: '💳', label: 'Credit Card' },
-  { id: 'DEBIT_CARD', icon: '🏧', label: 'Debit Card' },
-  { id: 'BANK_TRANSFER', icon: '🏦', label: 'Bank Transfer' },
-  { id: 'CASH', icon: '💵', label: 'Pay at Hotel' },
+  { id: 'CREDIT_CARD', icon: <CreditCard size={18} />, label: 'Credit Card' },
+  { id: 'DEBIT_CARD', icon: <CreditCard size={18} />, label: 'Debit Card' },
+  { id: 'BANK_TRANSFER', icon: <Building size={18} />, label: 'Bank Transfer' },
+  { id: 'CASH', icon: <Banknote size={18} />, label: 'Pay at Hotel' },
 ];
 
 const MOCK_ROOM_PRICES = { 1: 8500, 2: 14200, 3: 28600, 5: 52000 };
@@ -181,13 +182,13 @@ function Checkout() {
             <div className="checkout-grid">
               {/* Left panel */}
               <div>
-                {error && <div className="alert alert-error" style={{ marginBottom: 20 }}><span className="alert-icon">⚠️</span>{error}</div>}
+                {error && <div className="alert alert-error" style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}><AlertCircle size={18} style={{ color: '#ef4444', flexShrink: 0 }} />{error}</div>}
 
                 {/* STEP 1: Guest Details */}
                 {step === 1 && (
                   <div className="card animate-fade-in">
                     <div className="card-header">
-                      <div className="modal-header-icon">👤</div>
+                      <div className="modal-header-icon"><User size={20} style={{ color: 'var(--gold-400)' }} /></div>
                       <div>
                         <div className="card-title">Your Details</div>
                         <div className="card-subtitle">Tell us about the primary guest</div>
@@ -227,7 +228,7 @@ function Checkout() {
                 {step === 2 && (
                   <div className="card animate-fade-in">
                     <div className="card-header">
-                      <div className="modal-header-icon">💳</div>
+                      <div className="modal-header-icon"><CreditCard size={20} style={{ color: 'var(--gold-400)' }} /></div>
                       <div>
                         <div className="card-title">Payment Method</div>
                         <div className="card-subtitle">Choose how you'd like to pay</div>
@@ -269,28 +270,28 @@ function Checkout() {
                       )}
 
                       {payMethod === 'BANK_TRANSFER' && (
-                        <div className="alert alert-info">
-                          <span className="alert-icon">🏦</span>
+                        <div className="alert alert-info" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <Building size={18} style={{ color: 'var(--blue-400)', flexShrink: 0 }} />
                           <div>
                             <div className="alert-title">Bank Transfer Details</div>
-                            Bank: People's Bank · Account: LuxeStay Reservations · Acc No: 123-456-789-0<br />
+                            Bank: People's Bank · Account: Aliya Resort Sanctuary · Acc No: 123-456-789-0<br />
                             Please use your booking reference as the payment reference.
                           </div>
                         </div>
                       )}
 
                       {payMethod === 'CASH' && (
-                        <div className="alert alert-warning">
-                          <span className="alert-icon">💵</span>
+                        <div className="alert alert-warning" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <Banknote size={18} style={{ color: 'var(--gold-400)', flexShrink: 0 }} />
                           <div>
-                            <div className="alert-title">Pay at Hotel</div>
+                            <div className="alert-title">Pay at Resort</div>
                             Your room will be held for 24 hours. Please present this booking reference at the front desk.
                           </div>
                         </div>
                       )}
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-muted)', padding: '12px 0' }}>
-                        <span>🔒</span>
+                        <ShieldCheck size={14} style={{ color: 'var(--gold-400)' }} />
                         <span>Your payment information is encrypted with 256-bit SSL security.</span>
                       </div>
                     </div>
@@ -307,7 +308,7 @@ function Checkout() {
                 {step === 3 && (
                   <div className="card animate-fade-in">
                     <div className="card-header">
-                      <div className="modal-header-icon">✅</div>
+                      <div className="modal-header-icon"><CheckCircle2 size={20} style={{ color: 'var(--emerald-400)' }} /></div>
                       <div>
                         <div className="card-title">Review & Confirm</div>
                         <div className="card-subtitle">Double-check your booking details</div>
@@ -315,16 +316,16 @@ function Checkout() {
                     </div>
                     <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                       {[
-                        ['👤 Guest Name', guestForm.name],
-                        ['📧 Email', guestForm.email],
-                        ['📞 Phone', guestForm.phone || '—'],
-                        ['🛏️ Room', roomName],
-                        ['📅 Check-in', checkIn],
-                        ['📅 Check-out', checkOut],
-                        ['👥 Guests', guestsCount],
-                        ['🌙 Nights', nights],
-                        ['💳 Payment', payMethod.replace('_', ' ')],
-                        ['💰 Total Amount', `LKR ${total.toLocaleString()}`],
+                        ['Guest Name', guestForm.name],
+                        ['Email', guestForm.email],
+                        ['Phone', guestForm.phone || '—'],
+                        ['Room Space', roomName],
+                        ['Check-in Date', checkIn],
+                        ['Check-out Date', checkOut],
+                        ['Guests', guestsCount],
+                        ['Nights', nights],
+                        ['Payment Method', payMethod.replace('_', ' ')],
+                        ['Total Amount', `LKR ${total.toLocaleString()}`],
                       ].map(([k, v]) => (
                         <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--border-subtle)' }}>
                           <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>{k}</span>
@@ -346,7 +347,7 @@ function Checkout() {
                         onClick={handleConfirm}
                         disabled={processing}
                       >
-                        {processing ? <><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Processing...</> : '🏨 Confirm & Book'}
+                        {processing ? <><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Processing...</> : 'Confirm & Book'}
                       </button>
                     </div>
                   </div>
@@ -356,9 +357,9 @@ function Checkout() {
               {/* Right: Summary */}
               <div className="checkout-summary">
                 <div className="checkout-summary-header">
-                  <div style={{ fontSize: 24, marginBottom: 6 }}>{
-                    roomId === '5' ? '💎' : roomId === '3' ? '👑' : roomId === '2' ? '🌟' : '🛏️'
-                  }</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8, color: 'var(--gold-400)' }}>
+                    <BedDouble size={26} />
+                  </div>
                   <div className="checkout-summary-title">{roomName}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Room #{roomId} · {nights} night{nights !== 1 ? 's' : ''}</div>
                 </div>
@@ -389,8 +390,8 @@ function Checkout() {
                     </div>
                   </div>
                   <div style={{ marginTop: 20, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, textAlign: 'center' }}>
-                    🔄 Free cancellation up to 3 days before check-in<br />
-                    🔒 Secure, encrypted payment processing
+                    Free cancellation up to 3 days before check-in<br />
+                    Secure, encrypted payment processing
                   </div>
                 </div>
               </div>

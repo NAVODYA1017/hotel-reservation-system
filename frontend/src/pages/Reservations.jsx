@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
+import { 
+  Calendar, Search, Edit3, XCircle, Trash2, CheckCircle2, AlertTriangle, Plus 
+} from 'lucide-react';
 
 const STATUS_OPTIONS = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED'];
 const TYPE_OPTIONS = ['ROOM', 'EVENT_HALL', 'PACKAGE'];
@@ -11,10 +14,6 @@ const STATUS_BADGE = {
   CHECKED_IN: 'badge-info',
   CHECKED_OUT: 'badge-muted',
   CANCELLED: 'badge-error',
-};
-
-const STATUS_ICON = {
-  CONFIRMED: '✅', PENDING: '⏳', CHECKED_IN: '🏨', CHECKED_OUT: '🚪', CANCELLED: '❌'
 };
 
 const MOCK_RESERVATIONS = [
@@ -57,7 +56,9 @@ function ReservationModal({ reservation, onClose, onSave }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-header-icon">🗓️</div>
+          <div className="modal-header-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Calendar size={18} />
+          </div>
           <div>
             <div className="modal-title">{reservation ? 'Edit Reservation' : 'New Reservation'}</div>
             <div className="modal-subtitle">{reservation ? `Reservation #${reservation.id}` : 'Book a room, event hall or package'}</div>
@@ -208,9 +209,11 @@ function Reservations() {
           color: toast.type === 'error' ? '#fca5a5' : '#86efac',
           borderRadius: 'var(--radius-md)',
           padding: '12px 18px', fontSize: 14, fontWeight: 600,
+          display: 'flex', alignItems: 'center', gap: 8,
           animation: 'slideUp 0.3s ease', boxShadow: 'var(--shadow-lg)',
         }}>
-          {toast.type === 'error' ? '❌' : '✅'} {toast.msg}
+          {toast.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
+          <span>{toast.msg}</span>
         </div>
       )}
 
@@ -224,7 +227,7 @@ function Reservations() {
               className={`btn btn-sm ${statusFilter === s ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setStatusFilter(prev => prev === s ? '' : s)}
             >
-              {STATUS_ICON[s]} {s.replace('_', ' ')} <span style={{ opacity: 0.7 }}>({count})</span>
+              {s.replace(/_/g, ' ')} <span style={{ opacity: 0.7 }}>({count})</span>
             </button>
           );
         })}
@@ -233,8 +236,9 @@ function Reservations() {
           id="add-reservation-btn"
           className="btn btn-primary btn-sm ml-auto"
           onClick={() => setModal({ type: 'add' })}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
-          + New Reservation
+          <Plus size={14} /> New Reservation
         </button>
       </div>
 
@@ -243,7 +247,7 @@ function Reservations() {
         <div className="card-body" style={{ padding: '14px 20px' }}>
           <div className="filter-bar">
             <div className="search-wrapper">
-              <span className="search-icon">🔍</span>
+              <span className="search-icon"><Search size={15} /></span>
               <input className="search-input" placeholder="Search guest name, email or ID..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             <select className="form-select" style={{ width: 180 }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
@@ -257,14 +261,16 @@ function Reservations() {
       {/* Table */}
       <div className="card">
         <div className="card-header">
-          <div className="card-title">🗓️ Reservation List</div>
+          <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Calendar size={18} style={{ color: 'var(--gold-400)' }} /> Reservation List
+          </div>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{filtered.length} results</span>
         </div>
         {loading ? (
           <LoadingScreen text="Loading reservations..." />
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">🗓️</div>
+            <div className="empty-state-icon"><Calendar size={36} style={{ color: 'var(--text-muted)' }} /></div>
             <div className="empty-state-title">No reservations found</div>
             <div className="empty-state-desc">Try changing filters or create a new reservation.</div>
             <button className="btn btn-primary mt-4" onClick={() => setModal({ type: 'add' })}>+ New Reservation</button>
@@ -309,17 +315,21 @@ function Reservations() {
                     <td><span className={`badge ${STATUS_BADGE[r.status] || 'badge-muted'}`}>{r.status?.replace('_', ' ')}</span></td>
                     <td style={{ textAlign: 'right' }}>
                       <div className="flex gap-2 justify-end">
-                        <button className="btn btn-secondary btn-sm" onClick={() => setModal({ type: 'edit', reservation: r })}>✏️ Edit</button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => setModal({ type: 'edit', reservation: r })} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Edit3 size={12} /> Edit
+                        </button>
                         {r.status !== 'CANCELLED' && r.status !== 'CHECKED_OUT' && (
-                          <button className="btn btn-warning btn-sm" onClick={() => handleCancel(r)} title="Cancel Reservation">❌ Cancel</button>
+                          <button className="btn btn-warning btn-sm" onClick={() => handleCancel(r)} title="Cancel Reservation" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <XCircle size={12} /> Cancel
+                          </button>
                         )}
                         <button
                           className="btn btn-danger btn-sm"
                           onClick={() => handleDelete(r)}
-                          style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px' }}
+                          style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                           title="Permanently Delete Reservation"
                         >
-                          🗑️
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </td>

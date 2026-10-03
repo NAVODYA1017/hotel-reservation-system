@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
 import LoadingScreen from '../../components/LoadingScreen';
+import { Building2, Package, Sparkles, CheckCircle2 } from 'lucide-react';
 
 const MOCK_HALLS = [
   {
@@ -123,17 +124,19 @@ function BrowseEvents() {
           <div style={{ display: 'inline-flex', gap: 10, background: 'var(--dark-800)', padding: 6, borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-subtle)' }}>
             <button
               className={`btn btn-sm ${activeTab === 'halls' ? 'btn-primary' : 'btn-ghost'}`}
-              style={{ borderRadius: 'var(--radius-md)', padding: '10px 24px', fontSize: 14 }}
+              style={{ borderRadius: 'var(--radius-md)', padding: '10px 24px', fontSize: 14, display: 'inline-flex', alignItems: 'center', gap: 8 }}
               onClick={() => setActiveTab('halls')}
             >
-              🏛️ Country Gathering Halls ({halls.length})
+              <Building2 size={15} />
+              Country Gathering Halls ({halls.length})
             </button>
             <button
               className={`btn btn-sm ${activeTab === 'packages' ? 'btn-primary' : 'btn-ghost'}`}
-              style={{ borderRadius: 'var(--radius-md)', padding: '10px 24px', fontSize: 14 }}
+              style={{ borderRadius: 'var(--radius-md)', padding: '10px 24px', fontSize: 14, display: 'inline-flex', alignItems: 'center', gap: 8 }}
               onClick={() => setActiveTab('packages')}
             >
-              🎁 Curated Packages ({packages.length})
+              <Package size={15} />
+              Curated Packages ({packages.length})
             </button>
           </div>
         </div>
@@ -210,10 +213,12 @@ function BrowseEvents() {
                     <div key={pkg.id} className="booking-card animate-fade-in" style={{ padding: 28, display: 'flex', flexDirection: 'column', border: '1px solid var(--border-gold)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                         <div>
-                          <span className="badge badge-purple" style={{ marginBottom: 8, fontSize: 11 }}>🎁 Curated Event Package</span>
+                          <span className="badge badge-purple" style={{ marginBottom: 8, fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <Package size={12} /> Curated Event Package
+                          </span>
                           <h3 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{pkg.name}</h3>
                         </div>
-                        <span style={{ fontSize: 28 }}>✨</span>
+                        <Sparkles size={22} style={{ color: 'var(--gold-400)', opacity: 0.8 }} />
                       </div>
 
                       <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>
@@ -264,7 +269,9 @@ function BrowseEvents() {
         <div className="modal-overlay" onClick={() => setSelectedHall(null)}>
           <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-header-icon">🏛️</div>
+              <div className="modal-header-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Building2 size={20} style={{ color: 'var(--gold-400)' }} />
+              </div>
               <div>
                 <div className="modal-title">Book {selectedHall.name}</div>
                 <div className="modal-subtitle">Direct Event Hall Reservation</div>
@@ -273,7 +280,9 @@ function BrowseEvents() {
             </div>
             {inquirySuccess ? (
               <div className="modal-body" style={{ textAlign: 'center', padding: '36px 20px' }}>
-                <div style={{ fontSize: 44, marginBottom: 12 }}>🎉</div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                  <CheckCircle2 size={44} style={{ color: 'var(--gold-400)' }} />
+                </div>
                 <h3 style={{ fontSize: 20, color: 'var(--text-primary)', marginBottom: 8 }}>Reservation Request Confirmed!</h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
                   Our Event Coordinator will reach out to you within 2 hours to confirm your dates and menu details.
@@ -325,7 +334,9 @@ function BrowseEvents() {
         <div className="modal-overlay" onClick={() => setSelectedPackage(null)}>
           <div className="modal" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-header-icon">🎁</div>
+              <div className="modal-header-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Package size={20} style={{ color: 'var(--gold-400)' }} />
+              </div>
               <div>
                 <div className="modal-title">Select {selectedPackage.name}</div>
                 <div className="modal-subtitle">Package Inquiry & Bundle Selection</div>
@@ -334,7 +345,9 @@ function BrowseEvents() {
             </div>
             {inquirySuccess ? (
               <div className="modal-body" style={{ textAlign: 'center', padding: '36px 20px' }}>
-                <div style={{ fontSize: 44, marginBottom: 12 }}>🎊</div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                  <CheckCircle2 size={44} style={{ color: 'var(--gold-400)' }} />
+                </div>
                 <h3 style={{ fontSize: 20, color: 'var(--text-primary)', marginBottom: 8 }}>Package Added to Booking!</h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
                   Our Event Coordinator will customize the bundle according to your catering and decor preferences.

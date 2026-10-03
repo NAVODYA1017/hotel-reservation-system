@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
+import { 
+  User, Trash2, Edit3, Search, AlertTriangle, CheckCircle2, 
+  Info, Shield, UserPlus, Users as UsersIcon
+} from 'lucide-react';
 
 const ROLES = [
-  { value: 'SYSTEM_ADMIN', label: 'System Admin', badge: 'badge-error', icon: '⚡' },
-  { value: 'HOTEL_MANAGER', label: 'Hotel Manager', badge: 'badge-gold', icon: '🏨' },
-  { value: 'EVENT_COORDINATOR', label: 'Event Coordinator', badge: 'badge-purple', icon: '🎭' },
-  { value: 'RECEPTIONIST', label: 'Receptionist', badge: 'badge-info', icon: '🛎️' },
-  { value: 'FINANCE_EXECUTIVE', label: 'Finance Executive', badge: 'badge-success', icon: '💳' },
-  { value: 'CUSTOMER', label: 'Customer / Guest', badge: 'badge-muted', icon: '👤' },
+  { value: 'SYSTEM_ADMIN', label: 'System Admin', badge: 'badge-error' },
+  { value: 'HOTEL_MANAGER', label: 'Hotel Manager', badge: 'badge-gold' },
+  { value: 'EVENT_COORDINATOR', label: 'Event Coordinator', badge: 'badge-purple' },
+  { value: 'RECEPTIONIST', label: 'Receptionist', badge: 'badge-info' },
+  { value: 'FINANCE_EXECUTIVE', label: 'Finance Executive', badge: 'badge-success' },
+  { value: 'CUSTOMER', label: 'Customer / Guest', badge: 'badge-muted' },
 ];
 
 const BLANK_FORM = { name: '', email: '', password: '', role: 'RECEPTIONIST' };
@@ -40,7 +44,9 @@ function UserModal({ user, onClose, onSave }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-header-icon">👤</div>
+          <div className="modal-header-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <User size={18} />
+          </div>
           <div>
             <div className="modal-title">{user ? 'Edit Account' : 'Add New User'}</div>
             <div className="modal-subtitle">
@@ -54,7 +60,7 @@ function UserModal({ user, onClose, onSave }) {
           <div className="modal-body">
             {modalError && (
               <div className="alert alert-error" style={{ marginBottom: 16 }}>
-                <span className="alert-icon">⚠️</span>
+                <AlertTriangle size={16} />
                 <span>{modalError}</span>
               </div>
             )}
@@ -106,7 +112,7 @@ function UserModal({ user, onClose, onSave }) {
                 >
                   {ROLES.map(r => (
                     <option key={r.value} value={r.value}>
-                      {r.icon} {r.label}
+                      {r.label}
                     </option>
                   ))}
                 </select>
@@ -120,8 +126,12 @@ function UserModal({ user, onClose, onSave }) {
               borderRadius: 'var(--radius-md, 8px)',
               fontSize: 12,
               color: 'var(--text-muted)',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 8
             }}>
-              💡 Role permissions determine access privileges across the system. System Admin privileges can only be granted by existing System Admins.
+              <Info size={15} color="var(--gold-400)" style={{ flexShrink: 0, marginTop: 1 }} />
+              <span>Role permissions determine access privileges across the system. System Admin privileges can only be granted by existing System Admins.</span>
             </div>
           </div>
 
@@ -131,7 +141,7 @@ function UserModal({ user, onClose, onSave }) {
               {saving ? (
                 <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Saving...</>
               ) : (
-                user ? '✓ Save Changes' : '+ Create Account'
+                user ? 'Save Changes' : '+ Create Account'
               )}
             </button>
           </div>
@@ -162,7 +172,12 @@ function DeleteModal({ user, onClose, onConfirm }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" style={{ maxWidth: 460 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-header-icon" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>🗑️</div>
+          <div className="modal-header-icon" style={{
+            background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fca5a5'
+          }}>
+            <Trash2 size={18} />
+          </div>
           <div>
             <div className="modal-title">Delete User Account</div>
             <div className="modal-subtitle">Review before confirming deletion</div>
@@ -172,7 +187,7 @@ function DeleteModal({ user, onClose, onConfirm }) {
         <div className="modal-body">
           {deleteError ? (
             <div className="alert alert-error" style={{ marginBottom: 12 }}>
-              <span className="alert-icon">⚠️</span>
+              <AlertTriangle size={16} />
               <div>
                 <strong>Deletion Prevented (Extension 10a):</strong>
                 <p style={{ margin: '4px 0 0', fontSize: 13 }}>{deleteError}</p>
@@ -180,7 +195,7 @@ function DeleteModal({ user, onClose, onConfirm }) {
             </div>
           ) : (
             <div className="alert alert-error">
-              <span className="alert-icon">⚠️</span>
+              <AlertTriangle size={16} />
               <div>
                 <div className="alert-title">Are you sure?</div>
                 You are about to delete <strong>{user?.name}</strong> ({user?.email}).
@@ -196,8 +211,14 @@ function DeleteModal({ user, onClose, onConfirm }) {
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
           {!deleteError && (
-            <button className="btn btn-danger" onClick={handle} disabled={deleting}>
-              {deleting ? 'Deleting...' : '🗑️ Confirm Delete'}
+            <button
+              className="btn btn-danger"
+              onClick={handle}
+              disabled={deleting}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <Trash2 size={14} />
+              {deleting ? 'Deleting...' : 'Confirm Delete'}
             </button>
           )}
         </div>
@@ -312,10 +333,12 @@ function Users() {
           borderRadius: 'var(--radius-md, 8px)',
           padding: '12px 18px',
           fontSize: 14, fontWeight: 600,
+          display: 'flex', alignItems: 'center', gap: 10,
           boxShadow: 'var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.5))',
           backdropFilter: 'blur(8px)',
         }}>
-          {toast.type === 'error' ? '⚠️' : '✅'} {toast.msg}
+          {toast.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
+          <span>{toast.msg}</span>
         </div>
       )}
 
@@ -326,8 +349,13 @@ function Users() {
           <span className="badge badge-purple">{staffCount} Staff</span>
           <span className="badge badge-info">{customerCount} Guests</span>
         </div>
-        <button id="add-user-btn" className="btn btn-primary" onClick={() => setModal({ type: 'add' })}>
-          + Add User Account
+        <button
+          id="add-user-btn"
+          className="btn btn-primary"
+          onClick={() => setModal({ type: 'add' })}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+        >
+          <UserPlus size={15} /> Add User Account
         </button>
       </div>
 
@@ -336,7 +364,9 @@ function Users() {
         <div className="card-body" style={{ padding: '16px 20px' }}>
           <div className="filter-bar">
             <div className="search-wrapper">
-              <span className="search-icon">🔍</span>
+              <span className="search-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                <Search size={15} />
+              </span>
               <input
                 className="search-input"
                 placeholder="Search by user name or email..."
@@ -456,17 +486,17 @@ function Users() {
                         <div className="flex gap-2 justify-end">
                           <button
                             className="btn btn-secondary btn-sm"
-                            style={{ padding: '4px 10px', fontSize: 12 }}
+                            style={{ padding: '4px 10px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                             onClick={() => setModal({ type: 'edit', user: u })}
                           >
-                            ✏️ Edit
+                            <Edit3 size={12} /> Edit
                           </button>
                           <button
                             className="btn btn-danger btn-sm"
-                            style={{ padding: '4px 10px', fontSize: 12 }}
+                            style={{ padding: '4px 10px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                             onClick={() => setModal({ type: 'delete', user: u })}
                           >
-                            🗑️ Delete
+                            <Trash2 size={12} /> Delete
                           </button>
                         </div>
                       </td>

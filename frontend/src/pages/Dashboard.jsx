@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
+import { 
+  DollarSign, Calendar, Users, BarChart3, Receipt, Building2, BedDouble, TrendingUp 
+} from 'lucide-react';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const REVENUE_DATA = [18200, 22400, 19800, 31200, 28600, 35400, 41200, 38800, 29600, 44100, 37200, 31800];
@@ -142,7 +145,13 @@ function Dashboard() {
         borderRadius: 'var(--radius-md, 8px)', marginBottom: 20
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 18 }}>🏨</span>
+          <div style={{
+            width: 32, height: 32, borderRadius: 4,
+            background: 'rgba(197,160,89,0.15)', color: 'var(--gold-400)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <Building2 size={17} />
+          </div>
           <div>
             <span style={{ fontWeight: 600, fontSize: 14 }}>Aliya Resort Operations</span>
             <span style={{ color: 'var(--text-muted)', fontSize: 13, marginLeft: 12 }}>
@@ -163,7 +172,7 @@ function Dashboard() {
       <div className="stat-grid">
         <StatCard
           color="gold"
-          icon="💰"
+          icon={<DollarSign size={20} />}
           value={`LKR ${(d.totalRevenue ? Number(d.totalRevenue) : 0).toLocaleString()}`}
           label="Total Revenue"
           subtext={`LKR ${monthRevenue.toLocaleString()} this month`}
@@ -171,7 +180,7 @@ function Dashboard() {
         />
         <StatCard
           color="blue"
-          icon="🗓️"
+          icon={<Calendar size={20} />}
           value={activeReservations}
           label="Active Reservations"
           subtext={`${d.totalReservations || 0} total bookings`}
@@ -179,7 +188,7 @@ function Dashboard() {
         />
         <StatCard
           color="purple"
-          icon="👥"
+          icon={<Users size={20} />}
           value={d.totalStaff || 0}
           label="Staff Accounts"
           subtext={`${d.totalCustomers || 0} registered guests`}
@@ -187,7 +196,7 @@ function Dashboard() {
         />
         <StatCard
           color="green"
-          icon="📊"
+          icon={<BarChart3 size={20} />}
           value={`${occupancy}%`}
           label="Room Occupancy"
           subtext="Based on current capacity"
@@ -195,7 +204,7 @@ function Dashboard() {
         />
         <StatCard
           color="gold"
-          icon="💵"
+          icon={<Receipt size={20} />}
           value={`LKR ${(d.totalRefunded ? Number(d.totalRefunded) : 0).toLocaleString()}`}
           label="Total Refunded"
           subtext="Completed refunds"
@@ -209,7 +218,9 @@ function Dashboard() {
         <div className="card">
           <div className="card-header">
             <div>
-              <div className="card-title">📈 Annual Revenue Trend</div>
+              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <TrendingUp size={16} color="var(--gold-400)" /> Annual Revenue Trend
+              </div>
               <div className="card-subtitle">Monthly revenue projection across all streams</div>
             </div>
             <span className="badge badge-gold">2026</span>
@@ -227,7 +238,9 @@ function Dashboard() {
         <div className="card">
           <div className="card-header">
             <div>
-              <div className="card-title">🛏️ Room Occupancy</div>
+              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <BedDouble size={16} color="#60a5fa" /> Room Occupancy
+              </div>
               <div className="card-subtitle">Monthly occupancy rate (%)</div>
             </div>
             <span className="badge badge-info">2026</span>

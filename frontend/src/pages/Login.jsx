@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Building2, AlertCircle, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 
 function Login() {
   const [email, setEmail] = useState('admin@hotel.com');
@@ -67,7 +68,9 @@ function Login() {
 
       <div className="login-card" style={{ position: 'relative', zIndex: 1 }}>
         <div className="login-logo">
-          <div className="login-logo-icon">🏨</div>
+          <div className="login-logo-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Building2 size={24} color="var(--gold-400)" />
+          </div>
           <div>
             <h1 className="login-title">Aliya Resort</h1>
             <p className="login-subtitle">Staff Administration Portal</p>
@@ -75,8 +78,8 @@ function Login() {
         </div>
 
         {error && (
-          <div className="alert alert-error" style={{ marginBottom: 8 }}>
-            <span className="alert-icon">⚠️</span>
+          <div className="alert alert-error" style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <AlertCircle size={16} />
             <span>{error}</span>
           </div>
         )}
@@ -116,10 +119,11 @@ function Login() {
                 style={{
                   position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                   background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--text-muted)', fontSize: 16, padding: 4,
+                  color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: 4,
                 }}
+                title={showPass ? 'Hide password' : 'Show password'}
               >
-                {showPass ? '🙈' : '👁️'}
+                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
@@ -137,7 +141,7 @@ function Login() {
                 Signing in...
               </>
             ) : (
-              <>🔑 Sign In</>
+              'Sign In'
             )}
           </button>
         </form>
@@ -153,7 +157,7 @@ function Login() {
             Demo Credentials
           </p>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-            📧 admin@hotel.com &nbsp;|&nbsp; 🔒 admin123
+            admin@hotel.com &nbsp;&bull;&nbsp; admin123
           </p>
         </div>
       </div>

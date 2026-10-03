@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
+import { User, Lock, CheckCircle2, AlertCircle } from 'lucide-react';
 
 function Profile() {
   const navigate = useNavigate();
@@ -75,8 +76,10 @@ function Profile() {
           borderRadius: 'var(--radius-md)',
           padding: '12px 20px', fontSize: 14, fontWeight: 600,
           animation: 'slideUp 0.3s ease', boxShadow: 'var(--shadow-lg)',
+          display: 'flex', alignItems: 'center', gap: 8
         }}>
-          {toast.type === 'error' ? '❌' : '✅'} {toast.msg}
+          {toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+          <span>{toast.msg}</span>
         </div>
       )}
 
@@ -87,7 +90,9 @@ function Profile() {
 
         <div className="card" style={{ marginBottom: 32 }}>
           <div className="card-header">
-            <div className="card-title">👤 Personal Details</div>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <User size={18} style={{ color: 'var(--gold-400)' }} /> Personal Details
+            </div>
           </div>
           <form onSubmit={handleUpdateProfile} className="card-body">
             <div className="form-group">
@@ -112,7 +117,9 @@ function Profile() {
 
         <div className="card">
           <div className="card-header">
-            <div className="card-title">🔒 Change Password</div>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Lock size={18} style={{ color: 'var(--gold-400)' }} /> Change Password
+            </div>
           </div>
           <form onSubmit={handleChangePassword} className="card-body">
             <div className="form-group">

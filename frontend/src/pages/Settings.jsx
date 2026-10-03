@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
+import { 
+  Building2, Mail, Phone, MapPin, CreditCard, Clock, 
+  RotateCcw, Receipt, Save, AlertCircle, CheckCircle2, FileText
+} from 'lucide-react';
 
 const SETTING_METADATA = {
-  'hotel.name': { label: 'Resort Brand Name', icon: '🏨', type: 'text', placeholder: 'Aliya Resort' },
-  'hotel.email': { label: 'Inquiries Email Address', icon: '📧', type: 'email', placeholder: 'info@aliyaresort.lk' },
-  'hotel.phone': { label: 'Reception Contact Phone', icon: '📞', type: 'tel', placeholder: '+94 11 234 5678' },
-  'hotel.address': { label: 'Physical Resort Address', icon: '📍', type: 'text', placeholder: 'Sigiriya, Central Province, Sri Lanka' },
-  'currency': { label: 'Operating Currency Code', icon: '💱', type: 'text', placeholder: 'LKR (3 uppercase letters)' },
-  'checkin.time': { label: 'Standard Check-in Time', icon: '🕐', type: 'time', placeholder: '14:00 (HH:mm)' },
-  'checkout.time': { label: 'Standard Check-out Time', icon: '🕛', type: 'time', placeholder: '11:00 (HH:mm)' },
-  'cancellation.hours': { label: 'Free Cancellation Window (Hours)', icon: '🔄', type: 'number', placeholder: '48 (hours before check-in)' },
-  'tax.rate': { label: 'Standard Tax Percentage (%)', icon: '🧾', type: 'number', placeholder: '8.0' },
+  'hotel.name': { label: 'Resort Brand Name', icon: <Building2 size={16} />, type: 'text', placeholder: 'Aliya Resort' },
+  'hotel.email': { label: 'Inquiries Email Address', icon: <Mail size={16} />, type: 'email', placeholder: 'info@aliyaresort.lk' },
+  'hotel.phone': { label: 'Reception Contact Phone', icon: <Phone size={16} />, type: 'tel', placeholder: '+94 11 234 5678' },
+  'hotel.address': { label: 'Physical Resort Address', icon: <MapPin size={16} />, type: 'text', placeholder: 'Sigiriya, Central Province, Sri Lanka' },
+  'currency': { label: 'Operating Currency Code', icon: <CreditCard size={16} />, type: 'text', placeholder: 'LKR (3 uppercase letters)' },
+  'checkin.time': { label: 'Standard Check-in Time', icon: <Clock size={16} />, type: 'time', placeholder: '14:00 (HH:mm)' },
+  'checkout.time': { label: 'Standard Check-out Time', icon: <Clock size={16} />, type: 'time', placeholder: '11:00 (HH:mm)' },
+  'cancellation.hours': { label: 'Free Cancellation Window (Hours)', icon: <RotateCcw size={16} />, type: 'number', placeholder: '48 (hours before check-in)' },
+  'tax.rate': { label: 'Standard Tax Percentage (%)', icon: <Receipt size={16} />, type: 'number', placeholder: '8.0' },
 };
 
 function Settings() {
@@ -105,13 +109,13 @@ function Settings() {
     {
       title: 'Resort Brand & Contact Profile',
       subtitle: 'Identify the resort across tax invoices, booking confirmations, and public views',
-      icon: '🏨',
+      icon: <Building2 size={17} />,
       keys: ['hotel.name', 'hotel.email', 'hotel.phone', 'hotel.address', 'currency'],
     },
     {
       title: 'Guest Stay & Accounting Policies',
       subtitle: 'Check-in times, free cancellation limits, and invoicing tax calculations',
-      icon: '📋',
+      icon: <FileText size={17} />,
       keys: ['checkin.time', 'checkout.time', 'cancellation.hours', 'tax.rate'],
     },
   ];
@@ -128,17 +132,19 @@ function Settings() {
           borderRadius: 'var(--radius-md, 8px)',
           padding: '12px 18px',
           fontSize: 14, fontWeight: 600,
+          display: 'flex', alignItems: 'center', gap: 10,
           boxShadow: 'var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.5))',
           backdropFilter: 'blur(8px)',
         }}>
-          {toast.type === 'error' ? '⚠️' : '✅'} {toast.msg}
+          {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
+          <span>{toast.msg}</span>
         </div>
       )}
 
       {/* Validation Error Alert */}
       {errorMessage && (
         <div className="alert alert-error" style={{ marginBottom: 16 }}>
-          <span className="alert-icon">⚠️</span>
+          <AlertCircle size={16} />
           <div>
             <strong>Configuration Validation Error:</strong>
             <p style={{ margin: '4px 0 0', fontSize: 13 }}>{errorMessage}</p>
@@ -160,7 +166,6 @@ function Settings() {
           marginBottom: 20
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 18 }}>✏️</span>
             <div>
               <span style={{ fontWeight: 600, fontSize: 14 }}>
                 You have {Object.keys(edits).length} unsaved setting change(s)
@@ -174,11 +179,16 @@ function Settings() {
             <button className="btn btn-secondary btn-sm" onClick={handleDiscard} disabled={saving}>
               Discard
             </button>
-            <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving}>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={handleSave}
+              disabled={saving}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
               {saving ? (
                 <><span className="spinner" style={{ width: 12, height: 12, borderWidth: 2 }} /> Saving...</>
               ) : (
-                '💾 Save Configuration'
+                <><Save size={14} /> Save Configuration</>
               )}
             </button>
           </div>
@@ -195,8 +205,8 @@ function Settings() {
             <div key={sec.title} className="card">
               <div className="card-header">
                 <div>
-                  <div className="card-title">
-                    <span style={{ marginRight: 8 }}>{sec.icon}</span>
+                  <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ color: 'var(--gold-400)' }}>{sec.icon}</span>
                     {sec.title}
                   </div>
                   <div className="card-subtitle">{sec.subtitle}</div>
@@ -206,7 +216,7 @@ function Settings() {
               <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {sectionSettings.map(setting => {
                   const meta = SETTING_METADATA[setting.key] || {
-                    label: setting.key, icon: '⚙️', type: 'text', placeholder: ''
+                    label: setting.key, icon: <Building2 size={16} />, type: 'text', placeholder: ''
                   };
                   const isModified = edits[setting.key] !== undefined;
 
@@ -227,7 +237,9 @@ function Settings() {
                       {/* Left: Label & Description */}
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, fontSize: 14 }}>
-                          <span>{meta.icon}</span>
+                          <span style={{ color: 'var(--gold-400)', display: 'flex', alignItems: 'center' }}>
+                            {meta.icon}
+                          </span>
                           <span>{meta.label}</span>
                           {isModified && (
                             <span style={{ fontSize: 10, padding: '2px 6px', background: 'var(--gold-400)', color: '#000', borderRadius: 4, fontWeight: 700 }}>
@@ -267,11 +279,11 @@ function Settings() {
                         <button
                           type="button"
                           className="btn btn-secondary btn-sm"
-                          style={{ padding: '4px 10px', fontSize: 12 }}
+                          style={{ padding: '5px 12px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 5 }}
                           onClick={() => handleReset(setting.key)}
                           title="Restore factory default"
                         >
-                          🔄 Reset
+                          <RotateCcw size={12} /> Reset
                         </button>
                       </div>
                     </div>

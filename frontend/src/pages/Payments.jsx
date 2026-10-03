@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
+import { 
+  CreditCard, DollarSign, CheckCircle2, RotateCcw, 
+  XCircle, Search, Info, AlertTriangle, FileText, Plus, X 
+} from 'lucide-react';
 
 const MOCK_PAYMENTS = [
   { id: 1, reservationId: 1, customerId: 10, amount: 12600, paymentMethod: 'CREDIT_CARD', status: 'COMPLETED', paymentDate: '2026-10-02', transactionRef: 'TXN-001234' },
@@ -18,10 +22,6 @@ const STATUS_BADGE = {
   FAILED: 'badge-error',
   REFUNDED: 'badge-purple',
   CANCELLED: 'badge-muted',
-};
-
-const METHOD_ICON = {
-  CREDIT_CARD: '💳', DEBIT_CARD: '💳', CASH: '💵', BANK_TRANSFER: '🏦', ONLINE: '🌐',
 };
 
 const PAYMENT_METHODS = ['CREDIT_CARD', 'DEBIT_CARD', 'CASH', 'BANK_TRANSFER', 'ONLINE'];
@@ -42,12 +42,12 @@ function PaymentModal({ onClose, onSubmit }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-header-icon">💳</div>
+          <div className="modal-header-icon"><CreditCard size={20} style={{ color: 'var(--gold-400)' }} /></div>
           <div>
             <div className="modal-title">Process Payment</div>
             <div className="modal-subtitle">Record a payment for a reservation</div>
           </div>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={onClose}><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
@@ -73,8 +73,8 @@ function PaymentModal({ onClose, onSubmit }) {
                 </select>
               </div>
             </div>
-            <div className="alert alert-info">
-              <span className="alert-icon">ℹ️</span>
+            <div className="alert alert-info" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Info size={18} style={{ color: 'var(--blue-400)', flexShrink: 0 }} />
               <div>
                 <div className="alert-title">Secure Payment Processing</div>
                 All payments are recorded and an invoice will be generated automatically.
@@ -83,8 +83,9 @@ function PaymentModal({ onClose, onSubmit }) {
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Processing...' : '💳 Process Payment'}
+            <button type="submit" className="btn btn-primary" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <CreditCard size={14} />
+              {saving ? 'Processing...' : 'Process Payment'}
             </button>
           </div>
         </form>
@@ -108,31 +109,32 @@ function RefundModal({ payment, onClose, onRefund }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" style={{ maxWidth: 460 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-header-icon" style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)' }}>↩️</div>
+          <div className="modal-header-icon" style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)', color: '#c4b5fd' }}><RotateCcw size={20} /></div>
           <div>
             <div className="modal-title">Process Refund</div>
-            <div className="modal-subtitle">Payment #{payment.id} — ${payment.amount?.toLocaleString()}</div>
+            <div className="modal-subtitle">Payment #{payment.id} — LKR {payment.amount?.toLocaleString()}</div>
           </div>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={onClose}><X size={18} /></button>
         </div>
         <form onSubmit={handle}>
           <div className="modal-body">
-            <div className="alert alert-warning">
-              <span className="alert-icon">⚠️</span>
+            <div className="alert alert-warning" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <AlertTriangle size={18} style={{ color: '#f59e0b', flexShrink: 0 }} />
               <div>
                 <div className="alert-title">Refund Confirmation</div>
-                This will initiate a full refund of <strong>${payment.amount?.toLocaleString()}</strong> for Reservation #{payment.reservationId}.
+                This will initiate a full refund of <strong>LKR {payment.amount?.toLocaleString()}</strong> for Reservation #{payment.reservationId}.
               </div>
             </div>
-            <div className="form-group">
+            <div className="form-group" style={{ marginTop: 14 }}>
               <label className="form-label">Reason for Refund *</label>
               <textarea className="form-textarea" value={reason} onChange={e => setReason(e.target.value)} placeholder="Explain the reason for this refund..." required style={{ minHeight: 80 }} />
             </div>
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" style={{ background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', borderColor: '#7c3aed' }} disabled={processing}>
-              {processing ? 'Processing...' : '↩️ Issue Refund'}
+            <button type="submit" className="btn btn-primary" style={{ background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', borderColor: '#7c3aed', display: 'inline-flex', alignItems: 'center', gap: 6 }} disabled={processing}>
+              <RotateCcw size={14} />
+              {processing ? 'Processing...' : 'Issue Refund'}
             </button>
           </div>
         </form>
@@ -219,28 +221,31 @@ function Payments() {
           color: '#86efac', borderRadius: 'var(--radius-md)',
           padding: '12px 18px', fontSize: 14, fontWeight: 600,
           animation: 'slideUp 0.3s ease', boxShadow: 'var(--shadow-lg)',
-        }}>✅ {toast.msg}</div>
+          display: 'flex', alignItems: 'center', gap: 8
+        }}>
+          <CheckCircle2 size={16} /> {toast.msg}
+        </div>
       )}
 
       {/* Summary */}
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
         <div className="stat-card gold">
-          <div className="stat-card-icon">💰</div>
+          <div className="stat-card-icon"><DollarSign size={24} style={{ color: 'var(--gold-400)' }} /></div>
           <div className="stat-card-value">LKR {totalRevenue.toLocaleString()}</div>
           <div className="stat-card-label">Collected</div>
         </div>
         <div className="stat-card green">
-          <div className="stat-card-icon">✅</div>
+          <div className="stat-card-icon"><CheckCircle2 size={24} style={{ color: 'var(--emerald-400)' }} /></div>
           <div className="stat-card-value">{payments.filter(p => p.status === 'COMPLETED' || p.status === 'SUCCESS').length}</div>
           <div className="stat-card-label">Completed</div>
         </div>
         <div className="stat-card purple">
-          <div className="stat-card-icon">↩️</div>
+          <div className="stat-card-icon"><RotateCcw size={24} style={{ color: '#a78bfa' }} /></div>
           <div className="stat-card-value">LKR {totalRefunded.toLocaleString()}</div>
           <div className="stat-card-label">Refunded</div>
         </div>
         <div className="stat-card red">
-          <div className="stat-card-icon">❌</div>
+          <div className="stat-card-icon"><XCircle size={24} style={{ color: '#ef4444' }} /></div>
           <div className="stat-card-value">{payments.filter(p => p.status === 'FAILED').length}</div>
           <div className="stat-card-label">Failed</div>
         </div>
@@ -251,7 +256,7 @@ function Payments() {
         <div className="card-body" style={{ padding: '14px 20px' }}>
           <div className="filter-bar">
             <div className="search-wrapper">
-              <span className="search-icon">🔍</span>
+              <span className="search-icon"><Search size={15} /></span>
               <input className="search-input" placeholder="Search by payment ID, reservation or ref..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             <select className="form-select" style={{ width: 180 }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
@@ -262,8 +267,9 @@ function Payments() {
               id="add-payment-btn"
               className="btn btn-primary btn-sm"
               onClick={() => setModal({ type: 'pay' })}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
-              + Process Payment
+              <Plus size={14} /> Process Payment
             </button>
           </div>
         </div>
@@ -272,14 +278,16 @@ function Payments() {
       {/* Table */}
       <div className="card">
         <div className="card-header">
-          <div className="card-title">💳 Payment Ledger</div>
+          <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <CreditCard size={18} style={{ color: 'var(--gold-400)' }} /> Payment Ledger
+          </div>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{filtered.length} transactions</span>
         </div>
         {loading ? (
           <LoadingScreen text="Loading payments ledger..." />
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">💳</div>
+            <div className="empty-state-icon"><CreditCard size={36} style={{ color: 'var(--text-muted)' }} /></div>
             <div className="empty-state-title">No payments found</div>
             <div className="empty-state-desc">Process a new payment to get started.</div>
           </div>
@@ -309,7 +317,7 @@ function Payments() {
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
-                        <span>{METHOD_ICON[p.paymentMethod] || '💳'}</span>
+                        <CreditCard size={14} style={{ color: 'var(--gold-400)' }} />
                         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{p.paymentMethod?.replace(/_/g, ' ')}</span>
                       </div>
                     </td>
@@ -326,18 +334,18 @@ function Payments() {
                             className="btn btn-sm btn-secondary"
                             onClick={() => handleDownloadInvoice(p)}
                             title="Download invoice PDF"
-                            style={{ padding: '4px 8px', fontSize: 12 }}
+                            style={{ padding: '4px 8px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                           >
-                            📄 Invoice
+                            <FileText size={12} /> Invoice
                           </button>
                         )}
                         {(p.status === 'COMPLETED' || p.status === 'SUCCESS') && (
                           <button
                             className="btn btn-sm"
-                            style={{ background: 'rgba(139,92,246,0.15)', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.3)', padding: '4px 8px', fontSize: 12 }}
+                            style={{ background: 'rgba(139,92,246,0.15)', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.3)', padding: '4px 8px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                             onClick={() => setModal({ type: 'refund', payment: p })}
                           >
-                            ↩️ Refund
+                            <RotateCcw size={12} /> Refund
                           </button>
                         )}
                       </div>

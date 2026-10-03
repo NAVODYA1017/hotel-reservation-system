@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
+import { 
+  Sparkles, CheckCircle2, AlertCircle, AlertTriangle, 
+  Package, Users, Search, Edit3, Trash2, Plus, X 
+} from 'lucide-react';
 
 const STATUS_BADGE = {
   AVAILABLE: 'badge-success',
@@ -167,7 +171,7 @@ function EventHalls() {
           backdropFilter: 'blur(8px)',
           display: 'flex', alignItems: 'center', gap: 10,
         }}>
-          <span>{toast.type === 'error' ? '❌' : '✅'}</span>
+          <span>{toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}</span>
           <span>{toast.msg}</span>
         </div>
       )}
@@ -175,22 +179,22 @@ function EventHalls() {
       {/* Summary Stat Cards */}
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
         <div className="stat-card gold">
-          <div className="stat-card-icon">🎭</div>
+          <div className="stat-card-icon"><Sparkles size={24} style={{ color: 'var(--gold-400)' }} /></div>
           <div className="stat-card-value">{halls.length}</div>
           <div className="stat-card-label">Total Event Halls</div>
         </div>
         <div className="stat-card green">
-          <div className="stat-card-icon">✅</div>
+          <div className="stat-card-icon"><CheckCircle2 size={24} style={{ color: 'var(--emerald-400)' }} /></div>
           <div className="stat-card-value">{availableHallsCount}</div>
           <div className="stat-card-label">Available for Booking</div>
         </div>
         <div className="stat-card blue">
-          <div className="stat-card-icon">🎁</div>
+          <div className="stat-card-icon"><Package size={24} style={{ color: 'var(--blue-400)' }} /></div>
           <div className="stat-card-value">{packages.length}</div>
           <div className="stat-card-label">Custom Packages</div>
         </div>
         <div className="stat-card red">
-          <div className="stat-card-icon">👥</div>
+          <div className="stat-card-icon"><Users size={24} style={{ color: '#ef4444' }} /></div>
           <div className="stat-card-value">
             {halls.reduce((sum, h) => sum + (h.seatingCapacity || h.capacity || 0), 0).toLocaleString()}
           </div>
@@ -205,20 +209,22 @@ function EventHalls() {
             <button
               className={`btn ${activeTab === 'halls' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => { setActiveTab('halls'); setSearch(''); }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
-              🎭 Event Halls ({halls.length})
+              <Sparkles size={14} /> Event Halls ({halls.length})
             </button>
             <button
               className={`btn ${activeTab === 'packages' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => { setActiveTab('packages'); setSearch(''); }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
-              🎁 Event Packages ({packages.length})
+              <Package size={14} /> Event Packages ({packages.length})
             </button>
           </div>
 
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <div className="search-wrapper" style={{ width: 240 }}>
-              <span className="search-icon">🔍</span>
+              <span className="search-icon"><Search size={15} /></span>
               <input
                 className="search-input"
                 placeholder={activeTab === 'halls' ? "Search halls..." : "Search packages..."}
@@ -227,12 +233,12 @@ function EventHalls() {
               />
             </div>
             {activeTab === 'halls' ? (
-              <button className="btn btn-primary btn-sm" onClick={() => setModal({ type: 'hall' })}>
-                + Add Event Hall
+              <button className="btn btn-primary btn-sm" onClick={() => setModal({ type: 'hall' })} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Plus size={14} /> Add Event Hall
               </button>
             ) : (
-              <button className="btn btn-primary btn-sm" onClick={() => setModal({ type: 'package' })}>
-                + Add Package
+              <button className="btn btn-primary btn-sm" onClick={() => setModal({ type: 'package' })} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Plus size={14} /> Add Package
               </button>
             )}
           </div>
@@ -243,17 +249,21 @@ function EventHalls() {
       {activeTab === 'halls' && (
         <div className="card">
           <div className="card-header flex justify-between items-center">
-            <div className="card-title">🎭 Event Halls Directory</div>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Sparkles size={18} style={{ color: 'var(--gold-400)' }} /> Event Halls Directory
+            </div>
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Showing {filteredHalls.length} halls</span>
           </div>
           {loading ? (
             <LoadingScreen text="Loading event halls..." />
           ) : filteredHalls.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">🎭</div>
+              <div className="empty-state-icon"><Sparkles size={36} style={{ color: 'var(--text-muted)' }} /></div>
               <div className="empty-state-title">No event halls found</div>
               <div className="empty-state-desc">Get started by creating your first grand venue.</div>
-              <button className="btn btn-primary mt-4" onClick={() => setModal({ type: 'hall' })}>+ Add Hall</button>
+              <button className="btn btn-primary mt-4" onClick={() => setModal({ type: 'hall' })} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Plus size={14} /> Add Hall
+              </button>
             </div>
           ) : (
             <div className="table-wrapper">
@@ -304,16 +314,17 @@ function EventHalls() {
                             <button
                               className="btn btn-secondary btn-sm"
                               onClick={() => setModal({ type: 'hall', item: h })}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                             >
-                              ✏️ Edit
+                              <Edit3 size={12} /> Edit
                             </button>
                             <button
                               className="btn btn-danger btn-sm"
                               onClick={() => setDeleteModal({ type: 'hall', item: h })}
-                              style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px' }}
+                              style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                               title="Delete Hall"
                             >
-                              🗑️
+                              <Trash2 size={13} />
                             </button>
                           </div>
                         </td>
@@ -331,17 +342,21 @@ function EventHalls() {
       {activeTab === 'packages' && (
         <div className="card">
           <div className="card-header flex justify-between items-center">
-            <div className="card-title">🎁 Customizable Event Packages</div>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Package size={18} style={{ color: 'var(--gold-400)' }} /> Customizable Event Packages
+            </div>
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Showing {filteredPackages.length} packages</span>
           </div>
           {loading ? (
             <LoadingScreen text="Loading event packages..." />
           ) : filteredPackages.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">🎁</div>
+              <div className="empty-state-icon"><Package size={36} style={{ color: 'var(--text-muted)' }} /></div>
               <div className="empty-state-title">No packages found</div>
               <div className="empty-state-desc">Configure bundle services for weddings, conferences & galas.</div>
-              <button className="btn btn-primary mt-4" onClick={() => setModal({ type: 'package' })}>+ Add Package</button>
+              <button className="btn btn-primary mt-4" onClick={() => setModal({ type: 'package' })} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Plus size={14} /> Add Package
+              </button>
             </div>
           ) : (
             <div className="table-wrapper">
@@ -381,16 +396,17 @@ function EventHalls() {
                           <button
                             className="btn btn-secondary btn-sm"
                             onClick={() => setModal({ type: 'package', item: p })}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                           >
-                            ✏️ Edit
+                            <Edit3 size={12} /> Edit
                           </button>
                           <button
                             className="btn btn-danger btn-sm"
                             onClick={() => setDeleteModal({ type: 'package', item: p })}
-                            style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px' }}
+                            style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                             title="Delete Package"
                           >
-                            🗑️
+                            <Trash2 size={13} />
                           </button>
                         </div>
                       </td>
@@ -421,24 +437,24 @@ function EventHalls() {
         />
       )}
 
-      {/* Delete Confirmation Modal (Open Issue 1) */}
+      {/* Delete Confirmation Modal */}
       {deleteModal && (
         <div className="modal-overlay" onClick={() => setDeleteModal(null)}>
           <div className="modal" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-header-icon" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>🗑️</div>
+              <div className="modal-header-icon" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}><Trash2 size={20} /></div>
               <div>
                 <div className="modal-title">Delete {deleteModal.type === 'hall' ? 'Event Hall' : 'Package'}</div>
                 <div className="modal-subtitle">{deleteModal.item.name}</div>
               </div>
-              <button className="modal-close" onClick={() => setDeleteModal(null)}>×</button>
+              <button className="modal-close" onClick={() => setDeleteModal(null)}><X size={18} /></button>
             </div>
             <div className="modal-body">
-              <div className="alert alert-error">
-                <span className="alert-icon">⚠️</span>
+              <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <AlertTriangle size={18} style={{ color: '#ef4444', flexShrink: 0 }} />
                 <div>
                   <div className="alert-title">Confirm Permanent Deletion</div>
-                  Are you sure you want to delete <strong>{deleteModal.item.name}</strong> from MySQL?
+                  Are you sure you want to delete <strong>{deleteModal.item.name}</strong> from database?
                   {deleteModal.type === 'hall' && <div style={{ marginTop: 6, fontSize: 12 }}>Note: Halls linked to active reservations cannot be deleted.</div>}
                 </div>
               </div>
@@ -482,12 +498,12 @@ function HallModal({ hall, onClose, onSave }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-header-icon">🎭</div>
+          <div className="modal-header-icon"><Sparkles size={20} style={{ color: 'var(--gold-400)' }} /></div>
           <div>
             <div className="modal-title">{hall ? `Edit Hall: ${hall.name}` : 'Add New Event Hall'}</div>
-            <div className="modal-subtitle">UC-03 Event Hall Configuration</div>
+            <div className="modal-subtitle">Event Hall Configuration</div>
           </div>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={onClose}><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
@@ -526,7 +542,7 @@ function HallModal({ hall, onClose, onSave }) {
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Saving to MySQL...' : (hall ? 'Update Hall' : 'Save Hall')}
+              {saving ? 'Saving...' : (hall ? 'Update Hall' : 'Save Hall')}
             </button>
           </div>
         </form>
@@ -562,17 +578,17 @@ function PackageModal({ pkg, onClose, onSave }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-header-icon">🎁</div>
+          <div className="modal-header-icon"><Package size={20} style={{ color: 'var(--gold-400)' }} /></div>
           <div>
             <div className="modal-title">{pkg ? `Edit Package: ${pkg.name}` : 'Create Event Package'}</div>
-            <div className="modal-subtitle">UC-03 Custom Services & Catering Bundle</div>
+            <div className="modal-subtitle">Custom Services & Catering Bundle</div>
           </div>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={onClose}><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             <div className="form-group">
-              <label className="form-label">Package Name * (Extension 11a check)</label>
+              <label className="form-label">Package Name *</label>
               <input className="form-input" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Royal Wedding Package" required />
             </div>
             <div className="form-group">
@@ -586,7 +602,7 @@ function PackageModal({ pkg, onClose, onSave }) {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Package Price (LKR) * (Extension 10a check)</label>
+              <label className="form-label">Package Price (LKR) *</label>
               <input className="form-input" type="number" min="1" step="5000" value={form.price} onChange={e => set('price', Number(e.target.value))} required />
             </div>
             <div className="form-group">
@@ -603,7 +619,7 @@ function PackageModal({ pkg, onClose, onSave }) {
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Saving to MySQL...' : (pkg ? 'Update Package' : 'Save Package')}
+              {saving ? 'Saving...' : (pkg ? 'Update Package' : 'Save Package')}
             </button>
           </div>
         </form>

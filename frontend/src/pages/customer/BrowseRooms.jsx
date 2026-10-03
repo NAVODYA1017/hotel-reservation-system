@@ -3,17 +3,18 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter, CustomerRoomCard } from './Home';
 import LoadingScreen from '../../components/LoadingScreen';
+import { RotateCcw, BedDouble } from 'lucide-react';
 
 const MOCK_ROOMS = [
-  { id: 1, roomNumber: '101', type: 'Standard Room', icon: '🛏️', capacity: 2, pricePerNight: 8500, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV'], view: 'Garden View', floor: 1 },
-  { id: 2, roomNumber: '102', type: 'Deluxe Room', icon: '🌟', capacity: 2, pricePerNight: 14200, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar'], view: 'City View', floor: 1 },
-  { id: 3, roomNumber: '201', type: 'Premier Suite', icon: '👑', capacity: 4, pricePerNight: 28600, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar', 'Jacuzzi'], view: 'Pool View', floor: 2 },
-  { id: 4, roomNumber: '202', type: 'Standard Room', icon: '🛏️', capacity: 2, pricePerNight: 8500, status: 'OCCUPIED', amenities: ['WiFi', 'AC', 'TV'], view: 'Garden View', floor: 2 },
-  { id: 5, roomNumber: '301', type: 'Presidential Suite', icon: '💎', capacity: 6, pricePerNight: 52000, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar', 'Jacuzzi', 'Kitchen'], view: 'Ocean View', floor: 3 },
-  { id: 6, roomNumber: '302', type: 'Deluxe Room', icon: '🌟', capacity: 2, pricePerNight: 14200, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar'], view: 'City View', floor: 3 },
-  { id: 7, roomNumber: '401', type: 'Standard Room', icon: '🛏️', capacity: 2, pricePerNight: 8500, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV'], view: 'Garden View', floor: 4 },
-  { id: 8, roomNumber: '402', type: 'Premier Suite', icon: '👑', capacity: 4, pricePerNight: 28600, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar', 'Jacuzzi'], view: 'Pool View', floor: 4 },
-  { id: 9, roomNumber: '501', type: 'Deluxe Room', icon: '🌟', capacity: 2, pricePerNight: 14200, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar'], view: 'City View', floor: 5 },
+  { id: 1, roomNumber: '101', type: 'Standard Room', capacity: 2, pricePerNight: 8500, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV'], view: 'Garden View', floor: 1 },
+  { id: 2, roomNumber: '102', type: 'Deluxe Room', capacity: 2, pricePerNight: 14200, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar'], view: 'City View', floor: 1 },
+  { id: 3, roomNumber: '201', type: 'Premier Suite', capacity: 4, pricePerNight: 28600, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar', 'Jacuzzi'], view: 'Pool View', floor: 2 },
+  { id: 4, roomNumber: '202', type: 'Standard Room', capacity: 2, pricePerNight: 8500, status: 'OCCUPIED', amenities: ['WiFi', 'AC', 'TV'], view: 'Garden View', floor: 2 },
+  { id: 5, roomNumber: '301', type: 'Presidential Suite', capacity: 6, pricePerNight: 52000, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar', 'Jacuzzi', 'Kitchen'], view: 'Ocean View', floor: 3 },
+  { id: 6, roomNumber: '302', type: 'Deluxe Room', capacity: 2, pricePerNight: 14200, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar'], view: 'City View', floor: 3 },
+  { id: 7, roomNumber: '401', type: 'Standard Room', capacity: 2, pricePerNight: 8500, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV'], view: 'Garden View', floor: 4 },
+  { id: 8, roomNumber: '402', type: 'Premier Suite', capacity: 4, pricePerNight: 28600, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar', 'Jacuzzi'], view: 'Pool View', floor: 4 },
+  { id: 9, roomNumber: '501', type: 'Deluxe Room', capacity: 2, pricePerNight: 14200, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV', 'Mini-bar'], view: 'City View', floor: 5 },
 ];
 
 const SORT_OPTIONS = [
@@ -186,8 +187,8 @@ function BrowseRooms() {
             </select>
           </div>
 
-          <button className="btn btn-ghost btn-sm w-full" onClick={() => { setSearch(''); setTypeFilter(''); setMaxPrice(100000); setSortBy('price_asc'); setAvailOnly(true); }}>
-            ↺ Reset Filters
+          <button className="btn btn-ghost btn-sm w-full" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={() => { setSearch(''); setTypeFilter(''); setMaxPrice(100000); setSortBy('price_asc'); setAvailOnly(true); }}>
+            <RotateCcw size={13} /> Reset Filters
           </button>
         </div>
 
@@ -197,7 +198,7 @@ function BrowseRooms() {
             <LoadingScreen text="Carving available sanctuary spaces..." />
           ) : filtered.length === 0 ? (
             <div className="empty-state" style={{ paddingTop: 80 }}>
-              <div className="empty-state-icon">🛏️</div>
+              <div className="empty-state-icon"><BedDouble size={48} style={{ color: 'var(--gold-400)', opacity: 0.6 }} /></div>
               <div className="empty-state-title">No spaces match your criteria</div>
               <div className="empty-state-desc">Try adjusting your filters or dates to find available sanctuary spaces.</div>
             </div>

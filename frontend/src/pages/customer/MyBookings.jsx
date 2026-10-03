@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
 import LoadingScreen from '../../components/LoadingScreen';
-import { CreditCard, Download, Eye, CheckCircle2, AlertCircle, FileText, Calendar, Building2, User, ShieldCheck } from 'lucide-react';
+import { 
+  CreditCard, Download, Eye, CheckCircle2, AlertCircle, AlertTriangle, 
+  FileText, Calendar, Building2, User, ShieldCheck, Clock, Check, 
+  XCircle, Trash2, Edit3, BedDouble, Trees, DollarSign, Building, Banknote 
+} from 'lucide-react';
 
 const STATUS_BADGE = {
   CONFIRMED: 'badge-success',
@@ -15,16 +19,6 @@ const STATUS_BADGE = {
   AWAITING_PAYMENT: 'badge-warning',
 };
 
-const STATUS_ICON = { 
-  CONFIRMED: '✅', 
-  PENDING: '⏳', 
-  CHECKED_IN: '🏨', 
-  CHECKED_OUT: '🚪', 
-  CANCELLED: '❌',
-  PAID: '💰',
-  AWAITING_PAYMENT: '⏳'
-};
-
 function BookingCard({ booking, onCancel, onDelete, onModify, onPay, onDownloadInvoice, onViewInvoice }) {
   const [expanded, setExpanded] = useState(false);
   const isPast = new Date(booking.checkOut) < new Date();
@@ -34,18 +28,20 @@ function BookingCard({ booking, onCancel, onDelete, onModify, onPay, onDownloadI
   return (
     <div className="booking-card animate-fade-in" style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 2 }}>
       <div className="booking-card-top">
-        <div className="booking-card-img" style={{ background: '#22251f', borderRadius: 2 }}>{booking.icon}</div>
+        <div className="booking-card-img" style={{ background: '#22251f', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <BedDouble size={28} style={{ color: 'var(--gold-400)' }} />
+        </div>
         <div className="booking-card-info" style={{ flex: 1 }}>
           <div className="booking-card-room" style={{ fontFamily: "'Playfair Display', serif" }}>{booking.roomType}</div>
-          <div className="booking-card-dates">
-            📅 {booking.checkIn} → {booking.checkOut} · {booking.nights} night{booking.nights !== 1 ? 's' : ''} · 👥 {booking.guests} guest{booking.guests !== 1 ? 's' : ''}
+          <div className="booking-card-dates" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <Calendar size={13} style={{ color: 'var(--gold-400)' }} /> {booking.checkIn} → {booking.checkOut} · {booking.nights} night{booking.nights !== 1 ? 's' : ''} · <User size={13} style={{ color: 'var(--gold-400)' }} /> {booking.guests} guest{booking.guests !== 1 ? 's' : ''}
           </div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
             <span className={`badge ${STATUS_BADGE[booking.status] || 'badge-muted'}`} style={{ borderRadius: 2, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              {STATUS_ICON[booking.status] || '🔖'} {booking.status?.replace('_', ' ')}
+              {booking.status?.replace('_', ' ')}
             </span>
             <span className={`badge ${isPaid ? 'badge-success' : 'badge-warning'}`} style={{ borderRadius: 2, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              {isPaid ? '✓ Paid in Full' : '⏳ Amount Payable Due'}
+              {isPaid ? 'Paid in Full' : 'Amount Payable Due'}
             </span>
           </div>
         </div>
@@ -55,7 +51,7 @@ function BookingCard({ booking, onCancel, onDelete, onModify, onPay, onDownloadI
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Total incl. tax & services</div>
           <button className="btn btn-ghost btn-sm" style={{ marginTop: 8, borderRadius: 2 }} onClick={() => setExpanded(v => !v)}>
-            {expanded ? '▲ Less' : '▼ Details'}
+            {expanded ? 'Less' : 'Details'}
           </button>
         </div>
       </div>
@@ -85,19 +81,17 @@ function BookingCard({ booking, onCancel, onDelete, onModify, onPay, onDownloadI
           {isPast ? `Stay completed · ${booking.checkOut}` : `Arrival in ${Math.max(0, Math.ceil((new Date(booking.checkIn) - new Date()) / (1000 * 60 * 60 * 24)))} days`}
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* UC-05: Step 4 - Customer selects Make Payment */}
           {!isPaid && booking.status !== 'CANCELLED' && (
             <button
               className="hero-btn-primary"
               onClick={() => onPay(booking)}
-              style={{ background: 'var(--gold-400)', color: '#141513', padding: '7px 16px', fontSize: 12, border: 'none', fontWeight: 700 }}
+              style={{ background: 'var(--gold-400)', color: '#141513', padding: '7px 16px', fontSize: 12, border: 'none', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}
               title="Pay now to confirm reservation and receive itemized invoice"
             >
-              💳 MAKE PAYMENT →
+              <CreditCard size={14} /> MAKE PAYMENT →
             </button>
           )}
 
-          {/* UC-05: Step 11 - Customer views or downloads the invoice */}
           {isPaid && (
             <>
               <button
@@ -123,24 +117,24 @@ function BookingCard({ booking, onCancel, onDelete, onModify, onPay, onDownloadI
             <button
               className="btn btn-secondary btn-sm"
               onClick={() => onModify(booking)}
-              style={{ borderRadius: 2 }}
+              style={{ borderRadius: 2, display: 'inline-flex', alignItems: 'center', gap: 6 }}
               title="Modify Dates"
             >
-              ✏️ Modify Dates
+              <Edit3 size={13} /> Modify Dates
             </button>
           )}
           {canCancel && (
-            <button className="btn btn-warning btn-sm" onClick={() => onCancel(booking)} style={{ borderRadius: 2 }}>
-              ❌ Cancel
+            <button className="btn btn-warning btn-sm" onClick={() => onCancel(booking)} style={{ borderRadius: 2, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <XCircle size={13} /> Cancel
             </button>
           )}
           <button
             className="btn btn-danger btn-sm"
             onClick={() => onDelete(booking)}
-            style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '6px 12px', borderRadius: 2 }}
+            style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '6px 12px', borderRadius: 2, display: 'inline-flex', alignItems: 'center', gap: 6 }}
             title="Permanently Delete Reservation"
           >
-            🗑️ Delete
+            <Trash2 size={13} /> Delete
           </button>
         </div>
       </div>
@@ -246,7 +240,7 @@ function PaymentModal({ booking, onClose, onSuccess }) {
       <div className="modal" style={{ maxWidth: 540, background: '#181a16', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 2 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.10)' }}>
           <div className="modal-header-icon" style={{ background: 'rgba(197,160,89,0.15)', border: '1px solid rgba(197,160,89,0.4)', borderRadius: 2 }}>
-            💳
+            <CreditCard size={20} style={{ color: 'var(--gold-400)' }} />
           </div>
           <div>
             <div className="modal-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 19 }}>
@@ -279,10 +273,10 @@ function PaymentModal({ booking, onClose, onSuccess }) {
               </div>
             </div>
 
-            {/* Error banner (Ext 6a & 7a) */}
+            {/* Error banner */}
             {errorMsg && (
-              <div className="alert alert-error" style={{ marginBottom: 18, borderRadius: 2, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)' }}>
-                <span className="alert-icon">⚠️</span>
+              <div className="alert alert-error" style={{ marginBottom: 18, borderRadius: 2, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <AlertTriangle size={18} style={{ color: '#ef4444', flexShrink: 0 }} />
                 <div>
                   <div className="alert-title" style={{ color: '#fca5a5' }}>Payment Validation Issue</div>
                   <span style={{ fontSize: 13, color: '#fecaca' }}>{errorMsg}</span>
@@ -297,19 +291,19 @@ function PaymentModal({ booking, onClose, onSuccess }) {
               </label>
               <div className="payment-methods" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
                 {[
-                  { id: 'CREDIT_CARD', label: 'Credit Card', icon: '💳' },
-                  { id: 'DEBIT_CARD', label: 'Debit Card', icon: '💳' },
-                  { id: 'BANK_TRANSFER', label: 'Bank Slip', icon: '🏦' },
-                  { id: 'CASH', label: 'At Desk', icon: '💵' },
+                  { id: 'CREDIT_CARD', label: 'Credit Card', icon: <CreditCard size={18} /> },
+                  { id: 'DEBIT_CARD', label: 'Debit Card', icon: <CreditCard size={18} /> },
+                  { id: 'BANK_TRANSFER', label: 'Bank Slip', icon: <Building size={18} /> },
+                  { id: 'CASH', label: 'At Desk', icon: <Banknote size={18} /> },
                 ].map(m => (
                   <button
                     key={m.id}
                     type="button"
                     className={`payment-method-btn ${method === m.id ? 'selected' : ''}`}
                     onClick={() => { setMethod(m.id); setErrorMsg(''); }}
-                    style={{ borderRadius: 2, padding: '12px 6px', background: method === m.id ? 'rgba(197,160,89,0.15)' : '#1e201b', borderColor: method === m.id ? 'var(--gold-400)' : 'rgba(255,255,255,0.08)' }}
+                    style={{ borderRadius: 2, padding: '12px 6px', background: method === m.id ? 'rgba(197,160,89,0.15)' : '#1e201b', borderColor: method === m.id ? 'var(--gold-400)' : 'rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}
                   >
-                    <span className="payment-method-icon" style={{ fontSize: 20 }}>{m.icon}</span>
+                    <span className="payment-method-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: method === m.id ? 'var(--gold-400)' : 'inherit' }}>{m.icon}</span>
                     <span className="payment-method-label" style={{ fontSize: 10, letterSpacing: '0.05em' }}>{m.label}</span>
                   </button>
                 ))}
@@ -397,8 +391,11 @@ function PaymentModal({ booking, onClose, onSuccess }) {
             )}
 
             {method === 'CASH' && (
-              <div style={{ padding: '16px', background: '#20221e', borderRadius: 2, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                💵 <strong>Cash Settlement at Haven Desk:</strong> You may settle payment directly upon check-in. Clicking confirm will record your invoice and reservation as guaranteed.
+              <div style={{ padding: '16px', background: '#20221e', borderRadius: 2, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <Banknote size={18} style={{ color: 'var(--gold-400)', flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <strong>Cash Settlement at Resort Desk:</strong> You may settle payment directly upon check-in. Clicking confirm will record your invoice and reservation as guaranteed.
+                </div>
               </div>
             )}
 
@@ -777,10 +774,10 @@ function MyBookings() {
   };
 
   const FILTERS = [
-    { id: 'all', label: '🗂️ All Reservations' },
-    { id: 'upcoming', label: '📅 Upcoming' },
-    { id: 'past', label: '✅ Past Stays' },
-    { id: 'cancelled', label: '❌ Cancelled' },
+    { id: 'all', label: 'All Reservations' },
+    { id: 'upcoming', label: 'Upcoming' },
+    { id: 'past', label: 'Past Stays' },
+    { id: 'cancelled', label: 'Cancelled' },
   ];
 
   const filtered = bookings.filter(b => {
@@ -806,7 +803,7 @@ function MyBookings() {
           backdropFilter: 'blur(8px)',
           display: 'flex', alignItems: 'center', gap: 10,
         }}>
-          <span>{toast.type === 'error' ? '❌' : '✓'}</span>
+          <span>{toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}</span>
           <span>{toast.msg}</span>
         </div>
       )}
@@ -830,14 +827,14 @@ function MyBookings() {
           </div>
 
           {/* Quick stats */}
-          <div style={{ display: 'flex', gap: 24, paddingBottom: 24 }}>
+          <div style={{ display: 'flex', gap: 24, paddingBottom: 24, flexWrap: 'wrap' }}>
             {[
-              { label: 'Total Stays', value: bookings.filter(b => b.status === 'CHECKED_OUT').length, icon: '🌲' },
-              { label: 'Upcoming', value: bookings.filter(b => ['CONFIRMED', 'PENDING', 'AWAITING_PAYMENT', 'PAID'].includes(b.status)).length, icon: '📅' },
-              { label: 'Total Settled', value: `LKR ${bookings.filter(b => b.paymentStatus === 'PAID').reduce((s, b) => s + b.totalAmount, 0).toLocaleString()}`, icon: '💰' },
+              { label: 'Total Stays', value: bookings.filter(b => b.status === 'CHECKED_OUT').length, icon: <Trees size={22} style={{ color: 'var(--gold-400)' }} /> },
+              { label: 'Upcoming', value: bookings.filter(b => ['CONFIRMED', 'PENDING', 'AWAITING_PAYMENT', 'PAID'].includes(b.status)).length, icon: <Calendar size={22} style={{ color: 'var(--gold-400)' }} /> },
+              { label: 'Total Settled', value: `LKR ${bookings.filter(b => b.paymentStatus === 'PAID').reduce((s, b) => s + b.totalAmount, 0).toLocaleString()}`, icon: <DollarSign size={22} style={{ color: 'var(--gold-400)' }} /> },
             ].map(s => (
               <div key={s.label} style={{ padding: '14px 20px', background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2, display: 'flex', gap: 12, alignItems: 'center' }}>
-                <span style={{ fontSize: 22 }}>{s.icon}</span>
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.icon}</span>
                 <div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Playfair Display', serif" }}>{s.value}</div>
                   <div style={{ fontSize: 10, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.label}</div>
@@ -868,7 +865,9 @@ function MyBookings() {
             <LoadingScreen text="Carving your sanctuary reservations..." />
           ) : filtered.length === 0 ? (
             <div className="empty-state" style={{ paddingTop: 80 }}>
-              <div className="empty-state-icon">{filter === 'upcoming' ? '📅' : filter === 'past' ? '✅' : '🗓️'}</div>
+              <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center' }}>
+                <Calendar size={48} style={{ color: 'var(--gold-400)', opacity: 0.6 }} />
+              </div>
               <div className="empty-state-title" style={{ fontFamily: "'Playfair Display', serif" }}>No {filter === 'all' ? '' : filter} bookings found</div>
               <div className="empty-state-desc">
                 {filter === 'upcoming' ? "You have no upcoming countryside reservations." : filter === 'past' ? "You haven't completed any sanctuary stays yet." : "You have no bookings recorded yet."}
@@ -937,12 +936,14 @@ function MyBookings() {
         <div className="modal-overlay" onClick={() => setModifyModal(null)}>
           <div className="modal" style={{ maxWidth: 440, background: '#181a16', borderRadius: 2 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-header-icon" style={{ background: 'rgba(217,119,6,0.15)', border: '1px solid rgba(217,119,6,0.3)', borderRadius: 2 }}>✏️</div>
+              <div className="modal-header-icon" style={{ background: 'rgba(217,119,6,0.15)', border: '1px solid rgba(217,119,6,0.3)', borderRadius: 2, color: 'var(--gold-400)' }}>
+                <Edit3 size={18} />
+              </div>
               <div>
                 <div className="modal-title">Modify Stay Dates</div>
                 <div className="modal-subtitle">{modifyModal.reservationId} · {modifyModal.roomType}</div>
               </div>
-              <button className="modal-close" onClick={() => setModifyModal(null)}>×</button>
+              <button className="modal-close" onClick={() => setModifyModal(null)}><XCircle size={18} /></button>
             </div>
             <div className="modal-body">
               <div style={{ marginBottom: 16, fontSize: 13, color: 'var(--text-secondary)' }}>
@@ -986,16 +987,18 @@ function MyBookings() {
         <div className="modal-overlay" onClick={() => setCancelModal(null)}>
           <div className="modal" style={{ maxWidth: 420, background: '#181a16', borderRadius: 2 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-header-icon" style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 2 }}>⚠️</div>
+              <div className="modal-header-icon" style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 2, color: '#f59e0b' }}>
+                <AlertTriangle size={18} />
+              </div>
               <div>
                 <div className="modal-title">Cancel Reservation</div>
                 <div className="modal-subtitle">{cancelModal.reservationId}</div>
               </div>
-              <button className="modal-close" onClick={() => setCancelModal(null)}>×</button>
+              <button className="modal-close" onClick={() => setCancelModal(null)}><XCircle size={18} /></button>
             </div>
             <div className="modal-body">
-              <div className="alert alert-warning" style={{ borderRadius: 2 }}>
-                <span className="alert-icon">⚠️</span>
+              <div className="alert alert-warning" style={{ borderRadius: 2, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <AlertTriangle size={18} style={{ color: '#f59e0b', flexShrink: 0 }} />
                 <div>
                   <div className="alert-title">Are you sure?</div>
                   Cancelling <strong>{cancelModal.roomType}</strong> ({cancelModal.checkIn} → {cancelModal.checkOut}).
@@ -1016,16 +1019,18 @@ function MyBookings() {
         <div className="modal-overlay" onClick={() => setDeleteModal(null)}>
           <div className="modal" style={{ maxWidth: 420, background: '#181a16', borderRadius: 2 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-header-icon" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 2 }}>🗑️</div>
+              <div className="modal-header-icon" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 2, color: '#ef4444' }}>
+                <Trash2 size={18} />
+              </div>
               <div>
                 <div className="modal-title">Delete Reservation</div>
                 <div className="modal-subtitle">{deleteModal.reservationId}</div>
               </div>
-              <button className="modal-close" onClick={() => setDeleteModal(null)}>×</button>
+              <button className="modal-close" onClick={() => setDeleteModal(null)}><XCircle size={18} /></button>
             </div>
             <div className="modal-body">
-              <div className="alert alert-error" style={{ borderRadius: 2 }}>
-                <span className="alert-icon">🗑️</span>
+              <div className="alert alert-error" style={{ borderRadius: 2, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Trash2 size={18} style={{ color: '#ef4444', flexShrink: 0 }} />
                 <div>
                   <div className="alert-title">Permanent Deletion</div>
                   Are you sure you want to permanently delete reservation <strong>#{deleteModal.reservationId}</strong> for <strong>{deleteModal.roomType}</strong>?

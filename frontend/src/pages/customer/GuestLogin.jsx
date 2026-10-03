@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
+import { AlertCircle, Eye, EyeOff, Sparkles } from 'lucide-react';
 
 function GuestLogin() {
   const navigate = useNavigate();
@@ -132,8 +133,8 @@ function GuestLogin() {
           </div>
 
           {error && (
-            <div className="alert alert-error" style={{ marginBottom: 16 }}>
-              <span className="alert-icon">⚠️</span>
+            <div className="alert alert-error" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <AlertCircle size={18} style={{ color: '#ef4444', flexShrink: 0 }} />
               <span>{error}</span>
             </div>
           )}
@@ -165,8 +166,8 @@ function GuestLogin() {
                     style={{ paddingRight: 44 }}
                   />
                   <button type="button" onClick={() => setShowPass(v => !v)}
-                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 16 }}>
-                    {showPass ? '🙈' : '👁️'}
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
@@ -243,7 +244,9 @@ function GuestLogin() {
 
           {/* Member perks */}
           <div style={{ marginTop: 28, padding: '16px', background: 'rgba(201,160,48,0.06)', border: '1px solid var(--border-gold)', borderRadius: 'var(--radius-md)' }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold-300)', marginBottom: 8 }}>⭐ Member Benefits</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold-300)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Sparkles size={14} /> Member Benefits
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {['Exclusive member rates & early access to deals', 'Easy booking management & cancellation', 'Priority concierge & room upgrades'].map(b => (
                 <div key={b} style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', gap: 8 }}>

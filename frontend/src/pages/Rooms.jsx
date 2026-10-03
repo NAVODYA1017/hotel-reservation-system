@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
+import { 
+  BedDouble, CheckCircle2, AlertCircle, Wrench, Search, 
+  LayoutGrid, List, Plus, Edit3, Trash2, X, Check
+} from 'lucide-react';
 
 const MOCK_ROOMS = [
   { id: 1, roomNumber: '101', type: 'Standard', floor: 1, capacity: 2, pricePerNight: 8500, status: 'AVAILABLE', amenities: 'WiFi, AC, TV' },
@@ -21,18 +25,10 @@ const STATUS_BADGE = {
   OUT_OF_SERVICE: 'badge-muted',
 };
 
-const TYPE_ICON = {
-  'Standard': '🛏️',
-  'Deluxe': '🌟',
-  'Suite': '👑',
-  'Premium Suite': '💎',
-};
-
 const TYPE_OPTIONS = ['Standard', 'Deluxe', 'Suite', 'Premium Suite'];
 const STATUS_OPTIONS = ['AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'RESERVED', 'OUT_OF_SERVICE'];
 
 function RoomCard({ room, onEdit, onDelete }) {
-  const icon = TYPE_ICON[room.type] || '🛏️';
   const isAvailable = room.status === 'AVAILABLE';
 
   return (
@@ -41,8 +37,9 @@ function RoomCard({ room, onEdit, onDelete }) {
         background: isAvailable
           ? 'linear-gradient(135deg, #1e1a33, #2a2545)'
           : 'linear-gradient(135deg, #13101e, #1e1a33)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center'
       }}>
-        <span style={{ fontSize: 52, zIndex: 1, position: 'relative' }}>{icon}</span>
+        <BedDouble size={48} style={{ color: 'var(--gold-400)', opacity: 0.85, zIndex: 1 }} />
         <div style={{
           position: 'absolute', top: 12, right: 12, zIndex: 2,
         }}>
@@ -88,8 +85,12 @@ function RoomCard({ room, onEdit, onDelete }) {
           ID #{room.id}
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button className="btn btn-secondary btn-sm" onClick={() => onEdit(room)}>✏️ Edit</button>
-          <button className="btn btn-danger btn-sm" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px' }} onClick={() => onDelete(room.id, room.roomNumber)} title="Delete Room">🗑️</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => onEdit(room)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Edit3 size={12} /> Edit
+          </button>
+          <button className="btn btn-danger btn-sm" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => onDelete(room.id, room.roomNumber)} title="Delete Room">
+            <Trash2 size={13} />
+          </button>
         </div>
       </div>
     </div>
@@ -121,12 +122,12 @@ function RoomModal({ room, onClose, onSave }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-header-icon">🛏️</div>
+          <div className="modal-header-icon"><BedDouble size={20} style={{ color: 'var(--gold-400)' }} /></div>
           <div>
             <div className="modal-title">{room ? `Edit Room ${room.roomNumber}` : 'Add New Room'}</div>
             <div className="modal-subtitle">{room ? 'Update room details' : 'Configure a new room'}</div>
           </div>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={onClose}><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
@@ -171,8 +172,8 @@ function RoomModal({ room, onClose, onSave }) {
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Saving...' : room ? '✓ Update Room' : '+ Add Room'}
+            <button type="submit" className="btn btn-primary" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              {saving ? 'Saving...' : room ? <><Check size={14} /> Update Room</> : <><Plus size={14} /> Add Room</>}
             </button>
           </div>
         </form>
@@ -285,7 +286,7 @@ function Rooms() {
           animation: 'slideUp 0.3s ease', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)',
           display: 'flex', alignItems: 'center', gap: 10,
         }}>
-          <span style={{ fontSize: 18 }}>{toast.type === 'error' ? '❌' : '✅'}</span>
+          <span>{toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}</span>
           <span>{typeof toast === 'string' ? toast : toast.msg}</span>
         </div>
       )}
@@ -293,22 +294,22 @@ function Rooms() {
       {/* Summary */}
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
         <div className="stat-card green">
-          <div className="stat-card-icon">✅</div>
+          <div className="stat-card-icon"><CheckCircle2 size={24} style={{ color: 'var(--emerald-400)' }} /></div>
           <div className="stat-card-value">{available}</div>
           <div className="stat-card-label">Available</div>
         </div>
         <div className="stat-card red">
-          <div className="stat-card-icon">🔴</div>
+          <div className="stat-card-icon"><AlertCircle size={24} style={{ color: '#ef4444' }} /></div>
           <div className="stat-card-value">{occupied}</div>
           <div className="stat-card-label">Occupied</div>
         </div>
         <div className="stat-card gold">
-          <div className="stat-card-icon">🔧</div>
+          <div className="stat-card-icon"><Wrench size={24} style={{ color: 'var(--gold-400)' }} /></div>
           <div className="stat-card-value">{rooms.filter(r => r.status === 'MAINTENANCE').length}</div>
           <div className="stat-card-label">Maintenance</div>
         </div>
         <div className="stat-card blue">
-          <div className="stat-card-icon">🛏️</div>
+          <div className="stat-card-icon"><BedDouble size={24} style={{ color: 'var(--blue-400)' }} /></div>
           <div className="stat-card-value">{rooms.length}</div>
           <div className="stat-card-label">Total Rooms</div>
         </div>
@@ -319,7 +320,7 @@ function Rooms() {
         <div className="card-body" style={{ padding: '14px 20px' }}>
           <div className="filter-bar">
             <div className="search-wrapper">
-              <span className="search-icon">🔍</span>
+              <span className="search-icon"><Search size={15} /></span>
               <input className="search-input" placeholder="Search room number or type..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             <select className="form-select" style={{ width: 160 }} value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
@@ -331,15 +332,20 @@ function Rooms() {
               {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
             </select>
             <div className="flex gap-2">
-              <button className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setViewMode('grid')}>⊞ Grid</button>
-              <button className={`btn btn-sm ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setViewMode('list')}>☰ List</button>
+              <button className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setViewMode('grid')} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <LayoutGrid size={13} /> Grid
+              </button>
+              <button className={`btn btn-sm ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setViewMode('list')} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <List size={13} /> List
+              </button>
             </div>
             <button
               id="add-room-btn"
               className="btn btn-primary btn-sm"
               onClick={() => setModal({ type: 'add' })}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
-              + Add Room
+              <Plus size={14} /> Add Room
             </button>
           </div>
         </div>
@@ -351,10 +357,12 @@ function Rooms() {
       ) : filtered.length === 0 ? (
         <div className="card">
           <div className="empty-state">
-            <div className="empty-state-icon">🛏️</div>
+            <div className="empty-state-icon"><BedDouble size={36} style={{ color: 'var(--text-muted)' }} /></div>
             <div className="empty-state-title">No rooms found</div>
             <div className="empty-state-desc">Try changing your filters or add a new room.</div>
-            <button className="btn btn-primary mt-4" onClick={() => setModal({ type: 'add' })}>+ Add Room</button>
+            <button className="btn btn-primary mt-4" onClick={() => setModal({ type: 'add' })} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Plus size={14} /> Add Room
+            </button>
           </div>
         </div>
       ) : viewMode === 'grid' ? (
@@ -366,7 +374,9 @@ function Rooms() {
       ) : (
         <div className="card">
           <div className="card-header">
-            <div className="card-title">🛏️ Room List</div>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <BedDouble size={18} style={{ color: 'var(--gold-400)' }} /> Room List
+            </div>
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{filtered.length} rooms</span>
           </div>
           <div className="table-wrapper">
@@ -387,16 +397,20 @@ function Rooms() {
                 {filtered.map(r => (
                   <tr key={r.id}>
                     <td style={{ fontWeight: 700 }}>{r.roomNumber}</td>
-                    <td><span className="tag">{TYPE_ICON[r.type] || '🛏️'} {r.type}</span></td>
+                    <td><span className="tag">{r.type}</span></td>
                     <td style={{ color: 'var(--text-secondary)' }}>Floor {r.floor}</td>
                     <td style={{ color: 'var(--text-secondary)' }}>{r.capacity} guests</td>
-                    <td style={{ fontWeight: 700, color: 'var(--gold-300)' }}>${r.pricePerNight?.toLocaleString()}</td>
+                    <td style={{ fontWeight: 700, color: 'var(--gold-300)' }}>LKR {Number(r.pricePerNight || 0).toLocaleString()}</td>
                     <td><span className={`badge ${STATUS_BADGE[r.status] || 'badge-muted'}`}>{r.status}</span></td>
                     <td style={{ color: 'var(--text-muted)', fontSize: 12, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.amenities}</td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: 6 }}>
-                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => setModal({ type: 'edit', room: r })}>✏️ Edit</button>
-                        <button type="button" className="btn btn-danger btn-sm" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px' }} onClick={() => handleDeleteClick(r.id, r.roomNumber)} title="Delete Room">🗑️</button>
+                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => setModal({ type: 'edit', room: r })} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Edit3 size={12} /> Edit
+                        </button>
+                        <button type="button" className="btn btn-danger btn-sm" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleDeleteClick(r.id, r.roomNumber)} title="Delete Room">
+                          <Trash2 size={13} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -415,12 +429,12 @@ function Rooms() {
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-header-icon" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171' }}>🗑️</div>
+              <div className="modal-header-icon" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171' }}><Trash2 size={20} /></div>
               <div>
                 <div className="modal-title">Delete Room {modal.room.roomNumber}?</div>
                 <div className="modal-subtitle">Confirm room removal</div>
               </div>
-              <button type="button" className="modal-close" onClick={() => setModal(null)}>×</button>
+              <button type="button" className="modal-close" onClick={() => setModal(null)}><X size={18} /></button>
             </div>
             <div className="modal-body" style={{ padding: '20px' }}>
               <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
@@ -432,10 +446,10 @@ function Rooms() {
               <button
                 type="button"
                 className="btn btn-danger"
-                style={{ background: '#ef4444', color: '#ffffff', fontWeight: 600 }}
+                style={{ background: '#ef4444', color: '#ffffff', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 onClick={confirmDelete}
               >
-                ✓ Confirm Delete
+                <Check size={14} /> Confirm Delete
               </button>
             </div>
           </div>

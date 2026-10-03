@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
+import { 
+  DollarSign, Calendar, Printer, BarChart3, RotateCw, AlertTriangle, 
+  Info, TrendingUp, ArrowDownLeft, BedDouble, CreditCard, Tag, 
+  FileText, XCircle
+} from 'lucide-react';
 
 function MiniBarChart({ values, labels, color = '' }) {
   const max = Math.max(...values, 1);
@@ -152,9 +157,13 @@ function Reports() {
                 key={code}
                 className={`btn ${isActive ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setActiveType(code)}
-                style={{ padding: '8px 18px', fontSize: 13, fontWeight: 600 }}
+                style={{
+                  padding: '8px 18px', fontSize: 13, fontWeight: 600,
+                  display: 'inline-flex', alignItems: 'center', gap: 8
+                }}
               >
-                {code === 'REVENUE' ? '💰' : '🗓️'} {rt.name}
+                {code === 'REVENUE' ? <DollarSign size={15} /> : <Calendar size={15} />}
+                {rt.name}
               </button>
             );
           })}
@@ -164,8 +173,9 @@ function Reports() {
           className="btn btn-secondary btn-sm"
           onClick={handlePrint}
           title="Print or save this report"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
         >
-          🖨️ Print / Review Report
+          <Printer size={14} /> Print / Review Report
         </button>
       </div>
 
@@ -200,12 +210,12 @@ function Reports() {
               className="btn btn-primary btn-sm"
               onClick={generateReport}
               disabled={loading}
-              style={{ minWidth: 140 }}
+              style={{ minWidth: 150, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             >
               {loading ? (
                 <><span className="spinner" style={{ width: 12, height: 12, borderWidth: 2 }} /> Generating...</>
               ) : (
-                '📊 Generate Report'
+                <><BarChart3 size={14} /> Generate Report</>
               )}
             </button>
             <div style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-muted)' }}>
@@ -219,13 +229,17 @@ function Reports() {
       {error && (
         <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div className="flex items-center gap-2">
-            <span className="alert-icon">⚠️</span>
+            <AlertTriangle size={16} />
             <div>
               <strong>Report Generation Error:</strong> {error}
             </div>
           </div>
-          <button className="btn btn-secondary btn-sm" onClick={generateReport}>
-            🔄 Retry Generation
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={generateReport}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <RotateCw size={13} /> Retry Generation
           </button>
         </div>
       )}
@@ -243,7 +257,7 @@ function Reports() {
           alignItems: 'center',
           gap: 10
         }}>
-          <span>ℹ️</span>
+          <Info size={16} />
           <span>{currentReport.message}</span>
         </div>
       )}
@@ -256,25 +270,25 @@ function Reports() {
           {/* Revenue Summary Stats */}
           <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
             <div className="stat-card gold">
-              <div className="stat-card-icon">💰</div>
+              <div className="stat-card-icon"><DollarSign size={20} /></div>
               <div className="stat-card-value">LKR {Number(revReport.netRevenue || 0).toLocaleString()}</div>
               <div className="stat-card-label">Net Revenue</div>
               <div className="stat-card-trend up">Period Total</div>
             </div>
             <div className="stat-card green">
-              <div className="stat-card-icon">📈</div>
+              <div className="stat-card-icon"><TrendingUp size={20} /></div>
               <div className="stat-card-value">LKR {Number(revReport.grossRevenue || 0).toLocaleString()}</div>
               <div className="stat-card-label">Gross Revenue</div>
               <div className="stat-card-trend up">{revReport.successfulPayments || 0} Successful Payments</div>
             </div>
             <div className="stat-card purple">
-              <div className="stat-card-icon">💸</div>
+              <div className="stat-card-icon"><ArrowDownLeft size={20} /></div>
               <div className="stat-card-value">LKR {Number(revReport.refundedAmount || 0).toLocaleString()}</div>
               <div className="stat-card-label">Refunded Amount</div>
               <div className="stat-card-trend down">{revReport.refundedPayments || 0} Refunds Issued</div>
             </div>
             <div className="stat-card blue">
-              <div className="stat-card-icon">📊</div>
+              <div className="stat-card-icon"><BarChart3 size={20} /></div>
               <div className="stat-card-value">LKR {Number(revReport.averagePaymentValue || 0).toLocaleString()}</div>
               <div className="stat-card-label">Avg Payment Value</div>
               <div className="stat-card-trend neutral">Per Successful Trx</div>
@@ -287,7 +301,9 @@ function Reports() {
             <div className="card">
               <div className="card-header">
                 <div>
-                  <div className="card-title">💳 Revenue by Payment Method</div>
+                  <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <CreditCard size={16} color="var(--gold-400)" /> Revenue by Payment Method
+                  </div>
                   <div className="card-subtitle">Breakdown across payment options</div>
                 </div>
               </div>
@@ -309,7 +325,9 @@ function Reports() {
             <div className="card">
               <div className="card-header">
                 <div>
-                  <div className="card-title">🏷️ Revenue by Space Type</div>
+                  <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Tag size={16} color="var(--gold-400)" /> Revenue by Space Type
+                  </div>
                   <div className="card-subtitle">Rooms vs. Event Spaces</div>
                 </div>
               </div>
@@ -322,7 +340,7 @@ function Reports() {
                     <div key={type}>
                       <div className="flex justify-between" style={{ marginBottom: 6 }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
-                          {type === 'ROOM' ? '🏨 Sanctuary Rooms' : '🎭 Event Spaces & Halls'}
+                          {type === 'ROOM' ? 'Sanctuary Rooms' : 'Event Spaces & Halls'}
                         </span>
                         <div>
                           <span style={{ fontWeight: 700, color: 'var(--gold-300)', marginRight: 10 }}>
@@ -345,7 +363,9 @@ function Reports() {
           <div className="card">
             <div className="card-header">
               <div>
-                <div className="card-title">🧾 Transaction Ledger</div>
+                <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <FileText size={16} color="var(--gold-400)" /> Transaction Ledger
+                </div>
                 <div className="card-subtitle">All payments logged for {from} to {to}</div>
               </div>
               <span className="badge badge-gold">{(revReport.payments || []).length} Records</span>
@@ -410,25 +430,25 @@ function Reports() {
           {/* Reservation Summary Stats */}
           <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
             <div className="stat-card blue">
-              <div className="stat-card-icon">🗓️</div>
+              <div className="stat-card-icon"><Calendar size={20} /></div>
               <div className="stat-card-value">{resReport.totalReservations || 0}</div>
               <div className="stat-card-label">Total Reservations</div>
               <div className="stat-card-trend up">In Period</div>
             </div>
             <div className="stat-card gold">
-              <div className="stat-card-icon">💵</div>
+              <div className="stat-card-icon"><DollarSign size={20} /></div>
               <div className="stat-card-value">LKR {Number(resReport.totalBookingValue || 0).toLocaleString()}</div>
               <div className="stat-card-label">Booking Value</div>
               <div className="stat-card-trend up">Active Reservations</div>
             </div>
             <div className="stat-card green">
-              <div className="stat-card-icon">🛏️</div>
+              <div className="stat-card-icon"><BedDouble size={20} /></div>
               <div className="stat-card-value">{resReport.roomBookings || 0}</div>
               <div className="stat-card-label">Room Bookings</div>
               <div className="stat-card-trend up">{resReport.hallBookings || 0} Hall Events</div>
             </div>
             <div className="stat-card red">
-              <div className="stat-card-icon">❌</div>
+              <div className="stat-card-icon"><XCircle size={20} /></div>
               <div className="stat-card-value">%{resReport.cancellationRatePercent || 0}</div>
               <div className="stat-card-label">Cancellation Rate</div>
               <div className="stat-card-trend down">Across all bookings</div>
@@ -441,7 +461,9 @@ function Reports() {
             <div className="card">
               <div className="card-header">
                 <div>
-                  <div className="card-title">📊 Reservations by Status</div>
+                  <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <BarChart3 size={16} color="var(--gold-400)" /> Reservations by Status
+                  </div>
                   <div className="card-subtitle">Confirmed, Pending, Completed, Cancelled</div>
                 </div>
               </div>
@@ -473,7 +495,9 @@ function Reports() {
             <div className="card">
               <div className="card-header">
                 <div>
-                  <div className="card-title">🏷️ Bookings by Room Category</div>
+                  <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Tag size={16} color="var(--gold-400)" /> Bookings by Room Category
+                  </div>
                   <div className="card-subtitle">Distribution across accommodation tiers</div>
                 </div>
               </div>
@@ -509,7 +533,9 @@ function Reports() {
           <div className="card">
             <div className="card-header">
               <div>
-                <div className="card-title">📋 Reservation Records</div>
+                <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <FileText size={16} color="var(--gold-400)" /> Reservation Records
+                </div>
                 <div className="card-subtitle">All bookings registered between {from} and {to}</div>
               </div>
               <span className="badge badge-info">{(resReport.reservations || []).length} Bookings</span>

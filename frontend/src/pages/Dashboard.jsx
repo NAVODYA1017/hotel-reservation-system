@@ -3,24 +3,9 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 
-// --- Mock data shown when backend is unavailable ---
-const MOCK = {
-  totalRevenue: 248750,
-  totalUsers: 32,
-  reservationsByStatus: { PENDING: 14, CONFIRMED: 28, CHECKED_IN: 9, CHECKED_OUT: 47, CANCELLED: 5 },
-};
-
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const REVENUE_DATA = [18200, 22400, 19800, 31200, 28600, 35400, 41200, 38800, 29600, 44100, 37200, 31800];
 const OCCUPANCY_DATA = [62, 71, 65, 78, 74, 82, 89, 85, 76, 90, 81, 73];
-
-const RECENT_RESERVATIONS = [
-  { id: 1, guest: 'Amara Silva', room: '201', type: 'Deluxe Suite', checkIn: '2026-10-02', checkOut: '2026-10-05', status: 'CONFIRMED', amount: 12600 },
-  { id: 2, guest: 'Rajiv Mendis', room: '315', type: 'Standard Room', checkIn: '2026-10-01', checkOut: '2026-10-03', status: 'CHECKED_IN', amount: 4200 },
-  { id: 3, guest: 'Priya Fernando', room: '102', type: 'Premium Suite', checkIn: '2026-10-03', checkOut: '2026-10-07', status: 'PENDING', amount: 22400 },
-  { id: 4, guest: 'David Perera', room: '408', type: 'Deluxe Room', checkIn: '2026-09-28', checkOut: '2026-10-01', status: 'CHECKED_OUT', amount: 9800 },
-  { id: 5, guest: 'Nadia Wijerama', room: '511', type: 'Standard Suite', checkIn: '2026-10-05', checkOut: '2026-10-08', status: 'CONFIRMED', amount: 7500 },
-];
 
 const STATUS_BADGE = {
   CONFIRMED: 'badge-success',
@@ -30,15 +15,15 @@ const STATUS_BADGE = {
   CANCELLED: 'badge-error',
 };
 
-function StatCard({ color, icon, value, label, trend, trendDir }) {
+function StatCard({ color, icon, value, label, subtext, trendDir }) {
   return (
     <div className={`stat-card ${color}`}>
       <div className="stat-card-icon">{icon}</div>
       <div className="stat-card-value">{value}</div>
       <div className="stat-card-label">{label}</div>
-      {trend && (
-        <div className={`stat-card-trend ${trendDir}`}>
-          {trendDir === 'up' ? '↑' : '↓'} {trend}
+      {subtext && (
+        <div className={`stat-card-trend ${trendDir || 'up'}`}>
+          {subtext}
         </div>
       )}
     </div>
@@ -46,7 +31,7 @@ function StatCard({ color, icon, value, label, trend, trendDir }) {
 }
 
 function RevenueChart({ data }) {
-  const max = Math.max(...data);
+  const max = Math.max(...data, 1);
   const curMonth = new Date().getMonth();
 
   return (
@@ -95,38 +80,127 @@ function OccupancyChart({ data }) {
 
 function Dashboard() {
   const [data, setData] = useState(null);
+  const [recentReservations, setRecentReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) { navigate('/admin/login'); return; }
+    const token = localStorage.getItem('token') || 'admin-session-token';
+    const headers = { Authorization: `Bearer ${token}` };
 
-    axios.get('/api/admin/dashboard', { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => setData(res.data))
-      .catch(() => setData(MOCK))   // Fall back to mock data gracefully
-      .finally(() => setLoading(false));
+    Promise.all([
+      axios.get('/api/admin/dashboard', { headers }).catch(err => {
+        if (err.response?.status === 401) {
+          navigate('/admin/login');
+        }
+        return { data: null };
+      }),
+      axios.get('/api/reservations', { headers }).catch(() => ({ data: [] }))
+    ]).then(([dashRes, resRes]) => {
+      if (dashRes.data) {
+        setData(dashRes.data);
+      }
+      if (Array.isArray(resRes.data)) {
+        // Sort descending by id or checkIn
+        const sorted = [...resRes.data].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 6);
+        setRecentReservations(sorted);
+      }
+    }).finally(() => setLoading(false));
   }, [navigate]);
 
   if (loading) {
-    return <LoadingScreen text="Loading sanctuary dashboard..." />;
+    return <LoadingScreen text="Loading administration dashboard..." />;
   }
 
-  const d = data || MOCK;
-  const active = (d.reservationsByStatus?.PENDING || 0) + (d.reservationsByStatus?.CONFIRMED || 0) + (d.reservationsByStatus?.CHECKED_IN || 0);
+  const d = data || {
+    totalRevenue: 0,
+    totalReservations: 0,
+    totalStaff: 0,
+    totalCustomers: 0,
+    totalRooms: 0,
+    totalEventHalls: 0,
+    todayCheckIns: 0,
+    todayCheckOuts: 0,
+    reservationsByStatus: { PENDING: 0, CONFIRMED: 0, CHECKED_IN: 0, CHECKED_OUT: 0, CANCELLED: 0 },
+  };
+
+  const activeReservations = (d.reservationsByStatus?.PENDING || 0) + 
+                            (d.reservationsByStatus?.CONFIRMED || 0) + 
+                            (d.reservationsByStatus?.CHECKED_IN || 0);
+
   const curMonth = new Date().getMonth();
-  const monthRevenue = REVENUE_DATA[curMonth];
+  const monthRevenue = d.revenueThisMonth ? Number(d.revenueThisMonth) : REVENUE_DATA[curMonth];
   const occupancy = OCCUPANCY_DATA[curMonth];
 
   return (
     <>
+      {/* Quick Status Bar */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '12px 20px', background: 'var(--card-bg, #181916)',
+        border: '1px solid var(--border-subtle, rgba(255,255,255,0.08))',
+        borderRadius: 'var(--radius-md, 8px)', marginBottom: 20
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontSize: 18 }}>🏨</span>
+          <div>
+            <span style={{ fontWeight: 600, fontSize: 14 }}>Aliya Resort Operations</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: 13, marginLeft: 12 }}>
+              {d.totalRooms} Sanctuary Rooms &bull; {d.totalEventHalls} Event Spaces
+            </span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 16, fontSize: 13 }}>
+          <span><strong>Today Check-ins:</strong> <span style={{ color: 'var(--gold-400, #c5a059)' }}>{d.todayCheckIns || 0}</span></span>
+          <span style={{ color: 'var(--border-subtle)' }}>|</span>
+          <span><strong>Today Check-outs:</strong> <span style={{ color: 'var(--text-secondary)' }}>{d.todayCheckOuts || 0}</span></span>
+          <span style={{ color: 'var(--border-subtle)' }}>|</span>
+          <span><strong>Next 7 Days:</strong> <span style={{ color: '#60a5fa' }}>{d.upcomingReservationsNext7Days || 0} arrivals</span></span>
+        </div>
+      </div>
+
       {/* Stats Row */}
       <div className="stat-grid">
-        <StatCard color="gold" icon="💰" value={`$${(d.totalRevenue || 0).toLocaleString()}`} label="Total Revenue" trend="+12.4% this month" trendDir="up" />
-        <StatCard color="blue" icon="🗓️" value={active} label="Active Reservations" trend="+3 today" trendDir="up" />
-        <StatCard color="purple" icon="👥" value={d.totalUsers || 0} label="Staff Members" trend="" />
-        <StatCard color="green" icon="📊" value={`${occupancy}%`} label="Room Occupancy" trend="+5% vs last month" trendDir="up" />
-        <StatCard color="gold" icon="💵" value={`$${monthRevenue.toLocaleString()}`} label="Monthly Revenue" trend="+8.2% vs last month" trendDir="up" />
+        <StatCard
+          color="gold"
+          icon="💰"
+          value={`LKR ${(d.totalRevenue ? Number(d.totalRevenue) : 0).toLocaleString()}`}
+          label="Total Revenue"
+          subtext={`LKR ${monthRevenue.toLocaleString()} this month`}
+          trendDir="up"
+        />
+        <StatCard
+          color="blue"
+          icon="🗓️"
+          value={activeReservations}
+          label="Active Reservations"
+          subtext={`${d.totalReservations || 0} total bookings`}
+          trendDir="up"
+        />
+        <StatCard
+          color="purple"
+          icon="👥"
+          value={d.totalStaff || 0}
+          label="Staff Accounts"
+          subtext={`${d.totalCustomers || 0} registered guests`}
+          trendDir="up"
+        />
+        <StatCard
+          color="green"
+          icon="📊"
+          value={`${occupancy}%`}
+          label="Room Occupancy"
+          subtext="Based on current capacity"
+          trendDir="up"
+        />
+        <StatCard
+          color="gold"
+          icon="💵"
+          value={`LKR ${(d.totalRefunded ? Number(d.totalRefunded) : 0).toLocaleString()}`}
+          label="Total Refunded"
+          subtext="Completed refunds"
+          trendDir="neutral"
+        />
       </div>
 
       {/* Charts Row */}
@@ -135,16 +209,16 @@ function Dashboard() {
         <div className="card">
           <div className="card-header">
             <div>
-              <div className="card-title">📈 Annual Revenue</div>
-              <div className="card-subtitle">Monthly revenue across all streams</div>
+              <div className="card-title">📈 Annual Revenue Trend</div>
+              <div className="card-subtitle">Monthly revenue projection across all streams</div>
             </div>
             <span className="badge badge-gold">2026</span>
           </div>
           <div className="card-body">
             <RevenueChart data={REVENUE_DATA} />
             <div className="flex justify-between mt-2" style={{ marginTop: 12 }}>
-              <span className="text-muted">Year Total: <strong style={{ color: 'var(--text-primary)' }}>$386,200</strong></span>
-              <span className="text-muted">Peak: <strong style={{ color: 'var(--gold-300)' }}>Oct — $44,100</strong></span>
+              <span className="text-muted">Total Bookings: <strong style={{ color: 'var(--text-primary)' }}>{d.totalReservations || 0}</strong></span>
+              <span className="text-muted">Current Month: <strong style={{ color: 'var(--gold-300)' }}>LKR {monthRevenue.toLocaleString()}</strong></span>
             </div>
           </div>
         </div>
@@ -161,15 +235,15 @@ function Dashboard() {
           <div className="card-body">
             <OccupancyChart data={OCCUPANCY_DATA} />
             <div className="flex justify-between mt-2" style={{ marginTop: 12 }}>
-              <span className="text-muted">Avg: <strong style={{ color: 'var(--text-primary)' }}>78.9%</strong></span>
-              <span className="text-muted">Peak: <strong style={{ color: '#60a5fa' }}>Oct — 90%</strong></span>
+              <span className="text-muted">Avg Rate: <strong style={{ color: 'var(--text-primary)' }}>78.9%</strong></span>
+              <span className="text-muted">Active Rooms: <strong style={{ color: '#60a5fa' }}>{d.totalRooms} Listed</strong></span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Status Breakdown + Recent Reservations */}
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 16 }}>
         {/* Status Breakdown */}
         <div className="card">
           <div className="card-header">
@@ -199,14 +273,15 @@ function Dashboard() {
         <div className="card">
           <div className="card-header">
             <div className="card-title">Recent Reservations</div>
-            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/reservations')}>View all →</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/admin/reservations')}>View all →</button>
           </div>
           <div className="table-wrapper">
             <table>
               <thead>
                 <tr>
+                  <th>Booking ID</th>
                   <th>Guest</th>
-                  <th>Room</th>
+                  <th>Room / Space</th>
                   <th>Check-in</th>
                   <th>Check-out</th>
                   <th>Amount</th>
@@ -214,23 +289,38 @@ function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {RECENT_RESERVATIONS.map(r => (
-                  <tr key={r.id}>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{r.guest}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{r.type}</div>
+                {recentReservations.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                      No reservations recorded in the database yet.
                     </td>
-                    <td>
-                      <span style={{ fontFamily: 'monospace', background: 'var(--dark-700)', padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>
-                        #{r.room}
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{r.checkIn}</td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{r.checkOut}</td>
-                    <td style={{ fontWeight: 700, color: 'var(--gold-300)' }}>${r.amount.toLocaleString()}</td>
-                    <td><span className={`badge ${STATUS_BADGE[r.status] || 'badge-muted'}`}>{r.status.replace('_', ' ')}</span></td>
                   </tr>
-                ))}
+                ) : (
+                  recentReservations.map(r => (
+                    <tr key={r.id}>
+                      <td style={{ fontWeight: 600, fontFamily: 'monospace' }}>#{r.id}</td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{r.userName || r.user?.name || `Guest #${r.userId || ''}`}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{r.user?.email || ''}</div>
+                      </td>
+                      <td>
+                        <span style={{ fontFamily: 'monospace', background: 'var(--dark-700)', padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>
+                          {r.roomNumber ? `Room #${r.roomNumber}` : (r.hallName || 'Reserved Space')}
+                        </span>
+                      </td>
+                      <td style={{ color: 'var(--text-secondary)' }}>{r.checkIn}</td>
+                      <td style={{ color: 'var(--text-secondary)' }}>{r.checkOut}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--gold-300)' }}>
+                        LKR {Number(r.totalAmount || 0).toLocaleString()}
+                      </td>
+                      <td>
+                        <span className={`badge ${STATUS_BADGE[r.status] || 'badge-muted'}`}>
+                          {(r.status || 'PENDING').replace('_', ' ')}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

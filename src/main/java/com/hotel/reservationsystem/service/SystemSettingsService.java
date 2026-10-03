@@ -35,10 +35,10 @@ public class SystemSettingsService {
     private static final Map<String, String[]> SETTINGS = new LinkedHashMap<>();
 
     static {
-        SETTINGS.put("hotel.name", new String[]{"Grand Horizon Hotel", "Name shown on invoices and the site header"});
-        SETTINGS.put("hotel.email", new String[]{"info@grandhorizon.lk", "Contact email for guests"});
+        SETTINGS.put("hotel.name", new String[]{"Aliya Resort", "Name shown on invoices and the site header"});
+        SETTINGS.put("hotel.email", new String[]{"info@aliyaresort.lk", "Contact email for guests"});
         SETTINGS.put("hotel.phone", new String[]{"+94 11 234 5678", "Reception phone number"});
-        SETTINGS.put("hotel.address", new String[]{"Colombo 03, Sri Lanka", "Postal address"});
+        SETTINGS.put("hotel.address", new String[]{"Sigiriya, Central Province, Sri Lanka", "Postal address"});
         SETTINGS.put("currency", new String[]{"LKR", "Currency code used for all prices"});
         SETTINGS.put("tax.rate", new String[]{"8.0", "Tax percentage applied to invoices"});
         SETTINGS.put("checkin.time", new String[]{"14:00", "Standard check-in time"});
@@ -68,6 +68,9 @@ public class SystemSettingsService {
                     "INSERT IGNORE INTO system_settings (setting_key, setting_value, description) VALUES (?, ?, ?)",
                     setting.getKey(), setting.getValue()[0], setting.getValue()[1]);
         }
+        jdbcTemplate.update("UPDATE system_settings SET setting_value = 'Aliya Resort' WHERE setting_key = 'hotel.name' AND setting_value = 'Grand Horizon Hotel'");
+        jdbcTemplate.update("UPDATE system_settings SET setting_value = 'info@aliyaresort.lk' WHERE setting_key = 'hotel.email' AND setting_value = 'info@grandhorizon.lk'");
+        jdbcTemplate.update("UPDATE system_settings SET setting_value = 'Sigiriya, Central Province, Sri Lanka' WHERE setting_key = 'hotel.address' AND setting_value = 'Colombo 03, Sri Lanka'");
     }
 
     // ──────────────────────────────────────────────

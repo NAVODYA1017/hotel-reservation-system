@@ -29,8 +29,10 @@ function Login() {
         setError('Login failed: No token received.');
       }
     } catch (err) {
-      if (err.response?.status === 401) {
-        setError('Invalid email or password. Please try again.');
+      if (err.response?.status === 403) {
+        setError(err.response?.data?.message || 'Access denied: You do not have administrator privileges.');
+      } else if (err.response?.status === 401) {
+        setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
       } else if (err.code === 'ERR_NETWORK') {
         // For demo / dev purposes, allow bypass when backend is offline
         localStorage.setItem('token', 'demo-token');
@@ -38,7 +40,7 @@ function Login() {
         navigate('/admin');
         return;
       } else {
-        setError('Login error: ' + (err.response?.data?.message || err.message));
+        setError(err.response?.data?.message || err.message || 'Login failed.');
       }
     } finally {
       setLoading(false);

@@ -2,48 +2,16 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
 
-const MOCK_SETTINGS = [
-  { key: 'tax.rate', value: '10', defaultValue: '10', description: 'Tax percentage applied to all invoices (%)' },
-  { key: 'checkin.time', value: '14:00', defaultValue: '14:00', description: 'Standard check-in time for all guests' },
-  { key: 'checkout.time', value: '12:00', defaultValue: '12:00', description: 'Standard check-out time for all guests' },
-  { key: 'late.checkout.fee', value: '2500', defaultValue: '2500', description: 'Fee charged for late check-out (LKR)' },
-  { key: 'max.advance.booking.days', value: '365', defaultValue: '365', description: 'Maximum days in advance a booking can be made' },
-  { key: 'cancellation.policy.days', value: '3', defaultValue: '3', description: 'Days before check-in when cancellation is free' },
-  { key: 'currency', value: 'LKR', defaultValue: 'LKR', description: 'Primary currency for all transactions' },
-  { key: 'hotel.name', value: 'Aliya Resort', defaultValue: 'Aliya Resort', description: 'Hotel name displayed on invoices and receipts' },
-];
-
-const KEY_ICONS = {
-  'tax.rate': '🧾',
-  'checkin.time': '🕐',
-  'checkout.time': '🕛',
-  'late.checkout.fee': '💸',
-  'max.advance.booking.days': '📅',
-  'cancellation.policy.days': '🔄',
-  'currency': '💱',
-  'hotel.name': '🏨',
-};
-
-const KEY_LABELS = {
-  'tax.rate': 'Tax Rate (%)',
-  'checkin.time': 'Check-in Time',
-  'checkout.time': 'Check-out Time',
-  'late.checkout.fee': 'Late Checkout Fee (LKR)',
-  'max.advance.booking.days': 'Max Advance Booking (days)',
-  'cancellation.policy.days': 'Free Cancellation Window (days)',
-  'currency': 'Currency Code',
-  'hotel.name': 'Hotel Name',
-};
-
-const KEY_TYPES = {
-  'tax.rate': 'number',
-  'checkin.time': 'time',
-  'checkout.time': 'time',
-  'late.checkout.fee': 'number',
-  'max.advance.booking.days': 'number',
-  'cancellation.policy.days': 'number',
-  'currency': 'text',
-  'hotel.name': 'text',
+const SETTING_METADATA = {
+  'hotel.name': { label: 'Resort Brand Name', icon: '🏨', type: 'text', placeholder: 'Aliya Resort' },
+  'hotel.email': { label: 'Inquiries Email Address', icon: '📧', type: 'email', placeholder: 'info@aliyaresort.lk' },
+  'hotel.phone': { label: 'Reception Contact Phone', icon: '📞', type: 'tel', placeholder: '+94 11 234 5678' },
+  'hotel.address': { label: 'Physical Resort Address', icon: '📍', type: 'text', placeholder: 'Sigiriya, Central Province, Sri Lanka' },
+  'currency': { label: 'Operating Currency Code', icon: '💱', type: 'text', placeholder: 'LKR (3 uppercase letters)' },
+  'checkin.time': { label: 'Standard Check-in Time', icon: '🕐', type: 'time', placeholder: '14:00 (HH:mm)' },
+  'checkout.time': { label: 'Standard Check-out Time', icon: '🕛', type: 'time', placeholder: '11:00 (HH:mm)' },
+  'cancellation.hours': { label: 'Free Cancellation Window (Hours)', icon: '🔄', type: 'number', placeholder: '48 (hours before check-in)' },
+  'tax.rate': { label: 'Standard Tax Percentage (%)', icon: '🧾', type: 'number', placeholder: '8.0' },
 };
 
 function Settings() {
@@ -52,239 +20,267 @@ function Settings() {
   const [edits, setEdits] = useState({});
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || 'admin-session-token';
   const headers = { Authorization: `Bearer ${token}` };
 
-  const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const fetchSettings = () => {
+    setLoading(true);
+    setErrorMessage('');
+    axios.get('/api/admin/settings', { headers })
+      .then(res => {
+        if (Array.isArray(res.data)) {
+          setSettings(res.data);
+        }
+      })
+      .catch(err => {
+        setErrorMessage(err.response?.data?.message || 'Could not load system settings from server.');
+      })
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    axios.get('/api/admin/settings', { headers })
-      .then(res => setSettings(res.data))
-      .catch(() => setSettings(MOCK_SETTINGS))
-      .finally(() => setLoading(false));
+    fetchSettings();
   }, []);
 
-  const setEdit = (key, val) => setEdits(e => ({ ...e, [key]: val }));
+  const setEdit = (key, val) => {
+    setEdits(prev => ({ ...prev, [key]: val }));
+  };
 
   const hasChanges = Object.keys(edits).length > 0;
 
+  // Step 12: Validate and save authorized changes
   const handleSave = async () => {
     setSaving(true);
+    setErrorMessage('');
     try {
       const { data } = await axios.put('/api/admin/settings', edits, { headers });
       setSettings(data);
-      showToast('Settings saved successfully!');
-    } catch {
-      // Apply edits locally as mock
-      setSettings(s => s.map(setting => ({
-        ...setting,
-        value: edits[setting.key] !== undefined ? edits[setting.key] : setting.value,
-      })));
-      showToast('Settings updated!');
+      setEdits({});
+      showToast('System settings validated and updated successfully!');
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Settings validation failed.';
+      setErrorMessage(msg);
+      showToast('Validation error: changes not saved.', 'error');
+    } finally {
+      setSaving(false);
     }
-    setEdits({});
-    setSaving(false);
   };
 
   const handleReset = async (key) => {
+    setErrorMessage('');
     try {
       const { data } = await axios.put(`/api/admin/settings/${key}/reset`, {}, { headers });
       setSettings(data);
-    } catch {
-      setSettings(s => s.map(setting =>
-        setting.key === key ? { ...setting, value: setting.defaultValue } : setting
-      ));
+      const newEdits = { ...edits };
+      delete newEdits[key];
+      setEdits(newEdits);
+      const meta = SETTING_METADATA[key];
+      showToast(`"${meta?.label || key}" reset to factory default.`);
+    } catch (err) {
+      setErrorMessage(err.response?.data?.message || 'Failed to reset setting.');
     }
-    const newEdits = { ...edits };
-    delete newEdits[key];
-    setEdits(newEdits);
-    showToast(`"${KEY_LABELS[key] || key}" reset to default.`);
   };
 
-  const handleDiscard = () => setEdits({});
+  const handleDiscard = () => {
+    setEdits({});
+    setErrorMessage('');
+  };
 
-  const getValue = (setting) => edits[setting.key] !== undefined ? edits[setting.key] : setting.value;
+  const getValue = (setting) => {
+    return edits[setting.key] !== undefined ? edits[setting.key] : (setting.value || '');
+  };
 
-  if (loading) {
-    return <LoadingScreen text="Loading sanctuary settings..." />;
+  if (loading && settings.length === 0) {
+    return <LoadingScreen text="Loading system preferences and settings..." />;
   }
 
   const sections = [
-    { title: 'Hotel Profile', icon: '🏨', keys: ['hotel.name', 'currency'] },
-    { title: 'Guest Policies', icon: '📋', keys: ['checkin.time', 'checkout.time', 'late.checkout.fee', 'cancellation.policy.days'] },
-    { title: 'Booking Settings', icon: '📅', keys: ['max.advance.booking.days', 'tax.rate'] },
+    {
+      title: 'Resort Brand & Contact Profile',
+      subtitle: 'Identify the resort across tax invoices, booking confirmations, and public views',
+      icon: '🏨',
+      keys: ['hotel.name', 'hotel.email', 'hotel.phone', 'hotel.address', 'currency'],
+    },
+    {
+      title: 'Guest Stay & Accounting Policies',
+      subtitle: 'Check-in times, free cancellation limits, and invoicing tax calculations',
+      icon: '📋',
+      keys: ['checkin.time', 'checkout.time', 'cancellation.hours', 'tax.rate'],
+    },
   ];
 
   return (
     <>
+      {/* Toast Notification */}
       {toast && (
         <div style={{
           position: 'fixed', top: 24, right: 24, zIndex: 2000,
-          background: toast.type === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)',
-          border: `1px solid ${toast.type === 'error' ? 'rgba(239,68,68,0.4)' : 'rgba(34,197,94,0.4)'}`,
+          background: toast.type === 'error' ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)',
+          border: `1px solid ${toast.type === 'error' ? 'rgba(239,68,68,0.5)' : 'rgba(34,197,94,0.5)'}`,
           color: toast.type === 'error' ? '#fca5a5' : '#86efac',
-          borderRadius: 'var(--radius-md)',
-          padding: '12px 18px', fontSize: 14, fontWeight: 600,
-          animation: 'slideUp 0.3s ease', boxShadow: 'var(--shadow-lg)',
-        }}>✅ {toast.msg}</div>
+          borderRadius: 'var(--radius-md, 8px)',
+          padding: '12px 18px',
+          fontSize: 14, fontWeight: 600,
+          boxShadow: 'var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.5))',
+          backdropFilter: 'blur(8px)',
+        }}>
+          {toast.type === 'error' ? '⚠️' : '✅'} {toast.msg}
+        </div>
       )}
 
-      {/* Save Bar */}
+      {/* Validation Error Alert */}
+      {errorMessage && (
+        <div className="alert alert-error" style={{ marginBottom: 16 }}>
+          <span className="alert-icon">⚠️</span>
+          <div>
+            <strong>Configuration Validation Error:</strong>
+            <p style={{ margin: '4px 0 0', fontSize: 13 }}>{errorMessage}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Save / Discard Bar */}
       {hasChanges && (
         <div style={{
-          background: 'linear-gradient(135deg, rgba(201,160,48,0.12), rgba(201,160,48,0.06))',
-          border: '1px solid var(--border-gold)',
-          borderRadius: 'var(--radius-md)',
-          padding: '14px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 14,
-          animation: 'slideUp 0.3s ease',
+          position: 'sticky', top: 12, zIndex: 100,
+          background: 'rgba(24, 25, 22, 0.95)',
+          border: '1px solid var(--border-gold, #c5a059)',
+          borderRadius: 'var(--radius-md, 8px)',
+          padding: '12px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+          backdropFilter: 'blur(8px)',
+          marginBottom: 20
         }}>
-          <span style={{ fontSize: 16 }}>⚡</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--gold-300)' }}>Unsaved Changes</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-              {Object.keys(edits).length} setting{Object.keys(edits).length !== 1 ? 's' : ''} modified
-            </div>
-          </div>
-          <button className="btn btn-ghost btn-sm" onClick={handleDiscard}>✕ Discard</button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={saving} id="save-settings-btn">
-            {saving ? <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Saving...</> : '✓ Save Changes'}
-          </button>
-        </div>
-      )}
-
-      {/* Sections */}
-      {sections.map(section => {
-        const sectionSettings = settings.filter(s => section.keys.includes(s.key));
-        if (sectionSettings.length === 0) return null;
-
-        return (
-          <div key={section.title} className="card">
-            <div className="card-header">
-              <span style={{ fontSize: 18 }}>{section.icon}</span>
-              <div>
-                <div className="card-title">{section.title}</div>
-                <div className="card-subtitle">Configure {section.title.toLowerCase()} preferences</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 18 }}>✏️</span>
+            <div>
+              <span style={{ fontWeight: 600, fontSize: 14 }}>
+                You have {Object.keys(edits).length} unsaved setting change(s)
+              </span>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                Click save to validate and persist the configuration changes to the database.
               </div>
             </div>
-            <div className="settings-section">
-              {sectionSettings.map(setting => {
-                const isModified = edits[setting.key] !== undefined;
-                const currentVal = getValue(setting);
-
-                return (
-                  <div key={setting.key} className="setting-row">
-                    <div style={{ fontSize: 20, width: 32, textAlign: 'center', flexShrink: 0 }}>
-                      {KEY_ICONS[setting.key] || '⚙️'}
-                    </div>
-                    <div className="setting-info">
-                      <div className="setting-key">
-                        {KEY_LABELS[setting.key] || setting.key}
-                        {isModified && (
-                          <span style={{
-                            marginLeft: 8,
-                            background: 'rgba(201,160,48,0.15)',
-                            color: 'var(--gold-300)',
-                            border: '1px solid var(--border-gold)',
-                            borderRadius: 4,
-                            fontSize: 10,
-                            padding: '1px 6px',
-                            fontWeight: 600,
-                          }}>Modified</span>
-                        )}
-                      </div>
-                      <div className="setting-desc">{setting.description}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                        Default: <code style={{ color: 'var(--text-secondary)', background: 'var(--dark-700)', padding: '1px 4px', borderRadius: 3 }}>{setting.defaultValue}</code>
-                      </div>
-                    </div>
-                    <div className="setting-value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <input
-                        type={KEY_TYPES[setting.key] || 'text'}
-                        className="form-input"
-                        style={{ width: 160, textAlign: 'right' }}
-                        value={currentVal}
-                        onChange={e => setEdit(setting.key, e.target.value)}
-                      />
-                      {isModified && (
-                        <button
-                          className="btn btn-ghost btn-sm btn-icon"
-                          title="Reset to default"
-                          onClick={() => handleReset(setting.key)}
-                          style={{ fontSize: 14, color: 'var(--text-muted)' }}
-                        >
-                          ↺
-                        </button>
-                      )}
-                      {!isModified && (
-                        <button
-                          className="btn btn-ghost btn-sm btn-icon"
-                          title="Reset to default"
-                          onClick={() => handleReset(setting.key)}
-                          style={{ fontSize: 14, color: 'var(--text-muted)', opacity: 0.4 }}
-                        >
-                          ↺
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
-        );
-      })}
-
-      {/* All Settings Fallback */}
-      {settings.filter(s => !sections.flatMap(sec => sec.keys).includes(s.key)).length > 0 && (
-        <div className="card">
-          <div className="card-header">
-            <span style={{ fontSize: 18 }}>⚙️</span>
-            <div className="card-title">Other Settings</div>
-          </div>
-          <div className="settings-section">
-            {settings
-              .filter(s => !sections.flatMap(sec => sec.keys).includes(s.key))
-              .map(setting => {
-                const isModified = edits[setting.key] !== undefined;
-                const currentVal = getValue(setting);
-                return (
-                  <div key={setting.key} className="setting-row">
-                    <div style={{ fontSize: 20, width: 32, textAlign: 'center', flexShrink: 0 }}>⚙️</div>
-                    <div className="setting-info">
-                      <div className="setting-key">{KEY_LABELS[setting.key] || setting.key}</div>
-                      <div className="setting-desc">{setting.description}</div>
-                    </div>
-                    <div className="setting-value">
-                      <input
-                        type="text"
-                        className="form-input"
-                        style={{ width: 160 }}
-                        value={currentVal}
-                        onChange={e => setEdit(setting.key, e.target.value)}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+          <div className="flex gap-2">
+            <button className="btn btn-secondary btn-sm" onClick={handleDiscard} disabled={saving}>
+              Discard
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving}>
+              {saving ? (
+                <><span className="spinner" style={{ width: 12, height: 12, borderWidth: 2 }} /> Saving...</>
+              ) : (
+                '💾 Save Configuration'
+              )}
+            </button>
           </div>
         </div>
       )}
 
-      {/* Action Bar */}
-      <div className="flex justify-end gap-3" style={{ paddingBottom: 8 }}>
-        <button className="btn btn-secondary" onClick={handleDiscard} disabled={!hasChanges}>Discard Changes</button>
-        <button
-          className="btn btn-primary"
-          onClick={handleSave}
-          disabled={saving || !hasChanges}
-          id="save-all-settings-btn"
-        >
-          {saving ? 'Saving...' : '✓ Save All Settings'}
-        </button>
+      {/* Settings Sections */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {sections.map(sec => {
+          const sectionSettings = settings.filter(s => sec.keys.includes(s.key));
+          if (sectionSettings.length === 0) return null;
+
+          return (
+            <div key={sec.title} className="card">
+              <div className="card-header">
+                <div>
+                  <div className="card-title">
+                    <span style={{ marginRight: 8 }}>{sec.icon}</span>
+                    {sec.title}
+                  </div>
+                  <div className="card-subtitle">{sec.subtitle}</div>
+                </div>
+              </div>
+
+              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {sectionSettings.map(setting => {
+                  const meta = SETTING_METADATA[setting.key] || {
+                    label: setting.key, icon: '⚙️', type: 'text', placeholder: ''
+                  };
+                  const isModified = edits[setting.key] !== undefined;
+
+                  return (
+                    <div
+                      key={setting.key}
+                      style={{
+                        padding: '16px 18px',
+                        background: isModified ? 'rgba(201,160,48,0.06)' : 'rgba(255,255,255,0.02)',
+                        border: `1px solid ${isModified ? 'var(--border-gold, #c5a059)' : 'var(--border-subtle, rgba(255,255,255,0.08))'}`,
+                        borderRadius: 'var(--radius-md, 8px)',
+                        display: 'grid',
+                        gridTemplateColumns: '260px 1fr 110px',
+                        alignItems: 'center',
+                        gap: 20
+                      }}
+                    >
+                      {/* Left: Label & Description */}
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, fontSize: 14 }}>
+                          <span>{meta.icon}</span>
+                          <span>{meta.label}</span>
+                          {isModified && (
+                            <span style={{ fontSize: 10, padding: '2px 6px', background: 'var(--gold-400)', color: '#000', borderRadius: 4, fontWeight: 700 }}>
+                              EDITED
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+                          {setting.description}
+                        </div>
+                        {setting.updatedAt && (
+                          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                            Updated: {setting.updatedAt.slice(0, 10)}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Middle: Input Field */}
+                      <div>
+                        <input
+                          type={meta.type}
+                          step={meta.type === 'number' ? 'any' : undefined}
+                          className="form-input"
+                          style={{
+                            width: '100%',
+                            fontFamily: meta.type === 'number' || setting.key.includes('time') ? 'monospace' : 'inherit',
+                            borderColor: isModified ? 'var(--gold-400)' : undefined
+                          }}
+                          placeholder={meta.placeholder}
+                          value={getValue(setting)}
+                          onChange={e => setEdit(setting.key, e.target.value)}
+                        />
+                      </div>
+
+                      {/* Right: Reset Action */}
+                      <div style={{ textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          style={{ padding: '4px 10px', fontSize: 12 }}
+                          onClick={() => handleReset(setting.key)}
+                          title="Restore factory default"
+                        >
+                          🔄 Reset
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </>
   );

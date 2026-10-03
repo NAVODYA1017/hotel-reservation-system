@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
+import LoadingScreen from '../../components/LoadingScreen';
 import { CreditCard, Download, Eye, CheckCircle2, AlertCircle, FileText, Calendar, Building2, User, ShieldCheck } from 'lucide-react';
 
 const STATUS_BADGE = {
@@ -811,84 +812,88 @@ function MyBookings() {
       )}
 
       {/* Header */}
-      <div style={{ padding: '40px 54px 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-          <div className="user-avatar" style={{ width: 54, height: 54, fontSize: 22, borderRadius: 2, background: 'var(--gold-400)', color: '#141513' }}>
-            {guest?.name?.charAt(0) || 'G'}
-          </div>
-          <div>
-            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
-              My Countryside Reservations
-            </h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Welcome back, {guest?.name || 'Guest'} · {bookings.length} sanctuary reservation{bookings.length !== 1 ? 's' : ''}</p>
-          </div>
-          <button className="btn-escape" style={{ marginLeft: 'auto' }} onClick={() => navigate('/browse')}>
-            + NEW ESCAPE
-          </button>
-        </div>
-
-        {/* Quick stats */}
-        <div style={{ display: 'flex', gap: 24, paddingBottom: 24 }}>
-          {[
-            { label: 'Total Stays', value: bookings.filter(b => b.status === 'CHECKED_OUT').length, icon: '🌲' },
-            { label: 'Upcoming', value: bookings.filter(b => ['CONFIRMED', 'PENDING', 'AWAITING_PAYMENT', 'PAID'].includes(b.status)).length, icon: '📅' },
-            { label: 'Total Settled', value: `LKR ${bookings.filter(b => b.paymentStatus === 'PAID').reduce((s, b) => s + b.totalAmount, 0).toLocaleString()}`, icon: '💰' },
-          ].map(s => (
-            <div key={s.label} style={{ padding: '14px 20px', background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2, display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span style={{ fontSize: 22 }}>{s.icon}</span>
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Playfair Display', serif" }}>{s.value}</div>
-                <div style={{ fontSize: 10, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.label}</div>
-              </div>
+      <div style={{ padding: '36px 0 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="c-container">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+            <div className="user-avatar" style={{ width: 54, height: 54, fontSize: 22, borderRadius: 2, background: 'var(--gold-400)', color: '#141513' }}>
+              {guest?.name?.charAt(0) || 'G'}
             </div>
-          ))}
+            <div>
+              <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+                My Countryside Reservations
+              </h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Welcome back, {guest?.name || 'Guest'} · {bookings.length} sanctuary reservation{bookings.length !== 1 ? 's' : ''}</p>
+            </div>
+            <button className="btn-escape" style={{ marginLeft: 'auto' }} onClick={() => navigate('/browse')}>
+              + NEW ESCAPE
+            </button>
+          </div>
+
+          {/* Quick stats */}
+          <div style={{ display: 'flex', gap: 24, paddingBottom: 24 }}>
+            {[
+              { label: 'Total Stays', value: bookings.filter(b => b.status === 'CHECKED_OUT').length, icon: '🌲' },
+              { label: 'Upcoming', value: bookings.filter(b => ['CONFIRMED', 'PENDING', 'AWAITING_PAYMENT', 'PAID'].includes(b.status)).length, icon: '📅' },
+              { label: 'Total Settled', value: `LKR ${bookings.filter(b => b.paymentStatus === 'PAID').reduce((s, b) => s + b.totalAmount, 0).toLocaleString()}`, icon: '💰' },
+            ].map(s => (
+              <div key={s.label} style={{ padding: '14px 20px', background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2, display: 'flex', gap: 12, alignItems: 'center' }}>
+                <span style={{ fontSize: 22 }}>{s.icon}</span>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Playfair Display', serif" }}>{s.value}</div>
+                  <div style={{ fontSize: 10, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="c-section" style={{ paddingTop: 32 }}>
-        {/* Filter Tabs */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-          {FILTERS.map(f => (
-            <button
-              key={f.id}
-              className={`btn btn-sm ${filter === f.id ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setFilter(f.id)}
-              style={{ borderRadius: 2, textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 11 }}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        {loading ? (
-          <div className="loading-overlay"><div className="spinner" style={{ width: 36, height: 36 }} />Loading your sanctuary stays...</div>
-        ) : filtered.length === 0 ? (
-          <div className="empty-state" style={{ paddingTop: 80 }}>
-            <div className="empty-state-icon">{filter === 'upcoming' ? '📅' : filter === 'past' ? '✅' : '🗓️'}</div>
-            <div className="empty-state-title" style={{ fontFamily: "'Playfair Display', serif" }}>No {filter === 'all' ? '' : filter} bookings found</div>
-            <div className="empty-state-desc">
-              {filter === 'upcoming' ? "You have no upcoming countryside reservations." : filter === 'past' ? "You haven't completed any sanctuary stays yet." : "You have no bookings recorded yet."}
-            </div>
-            <button className="btn-escape" style={{ marginTop: 24 }} onClick={() => navigate('/browse')}>
-              EXPLORE AVAILABLE SPACES →
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {filtered.map(b => (
-              <BookingCard
-                key={b.id}
-                booking={b}
-                onCancel={b => setCancelModal(b)}
-                onDelete={b => setDeleteModal(b)}
-                onModify={b => setModifyModal({ ...b, newCheckIn: b.checkIn, newCheckOut: b.checkOut })}
-                onPay={b => setPaymentModalBooking(b)}
-                onDownloadInvoice={b => handleBookingCardDownload(b)}
-                onViewInvoice={b => handleBookingCardViewInvoice(b)}
-              />
+        <div className="c-container">
+          {/* Filter Tabs */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+            {FILTERS.map(f => (
+              <button
+                key={f.id}
+                className={`btn btn-sm ${filter === f.id ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setFilter(f.id)}
+                style={{ borderRadius: 2, textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 11 }}
+              >
+                {f.label}
+              </button>
             ))}
           </div>
-        )}
+
+          {loading ? (
+            <LoadingScreen text="Carving your sanctuary reservations..." />
+          ) : filtered.length === 0 ? (
+            <div className="empty-state" style={{ paddingTop: 80 }}>
+              <div className="empty-state-icon">{filter === 'upcoming' ? '📅' : filter === 'past' ? '✅' : '🗓️'}</div>
+              <div className="empty-state-title" style={{ fontFamily: "'Playfair Display', serif" }}>No {filter === 'all' ? '' : filter} bookings found</div>
+              <div className="empty-state-desc">
+                {filter === 'upcoming' ? "You have no upcoming countryside reservations." : filter === 'past' ? "You haven't completed any sanctuary stays yet." : "You have no bookings recorded yet."}
+              </div>
+              <button className="btn-escape" style={{ marginTop: 24 }} onClick={() => navigate('/browse')}>
+                EXPLORE AVAILABLE SPACES →
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {filtered.map(b => (
+                <BookingCard
+                  key={b.id}
+                  booking={b}
+                  onCancel={b => setCancelModal(b)}
+                  onDelete={b => setDeleteModal(b)}
+                  onModify={b => setModifyModal({ ...b, newCheckIn: b.checkIn, newCheckOut: b.checkOut })}
+                  onPay={b => setPaymentModalBooking(b)}
+                  onDownloadInvoice={b => handleBookingCardDownload(b)}
+                  onViewInvoice={b => handleBookingCardViewInvoice(b)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* UC-05: Payment Modal */}

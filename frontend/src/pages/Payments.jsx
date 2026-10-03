@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import LoadingScreen from '../components/LoadingScreen';
 
 const MOCK_PAYMENTS = [
   { id: 1, reservationId: 1, customerId: 10, amount: 12600, paymentMethod: 'CREDIT_CARD', status: 'COMPLETED', paymentDate: '2026-10-02', transactionRef: 'TXN-001234' },
@@ -275,7 +276,7 @@ function Payments() {
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{filtered.length} transactions</span>
         </div>
         {loading ? (
-          <div className="loading-overlay"><div className="spinner" /> Loading payments...</div>
+          <LoadingScreen text="Loading payments ledger..." />
         ) : filtered.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">💳</div>

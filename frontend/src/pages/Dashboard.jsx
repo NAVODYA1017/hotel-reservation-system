@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import LoadingScreen from '../components/LoadingScreen';
 
 // --- Mock data shown when backend is unavailable ---
 const MOCK = {
@@ -108,12 +109,7 @@ function Dashboard() {
   }, [navigate]);
 
   if (loading) {
-    return (
-      <div className="loading-overlay">
-        <div className="spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
-        Loading dashboard...
-      </div>
-    );
+    return <LoadingScreen text="Loading sanctuary dashboard..." />;
   }
 
   const d = data || MOCK;

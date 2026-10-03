@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import LoadingScreen from '../components/LoadingScreen';
 
 const STATUS_BADGE = {
   AVAILABLE: 'badge-success',
@@ -246,7 +247,7 @@ function EventHalls() {
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Showing {filteredHalls.length} halls</span>
           </div>
           {loading ? (
-            <div className="loading-overlay"><div className="spinner" /> Loading event halls from MySQL...</div>
+            <LoadingScreen text="Loading event halls..." />
           ) : filteredHalls.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">🎭</div>
@@ -334,7 +335,7 @@ function EventHalls() {
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Showing {filteredPackages.length} packages</span>
           </div>
           {loading ? (
-            <div className="loading-overlay"><div className="spinner" /> Loading packages from MySQL...</div>
+            <LoadingScreen text="Loading event packages..." />
           ) : filteredPackages.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">🎁</div>

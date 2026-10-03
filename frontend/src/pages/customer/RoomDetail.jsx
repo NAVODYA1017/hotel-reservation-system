@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
+import LoadingScreen from '../../components/LoadingScreen';
 
 const MOCK_ROOMS = {
   1: { id: 1, roomNumber: '101', type: 'Standard Room', icon: '🛏️', capacity: 2, pricePerNight: 8500, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'Smart TV', 'In-room Safe', 'Tea/Coffee Maker'], view: 'Garden View', floor: 1, size: '32 sqm', description: 'Our cosy Standard Rooms offer everything you need for a comfortable stay, with elegant furnishings, a plush king-size bed, and a modern en-suite bathroom.' },
@@ -74,7 +75,10 @@ function RoomDetail() {
   if (loading) return (
     <div className="customer-shell">
       <CustomerNav />
-      <div className="loading-overlay" style={{ flex: 1 }}><div className="spinner" style={{ width: 40, height: 40 }} />Loading room details...</div>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <LoadingScreen text="Carving space sanctuary details..." />
+      </div>
+      <CustomerFooter />
     </div>
   );
 
@@ -97,14 +101,15 @@ function RoomDetail() {
       <CustomerNav />
 
       <div className="c-section" style={{ paddingTop: 36 }}>
-        {/* Breadcrumb */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 24, fontSize: 13, color: 'var(--text-muted)' }}>
-          <button className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} onClick={() => navigate('/')}>Home</button>
-          <span>›</span>
-          <button className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} onClick={() => navigate('/browse')}>Browse Rooms</button>
-          <span>›</span>
-          <span style={{ color: 'var(--text-primary)' }}>{room.type}</span>
-        </div>
+        <div className="c-container">
+          {/* Breadcrumb */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 24, fontSize: 13, color: 'var(--text-muted)' }}>
+            <button className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} onClick={() => navigate('/')}>Home</button>
+            <span>›</span>
+            <button className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} onClick={() => navigate('/browse')}>Browse Rooms</button>
+            <span>›</span>
+            <span style={{ color: 'var(--text-primary)' }}>{room.type}</span>
+          </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 40, alignItems: 'flex-start' }}>
           {/* Left: Room Info */}
@@ -247,6 +252,7 @@ function RoomDetail() {
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>We'll match any lower price you find for this room.</div>
             </div>
           </div>
+        </div>
         </div>
       </div>
 

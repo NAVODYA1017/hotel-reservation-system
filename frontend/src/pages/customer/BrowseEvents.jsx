@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
+import LoadingScreen from '../../components/LoadingScreen';
 
 const MOCK_HALLS = [
   {
@@ -104,45 +105,45 @@ function BrowseEvents() {
 
       {/* Hero Header */}
       <div style={{
-        padding: '60px 40px 40px',
+        padding: '50px 0 36px',
         textAlign: 'center',
         background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,160,48,0.15) 0%, transparent 70%)',
         borderBottom: '1px solid var(--border-subtle)',
       }}>
-        <div className="section-badge" style={{ margin: '0 auto 16px' }}>UC-03 Event Spaces & Packages</div>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 44, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16 }}>
-          Grand Event Halls & Bespoke Packages
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 16, maxWidth: 680, margin: '0 auto 28px' }}>
-          Host unforgettable weddings, high-level corporate summits, and grand galas in Aliya Resort's world-class venues.
-        </p>
+        <div className="c-container">
+          <div className="section-badge" style={{ margin: '0 auto 16px' }}>Sanctuary Spaces & Gatherings</div>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16 }}>
+            Countryside Gathering Halls & Curated Bundles
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: 16, maxWidth: 680, margin: '0 auto 28px' }}>
+            Host unforgettable gatherings, acoustic retreats, and celebrations surrounded by rugged countryside hills.
+          </p>
 
-        {/* Tab switcher */}
-        <div style={{ display: 'inline-flex', gap: 10, background: 'var(--dark-800)', padding: 6, borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-subtle)' }}>
-          <button
-            className={`btn btn-sm ${activeTab === 'halls' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ borderRadius: 'var(--radius-md)', padding: '10px 24px', fontSize: 14 }}
-            onClick={() => setActiveTab('halls')}
-          >
-            🏛️ Available Event Halls ({halls.length})
-          </button>
-          <button
-            className={`btn btn-sm ${activeTab === 'packages' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ borderRadius: 'var(--radius-md)', padding: '10px 24px', fontSize: 14 }}
-            onClick={() => setActiveTab('packages')}
-          >
-            🎁 Customizable Packages ({packages.length})
-          </button>
+          {/* Tab switcher */}
+          <div style={{ display: 'inline-flex', gap: 10, background: 'var(--dark-800)', padding: 6, borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-subtle)' }}>
+            <button
+              className={`btn btn-sm ${activeTab === 'halls' ? 'btn-primary' : 'btn-ghost'}`}
+              style={{ borderRadius: 'var(--radius-md)', padding: '10px 24px', fontSize: 14 }}
+              onClick={() => setActiveTab('halls')}
+            >
+              🏛️ Country Gathering Halls ({halls.length})
+            </button>
+            <button
+              className={`btn btn-sm ${activeTab === 'packages' ? 'btn-primary' : 'btn-ghost'}`}
+              style={{ borderRadius: 'var(--radius-md)', padding: '10px 24px', fontSize: 14 }}
+              onClick={() => setActiveTab('packages')}
+            >
+              🎁 Curated Packages ({packages.length})
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="c-section" style={{ paddingTop: 40 }}>
-        {loading ? (
-          <div className="loading-overlay" style={{ minHeight: 300 }}>
-            <div className="spinner" style={{ width: 40, height: 40 }} />
-            Loading luxury venues & bundles...
-          </div>
-        ) : (
+        <div className="c-container">
+          {loading ? (
+            <LoadingScreen text="Carving gathering spaces & packages..." />
+          ) : (
           <>
             {/* VIEW 1: AVAILABLE EVENT HALLS (Step 12) */}
             {activeTab === 'halls' && (
@@ -255,6 +256,7 @@ function BrowseEvents() {
             )}
           </>
         )}
+        </div>
       </div>
 
       {/* Hall Booking / Inquiry Modal */}

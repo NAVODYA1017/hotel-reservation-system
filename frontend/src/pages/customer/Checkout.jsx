@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
+import LoadingScreen from '../../components/LoadingScreen';
 
 const PAYMENT_METHODS = [
   { id: 'CREDIT_CARD', icon: '💳', label: 'Credit Card' },
@@ -115,9 +116,14 @@ function Checkout() {
     <div className="customer-shell">
       <CustomerNav />
 
+      {processing && (
+        <LoadingScreen fullScreen={true} text="Securing your countryside sanctuary reservation..." />
+      )}
+
       <div className="c-section" style={{ paddingTop: 36 }}>
-        {step === 4 ? (
-          /* SUCCESS */
+        <div className="c-container">
+          {step === 4 ? (
+            /* SUCCESS */
           <div className="success-hero">
             <span className="success-icon">🌲</span>
             <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
@@ -391,6 +397,7 @@ function Checkout() {
             </div>
           </>
         )}
+        </div>
       </div>
 
       <CustomerFooter />

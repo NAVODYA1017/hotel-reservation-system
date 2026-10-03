@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import LoadingScreen from '../components/LoadingScreen';
 
 const STATUS_OPTIONS = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED'];
 const TYPE_OPTIONS = ['ROOM', 'EVENT_HALL', 'PACKAGE'];
@@ -260,7 +261,7 @@ function Reservations() {
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{filtered.length} results</span>
         </div>
         {loading ? (
-          <div className="loading-overlay"><div className="spinner" /> Loading reservations...</div>
+          <LoadingScreen text="Loading reservations..." />
         ) : filtered.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">🗓️</div>

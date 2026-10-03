@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import LoadingScreen from '../components/LoadingScreen';
 
 const ROLES = ['SYSTEM_ADMIN', 'HOTEL_MANAGER', 'RECEPTIONIST', 'FINANCE_EXECUTIVE', 'HOUSEKEEPING'];
 
@@ -284,10 +285,7 @@ function Users() {
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{filtered.length} of {users.length}</span>
         </div>
         {loading ? (
-          <div className="loading-overlay">
-            <div className="spinner" />
-            Loading users...
-          </div>
+          <LoadingScreen text="Loading staff directory..." />
         ) : filtered.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">👤</div>

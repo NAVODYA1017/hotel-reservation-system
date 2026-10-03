@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter, CustomerRoomCard } from './Home';
+import LoadingScreen from '../../components/LoadingScreen';
 
 const MOCK_ROOMS = [
   { id: 1, roomNumber: '101', type: 'Standard Room', icon: '🛏️', capacity: 2, pricePerNight: 8500, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'TV'], view: 'Garden View', floor: 1 },
@@ -92,42 +93,45 @@ function BrowseRooms() {
 
       {/* Page Header */}
       <div style={{
-        padding: '40px 54px 0',
         background: 'linear-gradient(180deg, rgba(197,160,89,0.06) 0%, transparent 100%)',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
+        padding: '36px 0 0',
       }}>
-        <div className="section-badge" style={{ marginBottom: 12 }}>The Countryside Spaces</div>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 34, fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)' }}>
-          Living Spaces & Cabins
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 28 }}>
-          {filtered.length} raw countryside sanctuary space(s) available for your retreat
-        </p>
+        <div className="c-container">
+          <div className="section-badge" style={{ marginBottom: 12 }}>The Countryside Spaces</div>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 34, fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)' }}>
+            Living Spaces & Cabins
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>
+            {filtered.length} raw countryside sanctuary space(s) available for your retreat
+          </p>
 
-        {/* Search filter bar */}
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', paddingBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, padding: '8px 14px' }}>
-            <span style={{ fontSize: 11, color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Arrival</span>
-            <input type="date" className="search-bar-input" style={{ width: 130, fontSize: 13, background: 'transparent', border: 'none', color: '#f5f2eb', outline: 'none' }} value={checkIn} onChange={e => setCheckIn(e.target.value)} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, padding: '8px 14px' }}>
-            <span style={{ fontSize: 11, color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Departure</span>
-            <input type="date" className="search-bar-input" style={{ width: 130, fontSize: 13, background: 'transparent', border: 'none', color: '#f5f2eb', outline: 'none' }} value={checkOut} onChange={e => setCheckOut(e.target.value)} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, padding: '8px 14px' }}>
-            <span style={{ fontSize: 11, color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Guests</span>
-            <input type="number" min={1} max={20} style={{ width: 50, fontSize: 13, background: 'transparent', border: 'none', color: '#f5f2eb', outline: 'none' }} value={guests} onChange={e => setGuests(Number(e.target.value))} />
+          {/* Search filter bar */}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', paddingBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, padding: '8px 14px' }}>
+              <span style={{ fontSize: 11, color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Arrival</span>
+              <input type="date" className="search-bar-input" style={{ width: 130, fontSize: 13, background: 'transparent', border: 'none', color: '#f5f2eb', outline: 'none' }} value={checkIn} onChange={e => setCheckIn(e.target.value)} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, padding: '8px 14px' }}>
+              <span style={{ fontSize: 11, color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Departure</span>
+              <input type="date" className="search-bar-input" style={{ width: 130, fontSize: 13, background: 'transparent', border: 'none', color: '#f5f2eb', outline: 'none' }} value={checkOut} onChange={e => setCheckOut(e.target.value)} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, padding: '8px 14px' }}>
+              <span style={{ fontSize: 11, color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Guests</span>
+              <input type="number" min={1} max={20} style={{ width: 50, fontSize: 13, background: 'transparent', border: 'none', color: '#f5f2eb', outline: 'none' }} value={guests} onChange={e => setGuests(Number(e.target.value))} />
+            </div>
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 0, flex: 1 }}>
+      <div className="c-container" style={{ display: 'flex', gap: 32, flex: 1, padding: '36px 28px', alignItems: 'flex-start' }}>
         {/* Sidebar Filters */}
         <div style={{
-          width: 280, flexShrink: 0, padding: '28px 24px',
-          borderRight: '1px solid rgba(255,255,255,0.08)',
+          width: 280, flexShrink: 0, padding: '24px 20px',
+          border: '1px solid rgba(255,255,255,0.08)',
           background: '#161814',
-          position: 'sticky', top: 76, height: 'calc(100vh - 76px)', overflowY: 'auto',
+          borderRadius: 2,
+          position: 'sticky', top: 96,
         }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 20 }}>Refine Selection</div>
 
@@ -188,20 +192,20 @@ function BrowseRooms() {
         </div>
 
         {/* Room Grid */}
-        <div style={{ flex: 1, padding: '28px 40px' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           {loading ? (
-            <div className="loading-overlay"><div className="spinner" style={{ width: 36, height: 36 }} />Loading rooms...</div>
+            <LoadingScreen text="Carving available sanctuary spaces..." />
           ) : filtered.length === 0 ? (
-            <div className="empty-state" style={{ paddingTop: 100 }}>
+            <div className="empty-state" style={{ paddingTop: 80 }}>
               <div className="empty-state-icon">🛏️</div>
-              <div className="empty-state-title">No rooms match your criteria</div>
-              <div className="empty-state-desc">Try adjusting your filters or dates to find available rooms.</div>
+              <div className="empty-state-title">No spaces match your criteria</div>
+              <div className="empty-state-desc">Try adjusting your filters or dates to find available sanctuary spaces.</div>
             </div>
           ) : (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
                 <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>
-                  Showing <strong style={{ color: 'var(--text-primary)' }}>{filtered.length}</strong> rooms
+                  Showing <strong style={{ color: 'var(--text-primary)' }}>{filtered.length}</strong> spaces
                   {checkIn && checkOut && <span> · {checkIn} → {checkOut}</span>}
                 </span>
               </div>

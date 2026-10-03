@@ -39,6 +39,16 @@
   flex-direction: column;
 }
 
+/* ---- Standard Alignment Container ---- */
+.c-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 28px;
+  padding-right: 28px;
+}
+
 /* ---- Customer Navbar ---- */
 .c-nav {
   position: sticky;
@@ -46,13 +56,26 @@
   z-index: 200;
   height: 76px;
   display: flex;
+  justify-content: center;
   align-items: center;
-  padding: 0 54px;
-  gap: 32px;
+  padding: 0;
+  width: 100%;
   background: rgba(20, 21, 19, 0.94);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.10);
   transition: all var(--t-base);
+}
+
+.c-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 28px;
+  height: 100%;
+  gap: 32px;
 }
 
 .c-nav.scrolled {
@@ -128,11 +151,11 @@
 /* ---- Hero Section ---- */
 .hero {
   position: relative;
-  min-height: 88vh;
+  min-height: 85vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 60px 54px;
+  padding: 80px 0 60px;
   overflow: hidden;
 }
 
@@ -363,10 +386,14 @@
 
 /* ---- Section ---- */
 .c-section {
-  padding: 80px 60px;
+  padding: 80px 0;
+  width: 100%;
 }
 
-.c-section-sm { padding: 50px 60px; }
+.c-section-sm {
+  padding: 48px 0;
+  width: 100%;
+}
 
 .section-header {
   text-align: center;
@@ -418,6 +445,9 @@
   overflow: hidden;
   transition: all var(--t-base);
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .c-room-card:hover {
@@ -453,7 +483,12 @@
   z-index: 1;
 }
 
-.c-room-body { padding: 22px; }
+.c-room-body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
 
 .c-room-name {
   font-family: 'Playfair Display', 'Georgia', serif;
@@ -502,6 +537,7 @@
   justify-content: space-between;
   padding-top: 16px;
   border-top: 1px solid var(--border-subtle);
+  margin-top: auto;
 }
 
 .c-room-price-label { font-size: 11px; color: var(--text-muted); }
@@ -782,8 +818,16 @@
 .c-footer {
   background: var(--dark-950, #06040a);
   border-top: 1px solid var(--border-subtle);
-  padding: 60px 60px 30px;
+  padding: 64px 0 32px;
   margin-top: auto;
+  width: 100%;
+}
+
+.c-footer-inner {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 28px;
 }
 
 .c-footer-grid {
@@ -1004,8 +1048,9 @@
 
 /* ---- Responsive ---- */
 @media (max-width: 1024px) {
-  .c-nav { padding: 0 24px; }
-  .c-section { padding: 60px 24px; }
+  .c-nav-inner { padding: 0 20px; }
+  .c-container { padding: 0 20px; }
+  .c-footer-inner { padding: 0 20px; }
   .c-footer-grid { grid-template-columns: 1fr 1fr; }
   .checkout-grid { grid-template-columns: 1fr; }
 }
@@ -1015,6 +1060,6 @@
   .hero-stats { gap: 24px; }
   .search-bar-hero { flex-direction: column; border-radius: var(--radius-lg); }
   .search-bar-field { border-right: none; border-bottom: 1px solid var(--border-subtle); }
-  .c-footer { padding: 40px 24px 24px; }
+  .c-footer { padding: 40px 0 24px; }
   .c-footer-grid { grid-template-columns: 1fr; gap: 32px; }
 }

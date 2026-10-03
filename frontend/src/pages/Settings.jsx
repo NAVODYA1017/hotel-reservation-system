@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import LoadingScreen from '../components/LoadingScreen';
 
 const MOCK_SETTINGS = [
   { key: 'tax.rate', value: '10', defaultValue: '10', description: 'Tax percentage applied to all invoices (%)' },
@@ -106,7 +107,7 @@ function Settings() {
   const getValue = (setting) => edits[setting.key] !== undefined ? edits[setting.key] : setting.value;
 
   if (loading) {
-    return <div className="loading-overlay"><div className="spinner" /> Loading settings...</div>;
+    return <LoadingScreen text="Loading sanctuary settings..." />;
   }
 
   const sections = [

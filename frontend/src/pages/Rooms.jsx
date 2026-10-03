@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import LoadingScreen from '../components/LoadingScreen';
 
 const MOCK_ROOMS = [
   { id: 1, roomNumber: '101', type: 'Standard', floor: 1, capacity: 2, pricePerNight: 8500, status: 'AVAILABLE', amenities: 'WiFi, AC, TV' },
@@ -346,7 +347,7 @@ function Rooms() {
 
       {/* Content */}
       {loading ? (
-        <div className="loading-overlay"><div className="spinner" /> Loading rooms...</div>
+        <LoadingScreen text="Loading sanctuary rooms..." />
       ) : filtered.length === 0 ? (
         <div className="card">
           <div className="empty-state">

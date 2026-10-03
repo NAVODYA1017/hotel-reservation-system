@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import LoadingScreen from '../../components/LoadingScreen';
 import { 
   Building2, Calendar, Users, Search, Wifi, Waves, Utensils, Car, Wind, Coffee, Tv, Wine, MapPin, Phone, Mail, ChevronRight, Star, LogOut, CalendarDays, User as UserIcon
 } from 'lucide-react';
@@ -26,74 +27,76 @@ function CustomerNav() {
 
   return (
     <nav className={`c-nav${scrolled ? ' scrolled' : ''}`}>
-      <button className="c-nav-logo" onClick={() => navigate('/')}>
-        <span className="c-nav-logo-name">Gritstone Haven</span>
-      </button>
+      <div className="c-nav-inner">
+        <button className="c-nav-logo" onClick={() => navigate('/')}>
+          <span className="c-nav-logo-name">Gritstone Haven</span>
+        </button>
 
-      <div className="c-nav-links">
-        <button className={`c-nav-link${isActive('/browse') ? ' active' : ''}`} onClick={() => navigate('/browse')}>
-          THE SPACE
-        </button>
-        <button className="c-nav-link" onClick={() => {
-          if (location.pathname !== '/') navigate('/#amenities');
-          else document.getElementById('amenities')?.scrollIntoView({ behavior: 'smooth' });
-        }}>
-          AMENITIES
-        </button>
-        <button className="c-nav-link" onClick={() => {
-          if (location.pathname !== '/') navigate('/#location');
-          else document.getElementById('location')?.scrollIntoView({ behavior: 'smooth' });
-        }}>
-          LOCATION
-        </button>
-        <button className={`c-nav-link${isActive('/events') ? ' active' : ''}`} onClick={() => navigate('/events')}>
-          GATHERINGS
-        </button>
-      </div>
+        <div className="c-nav-links">
+          <button className={`c-nav-link${isActive('/browse') ? ' active' : ''}`} onClick={() => navigate('/browse')}>
+            THE SPACE
+          </button>
+          <button className="c-nav-link" onClick={() => {
+            if (location.pathname !== '/') navigate('/#amenities');
+            else document.getElementById('amenities')?.scrollIntoView({ behavior: 'smooth' });
+          }}>
+            AMENITIES
+          </button>
+          <button className="c-nav-link" onClick={() => {
+            if (location.pathname !== '/') navigate('/#location');
+            else document.getElementById('location')?.scrollIntoView({ behavior: 'smooth' });
+          }}>
+            LOCATION
+          </button>
+          <button className={`c-nav-link${isActive('/events') ? ' active' : ''}`} onClick={() => navigate('/events')}>
+            GATHERINGS
+          </button>
+        </div>
 
-      <div className="c-nav-actions">
-        {guest ? (
-          <>
-            <button className="btn btn-secondary btn-sm" onClick={() => navigate('/my-bookings')} style={{ borderRadius: 2 }}>
-              <CalendarDays size={14} style={{ marginRight: 6 }} /> My Bookings
-            </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div 
-                className="user-avatar" 
-                style={{ width: 32, height: 32, fontSize: 13, cursor: 'pointer', borderRadius: 2, background: 'var(--gold-400)', color: '#141513' }}
-                onClick={() => navigate('/profile')}
-                title="My Profile"
-              >
-                {guest.name?.charAt(0).toUpperCase()}
+        <div className="c-nav-actions">
+          {guest ? (
+            <>
+              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/my-bookings')} style={{ borderRadius: 2 }}>
+                <CalendarDays size={14} style={{ marginRight: 6 }} /> My Bookings
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div 
+                  className="user-avatar" 
+                  style={{ width: 32, height: 32, fontSize: 13, cursor: 'pointer', borderRadius: 2, background: 'var(--gold-400)', color: '#141513' }}
+                  onClick={() => navigate('/profile')}
+                  title="My Profile"
+                >
+                  {guest.name?.charAt(0).toUpperCase()}
+                </div>
+                <button className="btn btn-ghost btn-sm" onClick={handleLogout} style={{ borderRadius: 2 }}>Logout</button>
               </div>
-              <button className="btn btn-ghost btn-sm" onClick={handleLogout} style={{ borderRadius: 2 }}>Logout</button>
-            </div>
-          </>
-        ) : (
-          <>
-            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/guest-login')} style={{ borderRadius: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: 12 }}>
-              Sign In
-            </button>
-            <button className="btn btn-primary btn-sm" onClick={() => navigate('/guest-login?tab=register')} style={{ borderRadius: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: 12 }}>
-              Join Haven
-            </button>
-          </>
-        )}
-        <button
-          className="hero-btn-primary"
-          onClick={() => navigate('/browse')}
-          style={{ padding: '8px 18px', fontSize: 12, letterSpacing: '0.14em' }}
-        >
-          BOOK NOW →
-        </button>
-        <button
-          className="btn btn-ghost btn-sm"
-          onClick={() => navigate('/admin')}
-          title="Staff Portal"
-          style={{ fontSize: 11, color: 'var(--text-muted)' }}
-        >
-          🔒 Staff
-        </button>
+            </>
+          ) : (
+            <>
+              <button className="btn btn-ghost btn-sm" onClick={() => navigate('/guest-login')} style={{ borderRadius: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: 12 }}>
+                Sign In
+              </button>
+              <button className="btn btn-primary btn-sm" onClick={() => navigate('/guest-login?tab=register')} style={{ borderRadius: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: 12 }}>
+                Join Haven
+              </button>
+            </>
+          )}
+          <button
+            className="hero-btn-primary"
+            onClick={() => navigate('/browse')}
+            style={{ padding: '8px 18px', fontSize: 12, letterSpacing: '0.14em' }}
+          >
+            BOOK NOW →
+          </button>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => navigate('/admin')}
+            title="Staff Portal"
+            style={{ fontSize: 11, color: 'var(--text-muted)' }}
+          >
+            🔒 Staff
+          </button>
+        </div>
       </div>
     </nav>
   );
@@ -190,148 +193,160 @@ function Home() {
         <div className="hero-bg" />
         <div className="hero-bg-pattern" />
 
-        <div className="hero-split">
-          <div className="hero-left">
-            <h1 className="hero-title">
-              Escape the Concrete.<br />
-              Find Your Grit
-            </h1>
+        <div className="c-container" style={{ position: 'relative', zIndex: 1 }}>
+          <div className="hero-split">
+            <div className="hero-left">
+              <h1 className="hero-title">
+                Escape the Concrete.<br />
+                Find Your Grit
+              </h1>
+            </div>
+            <div className="hero-right">
+              <p className="hero-subtitle">
+                A raw, secluded haven carved from the wild countryside
+              </p>
+              <button className="btn-escape" onClick={() => navigate('/browse')}>
+                BOOK YOUR ESCAPE →
+              </button>
+            </div>
           </div>
-          <div className="hero-right">
-            <p className="hero-subtitle">
-              A raw, secluded haven carved from the wild countryside
-            </p>
-            <button className="btn-escape" onClick={() => navigate('/browse')}>
-              BOOK YOUR ESCAPE →
-            </button>
-          </div>
-        </div>
 
-        <HeroSearch onSearch={handleSearch} />
+          <HeroSearch onSearch={handleSearch} />
 
-        <div className="hero-stats">
-          <div>
-            <span className="hero-stat-val">04</span>
-            <span className="hero-stat-label">Architectural Spaces</span>
-          </div>
-          <div>
-            <span className="hero-stat-val">100%</span>
-            <span className="hero-stat-label">Secluded Countryside</span>
-          </div>
-          <div>
-            <span className="hero-stat-val">4.9 ★</span>
-            <span className="hero-stat-label">Guest Solitude Rating</span>
-          </div>
-          <div>
-            <span className="hero-stat-val">24/7</span>
-            <span className="hero-stat-label">Haven Caretaker</span>
+          <div className="hero-stats">
+            <div>
+              <span className="hero-stat-val">04</span>
+              <span className="hero-stat-label">Architectural Spaces</span>
+            </div>
+            <div>
+              <span className="hero-stat-val">100%</span>
+              <span className="hero-stat-label">Secluded Countryside</span>
+            </div>
+            <div>
+              <span className="hero-stat-val">4.9 ★</span>
+              <span className="hero-stat-label">Guest Solitude Rating</span>
+            </div>
+            <div>
+              <span className="hero-stat-val">24/7</span>
+              <span className="hero-stat-label">Haven Caretaker</span>
+            </div>
           </div>
         </div>
       </section>
 
       {/* The Living Spaces */}
       <section className="c-section" id="spaces">
-        <div className="section-header">
-          <div className="section-badge">The Sanctuary</div>
-          <h2 className="section-title">Carved Countryside Living Spaces</h2>
-          <p className="section-subtitle">Minimalist raw timber, stone finishes, and floor-to-ceiling wilderness views in every sanctuary apartment.</p>
-        </div>
-        <FeaturedRooms onBook={() => navigate('/browse')} />
-        <div style={{ textAlign: 'center', marginTop: 40 }}>
-          <button className="btn-escape" onClick={() => navigate('/browse')}>
-            EXPLORE ALL SPACES →
-          </button>
+        <div className="c-container">
+          <div className="section-header">
+            <div className="section-badge">The Sanctuary</div>
+            <h2 className="section-title">Carved Countryside Living Spaces</h2>
+            <p className="section-subtitle">Minimalist raw timber, stone finishes, and floor-to-ceiling wilderness views in every sanctuary apartment.</p>
+          </div>
+          <FeaturedRooms onBook={() => navigate('/browse')} />
+          <div style={{ textAlign: 'center', marginTop: 40 }}>
+            <button className="btn-escape" onClick={() => navigate('/browse')}>
+              EXPLORE ALL SPACES →
+            </button>
+          </div>
         </div>
       </section>
 
       {/* Amenities */}
       <section className="c-section" id="amenities" style={{ background: '#161814', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="section-header">
-          <div className="section-badge">Living Untamed</div>
-          <h2 className="section-title">Amenities of the Wild Haven</h2>
-          <p className="section-subtitle">Curated modern comforts blended with raw country elements for quiet restoration.</p>
-        </div>
-        <div className="amenities-grid">
-          {AMENITIES.map(a => (
-            <div key={a.title} className="amenity-card" style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2 }}>
-              <span className="amenity-icon" style={{ color: 'var(--gold-400)' }}>{a.icon}</span>
-              <div className="amenity-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 16 }}>{a.title}</div>
-              <div className="amenity-desc">{a.desc}</div>
-            </div>
-          ))}
+        <div className="c-container">
+          <div className="section-header">
+            <div className="section-badge">Living Untamed</div>
+            <h2 className="section-title">Amenities of the Wild Haven</h2>
+            <p className="section-subtitle">Curated modern comforts blended with raw country elements for quiet restoration.</p>
+          </div>
+          <div className="amenities-grid">
+            {AMENITIES.map(a => (
+              <div key={a.title} className="amenity-card" style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2 }}>
+                <span className="amenity-icon" style={{ color: 'var(--gold-400)' }}>{a.icon}</span>
+                <div className="amenity-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 16 }}>{a.title}</div>
+                <div className="amenity-desc">{a.desc}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Location Section */}
       <section className="c-section" id="location">
-        <div className="section-header">
-          <div className="section-badge">The Territory</div>
-          <h2 className="section-title">Hidden in the Mountain Mist</h2>
-          <p className="section-subtitle">Located away from highways and dense townships — accessible via countryside ridge roads.</p>
-        </div>
-        <div style={{
-          maxWidth: 1000, margin: '0 auto', background: '#1a1c18', border: '1px solid rgba(255,255,255,0.10)',
-          borderRadius: 2, padding: 36, display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 32, alignItems: 'center'
-        }}>
-          <div>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: 'var(--text-primary)', marginBottom: 12 }}>
-              The Countryside Ridge, Ella Highland
-            </h3>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 14, marginBottom: 20 }}>
-              Gritstone Haven is carved into the hillside wilderness, offering private panoramic vistas over green valleys and rocky peaks. Arrive by 4x4 or arrange a sanctuary shuttle pickup from the central railway station.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: 'var(--text-muted)' }}>
-              <div>📍 <strong>Coordinates:</strong> 6.8667° N, 81.0466° E (Ella Highland Ridge)</div>
-              <div>🚗 <strong>Access:</strong> Scenic Mountain Ridge Road, 25 mins from Ella Town</div>
-              <div>🚁 <strong>Helipad:</strong> Private landing paddock on upper clearing</div>
-            </div>
+        <div className="c-container">
+          <div className="section-header">
+            <div className="section-badge">The Territory</div>
+            <h2 className="section-title">Hidden in the Mountain Mist</h2>
+            <p className="section-subtitle">Located away from highways and dense townships — accessible via countryside ridge roads.</p>
           </div>
           <div style={{
-            height: 240, background: 'url(/assets/images/hero.jpg) center/cover', border: '1px solid rgba(255,255,255,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative'
+            maxWidth: 1000, margin: '0 auto', background: '#1a1c18', border: '1px solid rgba(255,255,255,0.10)',
+            borderRadius: 2, padding: 36, display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 32, alignItems: 'center'
           }}>
-            <button className="btn-escape" onClick={() => navigate('/browse')} style={{ zIndex: 1 }}>
-              RESERVE DATES →
-            </button>
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
+            <div>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: 'var(--text-primary)', marginBottom: 12 }}>
+                The Countryside Ridge, Ella Highland
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 14, marginBottom: 20 }}>
+                Gritstone Haven is carved into the hillside wilderness, offering private panoramic vistas over green valleys and rocky peaks. Arrive by 4x4 or arrange a sanctuary shuttle pickup from the central railway station.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: 'var(--text-muted)' }}>
+                <div>📍 <strong>Coordinates:</strong> 6.8667° N, 81.0466° E (Ella Highland Ridge)</div>
+                <div>🚗 <strong>Access:</strong> Scenic Mountain Ridge Road, 25 mins from Ella Town</div>
+                <div>🚁 <strong>Helipad:</strong> Private landing paddock on upper clearing</div>
+              </div>
+            </div>
+            <div style={{
+              height: 240, background: 'url(/assets/images/hero.jpg) center/cover', border: '1px solid rgba(255,255,255,0.15)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative'
+            }}>
+              <button className="btn-escape" onClick={() => navigate('/browse')} style={{ zIndex: 1 }}>
+                RESERVE DATES →
+              </button>
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Testimonials */}
       <section className="c-section" style={{ background: '#161814' }}>
-        <div className="section-header">
-          <div className="section-badge">Guest Impressions</div>
-          <h2 className="section-title">Words From the Wilderness</h2>
-          <p className="section-subtitle">Untouched silence and honest reviews from those who retreated to our sanctuary.</p>
-        </div>
-        <div className="testimonials-grid">
-          {TESTIMONIALS.map(t => (
-            <div key={t.name} className="testimonial-card" style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2 }}>
-              <div className="testimonial-stars" style={{ display: 'flex', gap: 2 }}>
-                {[...Array(t.stars)].map((_, i) => <Star key={i} size={14} fill="var(--gold-400)" color="var(--gold-400)" />)}
-              </div>
-              <p className="testimonial-text">{t.text}</p>
-              <div className="testimonial-author">
-                <div className="testimonial-avatar" style={{ borderRadius: 2, background: 'var(--gold-400)', color: '#141513' }}>{t.name.charAt(0)}</div>
-                <div>
-                  <div className="testimonial-name">{t.name}</div>
-                  <div className="testimonial-from">{t.from}</div>
+        <div className="c-container">
+          <div className="section-header">
+            <div className="section-badge">Guest Impressions</div>
+            <h2 className="section-title">Words From the Wilderness</h2>
+            <p className="section-subtitle">Untouched silence and honest reviews from those who retreated to our sanctuary.</p>
+          </div>
+          <div className="testimonials-grid">
+            {TESTIMONIALS.map(t => (
+              <div key={t.name} className="testimonial-card" style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2 }}>
+                <div className="testimonial-stars" style={{ display: 'flex', gap: 2 }}>
+                  {[...Array(t.stars)].map((_, i) => <Star key={i} size={14} fill="var(--gold-400)" color="var(--gold-400)" />)}
+                </div>
+                <p className="testimonial-text">{t.text}</p>
+                <div className="testimonial-author">
+                  <div className="testimonial-avatar" style={{ borderRadius: 2, background: 'var(--gold-400)', color: '#141513' }}>{t.name.charAt(0)}</div>
+                  <div>
+                    <div className="testimonial-name">{t.name}</div>
+                    <div className="testimonial-from">{t.from}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Countryside CTA */}
       <section className="c-section-sm" style={{ textAlign: 'center', background: '#121410', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-        <div className="section-badge">Wild Solitude Awaits</div>
-        <h2 className="section-title" style={{ marginTop: 14 }}>Ready to Escape the Concrete?</h2>
-        <p className="section-subtitle" style={{ marginBottom: 32 }}>Choose your space and experience raw countryside architecture.</p>
-        <button className="btn-escape" onClick={() => navigate('/browse')} style={{ fontSize: 13, padding: '16px 36px' }}>
-          BOOK YOUR RETREAT →
-        </button>
+        <div className="c-container">
+          <div className="section-badge">Wild Solitude Awaits</div>
+          <h2 className="section-title" style={{ marginTop: 14 }}>Ready to Escape the Concrete?</h2>
+          <p className="section-subtitle" style={{ marginBottom: 32 }}>Choose your space and experience raw countryside architecture.</p>
+          <button className="btn-escape" onClick={() => navigate('/browse')} style={{ fontSize: 13, padding: '16px 36px' }}>
+            BOOK YOUR RETREAT →
+          </button>
+        </div>
       </section>
 
       <CustomerFooter />
@@ -367,6 +382,10 @@ function FeaturedRooms({ onBook }) {
       .catch(() => setFeatured(FEATURED))
       .finally(() => setLoading(false));
   }, []);
+
+  if (loading) {
+    return <LoadingScreen text="Carving Featured Sanctuaries..." />;
+  }
 
   return (
     <div className="c-room-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
@@ -446,49 +465,51 @@ export function CustomerRoomCard({ room, onClick }) {
 export function CustomerFooter() {
   return (
     <footer className="c-footer" style={{ background: '#0e100d', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-      <div className="c-footer-grid">
-        <div>
-          <span className="c-footer-brand-name" style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.14em', color: 'var(--gold-400)' }}>
-            Gritstone Haven
-          </span>
-          <p className="c-footer-desc">
-            A raw, secluded haven carved from the wild countryside. Escape the concrete and discover authentic rustic solitude.
-          </p>
-          <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
-            <div style={{ width: 36, height: 36, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Wine size={16} color="var(--gold-400)" />
-            </div>
-            <div style={{ width: 36, height: 36, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Coffee size={16} color="var(--gold-400)" />
+      <div className="c-footer-inner">
+        <div className="c-footer-grid">
+          <div>
+            <span className="c-footer-brand-name" style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.14em', color: 'var(--gold-400)' }}>
+              Gritstone Haven
+            </span>
+            <p className="c-footer-desc">
+              A raw, secluded haven carved from the wild countryside. Escape the concrete and discover authentic rustic solitude.
+            </p>
+            <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
+              <div style={{ width: 36, height: 36, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Wine size={16} color="var(--gold-400)" />
+              </div>
+              <div style={{ width: 36, height: 36, background: '#1c1e1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Coffee size={16} color="var(--gold-400)" />
+              </div>
             </div>
           </div>
+          <div>
+            <div className="c-footer-heading">The Spaces</div>
+            {['Standard Cabins', 'Deluxe Stone Haven', 'Countryside Suites', 'Cliffside Apartments', 'Private Paddock'].map(l => (
+              <span key={l} className="c-footer-link">{l}</span>
+            ))}
+          </div>
+          <div>
+            <div className="c-footer-heading">Sanctuary</div>
+            {['Wilderness Amenities', 'Trail Maps', 'Fire Hearth Dining', 'My Bookings', 'Care Policies'].map(l => (
+              <span key={l} className="c-footer-link">{l}</span>
+            ))}
+          </div>
+          <div>
+            <div className="c-footer-heading">Territory Location</div>
+            <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MapPin size={14} /> Ella Highland Ridge, Wild Countryside</span>
+            <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Phone size={14} /> +94 57 222 8900</span>
+            <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Mail size={14} /> sanctuary@gritstonehaven.com</span>
+            <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Calendar size={14} /> Year-Round Retreat Access</span>
+          </div>
         </div>
-        <div>
-          <div className="c-footer-heading">The Spaces</div>
-          {['Standard Cabins', 'Deluxe Stone Haven', 'Countryside Suites', 'Cliffside Apartments', 'Private Paddock'].map(l => (
-            <span key={l} className="c-footer-link">{l}</span>
-          ))}
-        </div>
-        <div>
-          <div className="c-footer-heading">Sanctuary</div>
-          {['Wilderness Amenities', 'Trail Maps', 'Fire Hearth Dining', 'My Bookings', 'Care Policies'].map(l => (
-            <span key={l} className="c-footer-link">{l}</span>
-          ))}
-        </div>
-        <div>
-          <div className="c-footer-heading">Territory Location</div>
-          <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MapPin size={14} /> Ella Highland Ridge, Wild Countryside</span>
-          <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Phone size={14} /> +94 57 222 8900</span>
-          <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Mail size={14} /> sanctuary@gritstonehaven.com</span>
-          <span className="c-footer-link" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Calendar size={14} /> Year-Round Retreat Access</span>
-        </div>
-      </div>
-      <div className="c-footer-bottom" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <span>© {new Date().getFullYear()} Gritstone Haven Countryside Sanctuary. All rights reserved.</span>
-        <div style={{ display: 'flex', gap: 20 }}>
-          {['Privacy Policy', 'Reservation Terms', 'Countryside Wilderness Policy'].map(l => (
-            <span key={l} style={{ cursor: 'pointer' }}>{l}</span>
-          ))}
+        <div className="c-footer-bottom" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <span>© {new Date().getFullYear()} Gritstone Haven Countryside Sanctuary. All rights reserved.</span>
+          <div style={{ display: 'flex', gap: 20 }}>
+            {['Privacy Policy', 'Reservation Terms', 'Countryside Wilderness Policy'].map(l => (
+              <span key={l} style={{ cursor: 'pointer' }}>{l}</span>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

@@ -1223,31 +1223,42 @@
   min-height: 100vh;
   display: flex;
   align-items: flex-start;
-  background-size: cover;
-  background-position: center 65%;
-  background-repeat: no-repeat;
+  background-color: #141612;
   overflow: hidden;
 }
 
-/* Soft sky haze behind the headline only; eye-friendly contrast while photo stays visible below */
+.hero-video-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+  filter: brightness(0.92);
+}
+
+/* Soft sky haze behind the headline only; eye-friendly contrast while video stays visible */
 .hero-editorial::before {
   content: '';
   position: absolute;
   inset: 0 0 auto 0;
-  height: 56%;
+  height: 60%;
   background: linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0.78) 0%,
-    rgba(255, 255, 255, 0.50) 45%,
-    rgba(255, 255, 255, 0.15) 75%,
+    rgba(255, 255, 255, 0.82) 0%,
+    rgba(255, 255, 255, 0.55) 45%,
+    rgba(255, 255, 255, 0.18) 75%,
     rgba(255, 255, 255, 0) 100%
   );
   pointer-events: none;
+  z-index: 1;
 }
 
 .hero-editorial-content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: start;

@@ -169,8 +169,20 @@ function Home() {
     <div className="customer-shell">
       <CustomerNav />
 
-      {/* Hero - full-visibility photograph with editorial overlay text */}
-      <section className="hero-editorial" style={{ backgroundImage: 'url(/assets/images/hero.jpg)' }}>
+      {/* Hero - cinematic intro video background with editorial overlay text */}
+      <section className="hero-editorial">
+        <video
+          className="hero-video-bg"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          poster="/assets/images/hero.jpg"
+        >
+          <source src="/assets/videos/hero.mp4" type="video/mp4" />
+        </video>
+
         <div className="c-container hero-editorial-content">
           <h1 className="hero-editorial-title">
             Escape the Concrete.<br />

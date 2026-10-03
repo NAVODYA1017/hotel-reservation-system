@@ -1,22 +1,19 @@
-import { Lottie } from 'lottie-react';
-import loadingAnimation from '../assets/loading-animation.json';
-
-export function LoadingScreen({ text = 'Carving Haven Spaces...', fullScreen = false, size = 120 }) {
+export function LoadingScreen({ text = 'Carving Haven Spaces...', fullScreen = false, size = 80 }) {
   if (fullScreen) {
     return (
       <div style={{
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: '#141513',
+        background: '#121410', // Darker background to match the theme
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 16,
+        gap: 24,
       }}>
         <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Lottie src={loadingAnimation} loop={true} autoplay={true} style={{ width: '100%', height: '100%' }} />
+          <img src="/assets/images/logo.png" alt="Aliya Resort" className="loading-logo" style={{ width: '100%', height: '100%' }} />
         </div>
         <span style={{
           fontFamily: "'Cinzel', 'Playfair Display', serif",
@@ -39,11 +36,11 @@ export function LoadingScreen({ text = 'Carving Haven Spaces...', fullScreen = f
       alignItems: 'center',
       justifyContent: 'center',
       padding: '48px 20px',
-      gap: 12,
+      gap: 16,
       width: '100%',
     }}>
       <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Lottie src={loadingAnimation} loop={true} autoplay={true} style={{ width: '100%', height: '100%' }} />
+        <img src="/assets/images/logo.png" alt="Aliya Resort" className="loading-logo" style={{ width: '100%', height: '100%' }} />
       </div>
       {text && (
         <span style={{

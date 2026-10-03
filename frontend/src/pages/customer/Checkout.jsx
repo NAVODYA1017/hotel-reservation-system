@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
 import LoadingScreen from '../../components/LoadingScreen';
+import Reveal from '../../components/Reveal';
 import { CreditCard, Building, Banknote, ShieldCheck, BedDouble, User, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const PAYMENT_METHODS = [
@@ -168,16 +169,18 @@ function Checkout() {
         ) : (
           <>
             {/* Step Indicator */}
-            <div style={{ maxWidth: 600, margin: '0 auto 40px' }}>
-              <div className="booking-steps">
-                {STEPS.map((s, i) => (
-                  <div key={s.num} className={`booking-step${step >= s.num ? (step > s.num ? ' done' : ' active') : ''}`}>
-                    <div className="step-num">{step > s.num ? '✓' : s.num}</div>
-                    <div className="step-label">{s.label}</div>
-                  </div>
-                ))}
+            <Reveal>
+              <div style={{ maxWidth: 600, margin: '0 auto 40px' }}>
+                <div className="booking-steps">
+                  {STEPS.map((s, i) => (
+                    <div key={s.num} className={`booking-step${step >= s.num ? (step > s.num ? ' done' : ' active') : ''}`}>
+                      <div className="step-num">{step > s.num ? '✓' : s.num}</div>
+                      <div className="step-label">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            </Reveal>
 
             <div className="checkout-grid">
               {/* Left panel */}
@@ -186,122 +189,126 @@ function Checkout() {
 
                 {/* STEP 1: Guest Details */}
                 {step === 1 && (
-                  <div className="card animate-fade-in">
-                    <div className="card-header">
-                      <div className="modal-header-icon"><User size={20} style={{ color: 'var(--gold-400)' }} /></div>
-                      <div>
-                        <div className="card-title">Your Details</div>
-                        <div className="card-subtitle">Tell us about the primary guest</div>
-                      </div>
-                    </div>
-                    <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                      <div className="form-grid">
-                        <div className="form-group">
-                          <label className="form-label">Full Name *</label>
-                          <input className="form-input" value={guestForm.name} onChange={e => setGF('name', e.target.value)} placeholder="Your full name" required />
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">Email Address *</label>
-                          <input className="form-input" type="email" value={guestForm.email} onChange={e => setGF('email', e.target.value)} placeholder="your@email.com" required />
+                  <Reveal>
+                    <div className="card animate-fade-in">
+                      <div className="card-header">
+                        <div className="modal-header-icon"><User size={20} style={{ color: 'var(--gold-400)' }} /></div>
+                        <div>
+                          <div className="card-title">Your Details</div>
+                          <div className="card-subtitle">Tell us about the primary guest</div>
                         </div>
                       </div>
-                      <div className="form-group">
-                        <label className="form-label">Phone Number</label>
-                        <input className="form-input" value={guestForm.phone} onChange={e => setGF('phone', e.target.value)} placeholder="+94 77 123 4567" />
+                      <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <div className="form-grid">
+                          <div className="form-group">
+                            <label className="form-label">Full Name *</label>
+                            <input className="form-input" value={guestForm.name} onChange={e => setGF('name', e.target.value)} placeholder="Your full name" required />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">Email Address *</label>
+                            <input className="form-input" type="email" value={guestForm.email} onChange={e => setGF('email', e.target.value)} placeholder="your@email.com" required />
+                          </div>
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Phone Number</label>
+                          <input className="form-input" value={guestForm.phone} onChange={e => setGF('phone', e.target.value)} placeholder="+94 77 123 4567" />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Special Requests</label>
+                          <textarea className="form-textarea" value={guestForm.specialRequests} onChange={e => setGF('specialRequests', e.target.value)} placeholder="Any dietary requirements, room preferences, accessibility needs..." style={{ minHeight: 80 }} />
+                        </div>
                       </div>
-                      <div className="form-group">
-                        <label className="form-label">Special Requests</label>
-                        <textarea className="form-textarea" value={guestForm.specialRequests} onChange={e => setGF('specialRequests', e.target.value)} placeholder="Any dietary requirements, room preferences, accessibility needs..." style={{ minHeight: 80 }} />
+                      <div className="card-footer" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <button className="hero-btn-primary" style={{ borderRadius: 'var(--radius-md)' }}
+                          disabled={!guestForm.name || !guestForm.email}
+                          onClick={() => setStep(2)}>
+                          Continue to Payment →
+                        </button>
                       </div>
                     </div>
-                    <div className="card-footer" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <button className="hero-btn-primary" style={{ borderRadius: 'var(--radius-md)' }}
-                        disabled={!guestForm.name || !guestForm.email}
-                        onClick={() => setStep(2)}>
-                        Continue to Payment →
-                      </button>
-                    </div>
-                  </div>
+                  </Reveal>
                 )}
 
                 {/* STEP 2: Payment */}
                 {step === 2 && (
-                  <div className="card animate-fade-in">
-                    <div className="card-header">
-                      <div className="modal-header-icon"><CreditCard size={20} style={{ color: 'var(--gold-400)' }} /></div>
-                      <div>
-                        <div className="card-title">Payment Method</div>
-                        <div className="card-subtitle">Choose how you'd like to pay</div>
+                  <Reveal>
+                    <div className="card animate-fade-in">
+                      <div className="card-header">
+                        <div className="modal-header-icon"><CreditCard size={20} style={{ color: 'var(--gold-400)' }} /></div>
+                        <div>
+                          <div className="card-title">Payment Method</div>
+                          <div className="card-subtitle">Choose how you'd like to pay</div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                      <div className="payment-methods">
-                        {PAYMENT_METHODS.map(m => (
-                          <button key={m.id} className={`payment-method-btn${payMethod === m.id ? ' selected' : ''}`} onClick={() => setPayMethod(m.id)}>
-                            <span className="payment-method-icon">{m.icon}</span>
-                            <span className="payment-method-label">{m.label}</span>
-                          </button>
-                        ))}
-                      </div>
+                      <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        <div className="payment-methods">
+                          {PAYMENT_METHODS.map(m => (
+                            <button key={m.id} className={`payment-method-btn${payMethod === m.id ? ' selected' : ''}`} onClick={() => setPayMethod(m.id)}>
+                              <span className="payment-method-icon">{m.icon}</span>
+                              <span className="payment-method-label">{m.label}</span>
+                            </button>
+                          ))}
+                        </div>
 
-                      {(payMethod === 'CREDIT_CARD' || payMethod === 'DEBIT_CARD') && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                          <div className="form-group">
-                            <label className="form-label">Card Number *</label>
-                            <input className="form-input" value={cardForm.number}
-                              onChange={e => setCF('number', e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().slice(0, 19))}
-                              placeholder="1234 5678 9012 3456" maxLength={19} style={{ fontFamily: 'monospace', letterSpacing: '2px' }} />
-                          </div>
-                          <div className="form-group">
-                            <label className="form-label">Cardholder Name *</label>
-                            <input className="form-input" value={cardForm.name} onChange={e => setCF('name', e.target.value)} placeholder="As printed on card" />
-                          </div>
-                          <div className="form-grid">
+                        {(payMethod === 'CREDIT_CARD' || payMethod === 'DEBIT_CARD') && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                             <div className="form-group">
-                              <label className="form-label">Expiry *</label>
-                              <input className="form-input" value={cardForm.expiry} onChange={e => setCF('expiry', e.target.value)} placeholder="MM/YY" maxLength={5} />
+                              <label className="form-label">Card Number *</label>
+                              <input className="form-input" value={cardForm.number}
+                                onChange={e => setCF('number', e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().slice(0, 19))}
+                                placeholder="1234 5678 9012 3456" maxLength={19} style={{ fontFamily: 'monospace', letterSpacing: '2px' }} />
                             </div>
                             <div className="form-group">
-                              <label className="form-label">CVV *</label>
-                              <input className="form-input" type="password" value={cardForm.cvv} onChange={e => setCF('cvv', e.target.value)} placeholder="•••" maxLength={4} />
+                              <label className="form-label">Cardholder Name *</label>
+                              <input className="form-input" value={cardForm.name} onChange={e => setCF('name', e.target.value)} placeholder="As printed on card" />
+                            </div>
+                            <div className="form-grid">
+                              <div className="form-group">
+                                <label className="form-label">Expiry *</label>
+                                <input className="form-input" value={cardForm.expiry} onChange={e => setCF('expiry', e.target.value)} placeholder="MM/YY" maxLength={5} />
+                              </div>
+                              <div className="form-group">
+                                <label className="form-label">CVV *</label>
+                                <input className="form-input" type="password" value={cardForm.cvv} onChange={e => setCF('cvv', e.target.value)} placeholder="•••" maxLength={4} />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {payMethod === 'BANK_TRANSFER' && (
-                        <div className="alert alert-info" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <Building size={18} style={{ color: 'var(--blue-400)', flexShrink: 0 }} />
-                          <div>
-                            <div className="alert-title">Bank Transfer Details</div>
-                            Bank: People's Bank · Account: Aliya Resort Sanctuary · Acc No: 123-456-789-0<br />
-                            Please use your booking reference as the payment reference.
+                        {payMethod === 'BANK_TRANSFER' && (
+                          <div className="alert alert-info" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <Building size={18} style={{ color: 'var(--blue-400)', flexShrink: 0 }} />
+                            <div>
+                              <div className="alert-title">Bank Transfer Details</div>
+                              Bank: People's Bank · Account: Aliya Resort Sanctuary · Acc No: 123-456-789-0<br />
+                              Please use your booking reference as the payment reference.
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {payMethod === 'CASH' && (
-                        <div className="alert alert-warning" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <Banknote size={18} style={{ color: 'var(--gold-400)', flexShrink: 0 }} />
-                          <div>
-                            <div className="alert-title">Pay at Resort</div>
-                            Your room will be held for 24 hours. Please present this booking reference at the front desk.
+                        {payMethod === 'CASH' && (
+                          <div className="alert alert-warning" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <Banknote size={18} style={{ color: 'var(--gold-400)', flexShrink: 0 }} />
+                            <div>
+                              <div className="alert-title">Pay at Resort</div>
+                              Your room will be held for 24 hours. Please present this booking reference at the front desk.
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-muted)', padding: '12px 0' }}>
-                        <ShieldCheck size={14} style={{ color: 'var(--gold-400)' }} />
-                        <span>Your payment information is encrypted with 256-bit SSL security.</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-muted)', padding: '12px 0' }}>
+                          <ShieldCheck size={14} style={{ color: 'var(--gold-400)' }} />
+                          <span>Your payment information is encrypted with 256-bit SSL security.</span>
+                        </div>
+                      </div>
+                      <div className="card-footer" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <button className="btn btn-secondary" onClick={() => setStep(1)}>← Back</button>
+                        <button className="hero-btn-primary" style={{ borderRadius: 'var(--radius-md)' }} onClick={() => setStep(3)}>
+                          Review Booking →
+                        </button>
                       </div>
                     </div>
-                    <div className="card-footer" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <button className="btn btn-secondary" onClick={() => setStep(1)}>← Back</button>
-                      <button className="hero-btn-primary" style={{ borderRadius: 'var(--radius-md)' }} onClick={() => setStep(3)}>
-                        Review Booking →
-                      </button>
-                    </div>
-                  </div>
+                  </Reveal>
                 )}
 
                 {/* STEP 3: Review */}

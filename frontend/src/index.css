@@ -834,7 +834,7 @@ tbody td { padding: 14px 16px; color: var(--text-primary); vertical-align: middl
 .animate-pulse { animation: pulse 1.5s ease infinite; }
 
 /* ---- Scrollbar ---- */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--dark-900); }
-::-webkit-scrollbar-thumb { background: var(--dark-500); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--dark-400); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #0e100d; }
+::-webkit-scrollbar-thumb { background: rgba(201, 160, 48, 0.3); border-radius: 4px; border: 2px solid #0e100d; }
+::-webkit-scrollbar-thumb:hover { background: rgba(201, 160, 48, 0.6); }

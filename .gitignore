@@ -41,3 +41,6 @@ dist/
 # Generated files
 *.pdf
 HELP.md
+
+# Local database export (contains user data - never commit)
+database/aiven_dump.sql

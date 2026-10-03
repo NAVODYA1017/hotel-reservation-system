@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
 import LoadingScreen from '../../components/LoadingScreen';
+import Reveal from '../../components/Reveal';
 import { 
   CreditCard, Download, Eye, CheckCircle2, AlertCircle, AlertTriangle, 
   FileText, Calendar, Building2, User, ShieldCheck, Clock, Check, 
-  XCircle, Trash2, Edit3, BedDouble, Trees, DollarSign, Building, Banknote 
+  XCircle, Trash2, Edit3, BedDouble, Trees, DollarSign, Building, Banknote, Sparkles
 } from 'lucide-react';
 
 const STATUS_BADGE = {
@@ -644,7 +645,7 @@ function MyBookings() {
           reservationId: r.confirmationCode || r.reservationId || `RES-00${r.id}`,
           roomType: r.roomType || r.hallName || 'Standard Cabin',
           roomNumber: r.roomNumber || '101',
-          icon: r.roomType?.toLowerCase().includes('suite') ? '👑' : r.roomType?.toLowerCase().includes('deluxe') ? '🌟' : '🛏️',
+          icon: r.roomType?.toLowerCase().includes('suite') ? <Building2 size={20} /> : r.roomType?.toLowerCase().includes('deluxe') ? <Sparkles size={20} /> : <BedDouble size={20} />,
           checkIn: r.checkIn || r.checkInDate || '2026-10-10',
           checkOut: r.checkOut || r.checkOutDate || '2026-10-13',
           nights: r.checkIn && r.checkOut ? Math.max(1, Math.round((new Date(r.checkOut) - new Date(r.checkIn)) / (1000 * 60 * 60 * 24))) : 1,
@@ -809,9 +810,10 @@ function MyBookings() {
       )}
 
       {/* Header */}
-      <div style={{ padding: '36px 0 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <div className="c-container">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+      <Reveal>
+        <div style={{ padding: '36px 0 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="c-container">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
             <div className="user-avatar" style={{ width: 54, height: 54, fontSize: 22, borderRadius: 2, background: 'var(--gold-400)', color: '#141513' }}>
               {guest?.name?.charAt(0) || 'G'}
             </div>
@@ -841,13 +843,15 @@ function MyBookings() {
                 </div>
               </div>
             ))}
+            </div>
           </div>
         </div>
-      </div>
+      </Reveal>
 
-      <div className="c-section" style={{ paddingTop: 32 }}>
-        <div className="c-container">
-          {/* Filter Tabs */}
+      <Reveal delay={150}>
+        <div className="c-section" style={{ paddingTop: 32 }}>
+          <div className="c-container">
+            {/* Filter Tabs */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
             {FILTERS.map(f => (
               <button
@@ -894,6 +898,7 @@ function MyBookings() {
           )}
         </div>
       </div>
+      </Reveal>
 
       {/* UC-05: Payment Modal */}
       {paymentModalBooking && (

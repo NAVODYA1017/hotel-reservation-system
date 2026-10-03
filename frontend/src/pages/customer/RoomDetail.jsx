@@ -3,7 +3,8 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
 import LoadingScreen from '../../components/LoadingScreen';
-import { BedDouble, Home, Maximize2, Users, Layers, Eye, Info, CheckCircle2 } from 'lucide-react';
+import Reveal from '../../components/Reveal';
+import { BedDouble, Home, Maximize2, Users, Layers, Eye, Info, CheckCircle2, Clock, CalendarDays, Ban, Dog, RefreshCcw } from 'lucide-react';
 
 const MOCK_ROOMS = {
   1: { id: 1, roomNumber: '101', type: 'Standard Room', capacity: 2, pricePerNight: 8500, status: 'AVAILABLE', amenities: ['WiFi', 'AC', 'Smart TV', 'In-room Safe', 'Tea/Coffee Maker'], view: 'Garden View', floor: 1, size: '32 sqm', description: 'Our cosy Standard Rooms offer everything you need for a comfortable stay, with elegant furnishings, a plush king-size bed, and a modern en-suite bathroom.' },
@@ -113,145 +114,170 @@ function RoomDetail() {
           {/* Left: Room Info */}
           <div>
             {/* Main Image */}
-            <div
-              className="room-detail-hero"
-              style={{
-                backgroundImage: `url(${
-                  (room.type || '').toLowerCase().includes('suite') ? '/assets/images/suite.jpg' :
-                  (room.type || '').toLowerCase().includes('deluxe') ? '/assets/images/deluxe.jpg' :
-                  '/assets/images/standard.jpg'
-                })`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                borderRadius: 2,
-                border: '1px solid rgba(255,255,255,0.12)',
-                marginBottom: 20,
-                height: 380,
-              }}
-            />
+            <Reveal>
+              <div
+                className="room-detail-hero"
+                style={{
+                  backgroundImage: `url(${
+                    (room.type || '').toLowerCase().includes('suite') ? '/assets/images/suite.jpg' :
+                    (room.type || '').toLowerCase().includes('deluxe') ? '/assets/images/deluxe.jpg' :
+                    '/assets/images/standard.jpg'
+                  })`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  borderRadius: 2,
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  marginBottom: 20,
+                  height: 380,
+                }}
+              />
+            </Reveal>
 
             {/* Room Title */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
-              <div>
-                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
-                  {room.type}
-                </h1>
-                <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-                  <span className="c-room-meta-item" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Home size={14} style={{ color: 'var(--gold-400)' }} /> Room {room.roomNumber}</span>
-                  <span className="c-room-meta-item" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Maximize2 size={14} style={{ color: 'var(--gold-400)' }} /> {room.size || '—'}</span>
-                  <span className="c-room-meta-item" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Users size={14} style={{ color: 'var(--gold-400)' }} /> Up to {room.capacity} guests</span>
-                  <span className="c-room-meta-item" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Layers size={14} style={{ color: 'var(--gold-400)' }} /> Floor {room.floor}</span>
-                  {room.view && <span className="c-room-meta-item" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Eye size={14} style={{ color: 'var(--gold-400)' }} /> {room.view}</span>}
+            <Reveal delay={100}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+                <div>
+                  <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
+                    {room.type}
+                  </h1>
+                  <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                    <span className="c-room-meta-item" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Home size={14} style={{ color: 'var(--gold-400)' }} /> Room {room.roomNumber}</span>
+                    <span className="c-room-meta-item" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Maximize2 size={14} style={{ color: 'var(--gold-400)' }} /> {room.size || '—'}</span>
+                    <span className="c-room-meta-item" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Users size={14} style={{ color: 'var(--gold-400)' }} /> Up to {room.capacity} guests</span>
+                    <span className="c-room-meta-item" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Layers size={14} style={{ color: 'var(--gold-400)' }} /> Floor {room.floor}</span>
+                    {room.view && <span className="c-room-meta-item" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Eye size={14} style={{ color: 'var(--gold-400)' }} /> {room.view}</span>}
+                  </div>
                 </div>
+                <span className={`badge ${room.status === 'AVAILABLE' ? 'badge-success' : 'badge-error'}`} style={{ fontSize: 13 }}>
+                  {room.status === 'AVAILABLE' ? '✓ Available' : room.status}
+                </span>
               </div>
-              <span className={`badge ${room.status === 'AVAILABLE' ? 'badge-success' : 'badge-error'}`} style={{ fontSize: 13 }}>
-                {room.status === 'AVAILABLE' ? '✓ Available' : room.status}
-              </span>
-            </div>
+            </Reveal>
 
             {/* Description */}
-            <div style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 24, marginBottom: 24 }}>
-              <h3 style={{ fontWeight: 700, marginBottom: 12, color: 'var(--text-primary)' }}>About This Room</h3>
-              <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8, fontSize: 15 }}>{room.description}</p>
-            </div>
+            <Reveal delay={150}>
+              <div style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 24, marginBottom: 24 }}>
+                <h3 style={{ fontWeight: 700, marginBottom: 12, color: 'var(--text-primary)' }}>About This Room</h3>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8, fontSize: 15 }}>{room.description}</p>
+              </div>
+            </Reveal>
 
             {/* Amenities */}
-            <div style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 24, marginBottom: 24 }}>
-              <h3 style={{ fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' }}>Room Amenities</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-                {(room.amenities || []).map(a => (
-                  <div key={a} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--dark-750)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                    <span style={{ color: 'var(--gold-400)', fontWeight: 700 }}>✓</span>
-                    <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{a}</span>
-                  </div>
-                ))}
+            <Reveal delay={200}>
+              <div style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 24, marginBottom: 24 }}>
+                <h3 style={{ fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' }}>Room Amenities</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                  {(room.amenities || []).map(a => (
+                    <div key={a} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--dark-750)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                      <span style={{ color: 'var(--gold-400)', fontWeight: 700 }}>✓</span>
+                      <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{a}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            </Reveal>
 
             {/* Policies */}
-            <div style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
-              <h3 style={{ fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' }}>Policies</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[
-                  { icon: '🕐', label: 'Check-in', value: 'From 2:00 PM' },
-                  { icon: '🕛', label: 'Check-out', value: 'Until 12:00 PM' },
-                  { icon: '🚭', label: 'Smoking', value: 'Non-smoking room' },
-                  { icon: '🐾', label: 'Pets', value: 'Not allowed' },
-                  { icon: '🔄', label: 'Cancellation', value: 'Free cancellation up to 3 days before check-in' },
-                ].map(p => (
-                  <div key={p.label} className="flex justify-between" style={{ padding: '8px 0', borderBottom: '1px solid var(--border-subtle)' }}>
-                    <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{p.icon} {p.label}</span>
-                    <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>{p.value}</span>
-                  </div>
-                ))}
+            <Reveal delay={250}>
+              <div style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
+                <h3 style={{ fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' }}>Policies</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {[
+                    { icon: <Clock size={14} />, label: 'Check-in', value: 'From 2:00 PM' },
+                    { icon: <CalendarDays size={14} />, label: 'Check-out', value: 'Until 12:00 PM' },
+                    { icon: <Ban size={14} />, label: 'Smoking', value: 'Non-smoking room' },
+                    { icon: <Dog size={14} />, label: 'Pets', value: 'Not allowed' },
+                    { icon: <RefreshCcw size={14} />, label: 'Cancellation', value: 'Free cancellation up to 3 days before check-in' },
+                  ].map(p => (
+                    <div key={p.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ color: 'var(--gold-400)' }}>{p.icon}</span> {p.label}
+                      </span>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>{p.value}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            </Reveal>
           </div>
 
           {/* Right: Booking Panel */}
-          <div className="booking-panel">
-            <div className="booking-panel-price">LKR {(room.pricePerNight || 0).toLocaleString()}</div>
-            <div className="booking-panel-period">per night · taxes not included</div>
+          <Reveal delay={300}>
+            <div className="booking-panel">
+              <div className="booking-panel-price">LKR {(room.pricePerNight || 0).toLocaleString()}</div>
+              <div className="booking-panel-period">per night · taxes not included</div>
 
-            <div className="form-group" style={{ marginBottom: 12 }}>
-              <label className="form-label">Check-in Date *</label>
-              <input type="date" className="form-input" value={checkIn} min={today} onChange={e => setCheckIn(e.target.value)} required />
-            </div>
-            <div className="form-group" style={{ marginBottom: 12 }}>
-              <label className="form-label">Check-out Date *</label>
-              <input type="date" className="form-input" value={checkOut} min={checkIn || today} onChange={e => setCheckOut(e.target.value)} required />
-            </div>
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label">Number of Guests</label>
-              <input type="number" className="form-input" value={guests} min={1} max={room.capacity} onChange={e => setGuests(Number(e.target.value))} />
-              <span className="form-hint">Max {room.capacity} guests for this room</span>
-            </div>
-
-            {nights > 0 && (
-              <div className="price-breakdown">
-                <div className="price-row">
-                  <span>LKR {room.pricePerNight?.toLocaleString()} × {nights} night{nights !== 1 ? 's' : ''}</span>
-                  <span>LKR {subtotal.toLocaleString()}</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Check-in *</label>
+                  <div style={{ position: 'relative' }}>
+                    <input type="date" className="form-input" style={{ paddingLeft: 36, height: 44, background: 'rgba(255,255,255,0.03)' }} value={checkIn} min={today} onChange={e => setCheckIn(e.target.value)} required />
+                    <Clock size={16} style={{ position: 'absolute', left: 12, top: 14, color: 'var(--gold-400)' }} />
+                  </div>
                 </div>
-                <div className="price-row">
-                  <span>Taxes & fees (10%)</span>
-                  <span>LKR {tax.toLocaleString()}</span>
-                </div>
-                <div className="price-row total">
-                  <span>Total</span>
-                  <span style={{ color: 'var(--gold-300)' }}>LKR {total.toLocaleString()}</span>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Check-out *</label>
+                  <div style={{ position: 'relative' }}>
+                    <input type="date" className="form-input" style={{ paddingLeft: 36, height: 44, background: 'rgba(255,255,255,0.03)' }} value={checkOut} min={checkIn || today} onChange={e => setCheckOut(e.target.value)} required />
+                    <CalendarDays size={16} style={{ position: 'absolute', left: 12, top: 14, color: 'var(--gold-400)' }} />
+                  </div>
                 </div>
               </div>
-            )}
 
-            {!nights && (
-              <div className="alert alert-info" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Info size={16} style={{ color: 'var(--blue-400)', flexShrink: 0 }} />
-                <span>Select check-in and check-out dates to see the price breakdown.</span>
+              <div className="form-group" style={{ marginBottom: 20 }}>
+                <label className="form-label" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Guests</label>
+                <div style={{ position: 'relative' }}>
+                  <input type="number" className="form-input" style={{ paddingLeft: 36, height: 44, background: 'rgba(255,255,255,0.03)' }} value={guests} min={1} max={room.capacity} onChange={e => setGuests(Number(e.target.value))} />
+                  <Users size={16} style={{ position: 'absolute', left: 12, top: 14, color: 'var(--gold-400)' }} />
+                </div>
+                <span className="form-hint" style={{ marginTop: 6, display: 'block' }}>Max {room.capacity} guests for this sanctuary space.</span>
               </div>
-            )}
 
-            <button
-              className="hero-btn-primary w-full"
-              style={{ borderRadius: 'var(--radius-md)', justifyContent: 'center', fontSize: 15 }}
-              onClick={handleBook}
-              disabled={room.status !== 'AVAILABLE'}
-            >
-              {room.status !== 'AVAILABLE' ? 'Room Unavailable' : nights > 0 ? `Reserve for LKR ${total.toLocaleString()}` : 'Reserve This Room'}
-            </button>
+              {nights > 0 && (
+                <div className="price-breakdown" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 4 }}>
+                  <div className="price-row">
+                    <span>LKR {room.pricePerNight?.toLocaleString()} × {nights} night{nights !== 1 ? 's' : ''}</span>
+                    <span>LKR {subtotal.toLocaleString()}</span>
+                  </div>
+                  <div className="price-row">
+                    <span>Taxes & sanctuary fees (10%)</span>
+                    <span>LKR {tax.toLocaleString()}</span>
+                  </div>
+                  <div className="price-row total" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                    <span>Total Cost</span>
+                    <span style={{ color: 'var(--gold-300)', fontSize: 20 }}>LKR {total.toLocaleString()}</span>
+                  </div>
+                </div>
+              )}
 
-            <div style={{ marginTop: 16, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>
-              Secure booking &bull; Free cancellation up to 3 days before check-in
-            </div>
+              {!nights && (
+                <div className="alert alert-info" style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(197, 160, 89, 0.05)', border: '1px solid rgba(197, 160, 89, 0.1)', color: 'var(--gold-300)' }}>
+                  <Info size={16} style={{ flexShrink: 0 }} />
+                  <span style={{ fontSize: 12 }}>Select your arrival and departure dates to calculate total sanctuary cost.</span>
+                </div>
+              )}
 
-            {/* Price match guarantee */}
-            <div style={{ marginTop: 16, padding: '12px 14px', background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#4ade80', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <CheckCircle2 size={14} /> Best Price Guarantee
+              <button
+                className="hero-btn-primary w-full"
+                style={{ borderRadius: 4, justifyContent: 'center', fontSize: 14, padding: '16px 24px', letterSpacing: '0.1em' }}
+                onClick={handleBook}
+                disabled={room.status !== 'AVAILABLE' || !checkIn || !checkOut}
+              >
+                {room.status === 'AVAILABLE' ? 'RESERVE SPACE →' : 'SPACE UNAVAILABLE'}
+              </button>
+              <div style={{ marginTop: 16, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>
+                Secure booking &bull; Free cancellation up to 3 days before check-in
               </div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>We'll match any lower price you find for this room.</div>
+
+              {/* Price match guarantee */}
+              <div style={{ marginTop: 16, padding: '12px 14px', background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#4ade80', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <CheckCircle2 size={14} /> Best Price Guarantee
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>We'll match any lower price you find for this room.</div>
+              </div>
             </div>
-          </div>
+          </Reveal>
         </div>
         </div>
       </div>

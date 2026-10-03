@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import LoadingScreen from '../../components/LoadingScreen';
+import Reveal from '../../components/Reveal';
 import { 
   Building2, Calendar, Users, Search, Wifi, Waves, Utensils, Car, Wind, Coffee, Tv, Wine, MapPin, Phone, Mail, ChevronRight, Star, LogOut, CalendarDays, User as UserIcon, Compass
 } from 'lucide-react';
@@ -230,11 +231,13 @@ function Home() {
       {/* The Living Spaces */}
       <section className="c-section" id="spaces">
         <div className="c-container">
-          <div className="section-header">
-            <div className="section-badge">The Sanctuary</div>
-            <h2 className="section-title">Carved Countryside Living Spaces</h2>
-            <p className="section-subtitle">Minimalist raw timber, stone finishes, and floor-to-ceiling wilderness views in every sanctuary apartment.</p>
-          </div>
+          <Reveal>
+            <div className="section-header">
+              <div className="section-badge">The Sanctuary</div>
+              <h2 className="section-title">Carved Countryside Living Spaces</h2>
+              <p className="section-subtitle">Minimalist raw timber, stone finishes, and floor-to-ceiling wilderness views in every sanctuary apartment.</p>
+            </div>
+          </Reveal>
           <FeaturedRooms onBook={() => navigate('/browse')} />
           <div style={{ textAlign: 'center', marginTop: 40 }}>
             <button className="btn-escape" onClick={() => navigate('/browse')}>
@@ -247,18 +250,22 @@ function Home() {
       {/* Amenities */}
       <section className="c-section" id="amenities" style={{ background: '#161814', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="c-container">
-          <div className="section-header">
-            <div className="section-badge">Living Untamed</div>
-            <h2 className="section-title">Amenities of the Wild Haven</h2>
-            <p className="section-subtitle">Curated modern comforts blended with raw country elements for quiet restoration.</p>
-          </div>
+          <Reveal>
+            <div className="section-header">
+              <div className="section-badge">Living Untamed</div>
+              <h2 className="section-title">Amenities of the Wild Haven</h2>
+              <p className="section-subtitle">Curated modern comforts blended with raw country elements for quiet restoration.</p>
+            </div>
+          </Reveal>
           <div className="amenities-grid">
-            {AMENITIES.map(a => (
-              <div key={a.title} className="amenity-card" style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2 }}>
-                <span className="amenity-icon" style={{ color: 'var(--gold-400)' }}>{a.icon}</span>
-                <div className="amenity-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 16 }}>{a.title}</div>
-                <div className="amenity-desc">{a.desc}</div>
-              </div>
+            {AMENITIES.map((a, i) => (
+              <Reveal key={a.title} delay={i * 50}>
+                <div className="amenity-card" style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2 }}>
+                  <span className="amenity-icon" style={{ color: 'var(--gold-400)' }}>{a.icon}</span>
+                  <div className="amenity-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 16 }}>{a.title}</div>
+                  <div className="amenity-desc">{a.desc}</div>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -267,64 +274,72 @@ function Home() {
       {/* Location Section */}
       <section className="c-section" id="location">
         <div className="c-container">
-          <div className="section-header">
-            <div className="section-badge">The Territory</div>
-            <h2 className="section-title">Hidden in the Mountain Mist</h2>
-            <p className="section-subtitle">Located away from highways and dense townships — accessible via countryside ridge roads.</p>
-          </div>
-          <div style={{
-            maxWidth: 1000, margin: '0 auto', background: '#1a1c18', border: '1px solid rgba(255,255,255,0.10)',
-            borderRadius: 2, padding: 36, display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 32, alignItems: 'center'
-          }}>
-            <div>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: 'var(--text-primary)', marginBottom: 12 }}>
-                The Countryside Ridge, Ella Highland
-              </h3>
-              <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 14, marginBottom: 20 }}>
-                Aliya Resort is carved into the hillside wilderness, offering private panoramic vistas over green valleys and rocky peaks. Arrive by 4x4 or arrange a sanctuary shuttle pickup from the central railway station.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, color: 'var(--text-muted)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MapPin size={15} color="var(--gold-400)" /> <strong>Coordinates:</strong> 6.8667° N, 81.0466° E (Ella Highland Ridge)</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Car size={15} color="var(--gold-400)" /> <strong>Access:</strong> Scenic Mountain Ridge Road, 25 mins from Ella Town</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Compass size={15} color="var(--gold-400)" /> <strong>Helipad:</strong> Private landing paddock on upper clearing</div>
+          <Reveal>
+            <div className="section-header">
+              <div className="section-badge">The Territory</div>
+              <h2 className="section-title">Hidden in the Mountain Mist</h2>
+              <p className="section-subtitle">Located away from highways and dense townships — accessible via countryside ridge roads.</p>
+            </div>
+          </Reveal>
+          <Reveal delay={100}>
+            <div style={{
+              maxWidth: 1000, margin: '0 auto', background: '#1a1c18', border: '1px solid rgba(255,255,255,0.10)',
+              borderRadius: 2, padding: 36, display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 32, alignItems: 'center'
+            }}>
+              <div>
+                <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: 'var(--text-primary)', marginBottom: 12 }}>
+                  The Countryside Ridge, Ella Highland
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 14, marginBottom: 20 }}>
+                  Aliya Resort is carved into the hillside wilderness, offering private panoramic vistas over green valleys and rocky peaks. Arrive by 4x4 or arrange a sanctuary shuttle pickup from the central railway station.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, color: 'var(--text-muted)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MapPin size={15} color="var(--gold-400)" /> <strong>Coordinates:</strong> 6.8667° N, 81.0466° E (Ella Highland Ridge)</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Car size={15} color="var(--gold-400)" /> <strong>Access:</strong> Scenic Mountain Ridge Road, 25 mins from Ella Town</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Compass size={15} color="var(--gold-400)" /> <strong>Helipad:</strong> Private landing paddock on upper clearing</div>
+                </div>
+              </div>
+              <div style={{
+                height: 240, background: 'url(/assets/images/hero.jpg) center/cover', border: '1px solid rgba(255,255,255,0.15)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative'
+              }}>
+                <button className="btn-escape" onClick={() => navigate('/browse')} style={{ zIndex: 1 }}>
+                  RESERVE DATES →
+                </button>
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
               </div>
             </div>
-            <div style={{
-              height: 240, background: 'url(/assets/images/hero.jpg) center/cover', border: '1px solid rgba(255,255,255,0.15)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative'
-            }}>
-              <button className="btn-escape" onClick={() => navigate('/browse')} style={{ zIndex: 1 }}>
-                RESERVE DATES →
-              </button>
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
-            </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Testimonials */}
       <section className="c-section" style={{ background: '#161814' }}>
         <div className="c-container">
-          <div className="section-header">
-            <div className="section-badge">Guest Impressions</div>
-            <h2 className="section-title">Words From the Wilderness</h2>
-            <p className="section-subtitle">Untouched silence and honest reviews from those who retreated to our sanctuary.</p>
-          </div>
+          <Reveal>
+            <div className="section-header">
+              <div className="section-badge">Guest Impressions</div>
+              <h2 className="section-title">Words From the Wilderness</h2>
+              <p className="section-subtitle">Untouched silence and honest reviews from those who retreated to our sanctuary.</p>
+            </div>
+          </Reveal>
           <div className="testimonials-grid">
-            {TESTIMONIALS.map(t => (
-              <div key={t.name} className="testimonial-card" style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2 }}>
-                <div className="testimonial-stars" style={{ display: 'flex', gap: 2 }}>
-                  {[...Array(t.stars)].map((_, i) => <Star key={i} size={14} fill="var(--gold-400)" color="var(--gold-400)" />)}
-                </div>
-                <p className="testimonial-text">{t.text}</p>
-                <div className="testimonial-author">
-                  <div className="testimonial-avatar" style={{ borderRadius: 2, background: 'var(--gold-400)', color: '#141513' }}>{t.name.charAt(0)}</div>
-                  <div>
-                    <div className="testimonial-name">{t.name}</div>
-                    <div className="testimonial-from">{t.from}</div>
+            {TESTIMONIALS.map((t, i) => (
+              <Reveal key={t.name} delay={i * 100}>
+                <div className="testimonial-card" style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 2 }}>
+                  <div className="testimonial-stars" style={{ display: 'flex', gap: 2 }}>
+                    {[...Array(t.stars)].map((_, j) => <Star key={j} size={14} fill="var(--gold-400)" color="var(--gold-400)" />)}
+                  </div>
+                  <p className="testimonial-text">{t.text}</p>
+                  <div className="testimonial-author">
+                    <div className="testimonial-avatar" style={{ borderRadius: 2, background: 'var(--gold-400)', color: '#141513' }}>{t.name.charAt(0)}</div>
+                    <div>
+                      <div className="testimonial-name">{t.name}</div>
+                      <div className="testimonial-from">{t.from}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -415,7 +430,8 @@ export function CustomerRoomCard({ room, onClick }) {
 
   return (
     <div className="c-room-card" onClick={onClick} style={{ background: '#1a1c18', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 2 }}>
-      <div className="c-room-img" style={{ backgroundImage: `url(${imgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', minHeight: '240px' }}>
+      <div className="c-room-img" style={{ minHeight: '240px' }}>
+        <div className="c-room-img-bg" style={{ backgroundImage: `url(${imgUrl})` }} />
         <div className="c-room-img-overlay" />
         <div className="c-room-badges">
           <span className={`badge ${room.status === 'AVAILABLE' ? 'badge-success' : 'badge-error'}`} style={{ borderRadius: 2, textTransform: 'uppercase', letterSpacing: '0.1em' }}>

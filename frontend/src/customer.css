@@ -1063,3 +1063,240 @@
   .c-footer { padding: 40px 0 24px; }
   .c-footer-grid { grid-template-columns: 1fr; gap: 32px; }
 }
+
+/* ============================================
+   EDITORIAL THEME LAYER
+   Minimal navbar + full-visibility hero
+   ============================================ */
+
+.customer-shell {
+  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, monospace;
+  --font-display: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --ink: #1c1d1a;
+}
+
+/* ---- Navbar ---- */
+.c-nav { height: 72px; }
+
+.c-nav-inner { gap: 28px; }
+
+.c-nav-logo-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  transition: color var(--t-base);
+}
+
+.c-nav-links {
+  flex: 0 1 auto;
+  margin-left: auto;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.c-nav-link {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 6px 10px;
+  border: none;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  transition: color var(--t-fast), border-color var(--t-fast);
+}
+
+.c-nav-link:hover { border-bottom-color: currentColor; }
+.c-nav-link.active { color: var(--gold-300); border-bottom-color: var(--gold-400); }
+.c-nav-link--muted { opacity: 0.6; }
+.c-nav-link--muted:hover { opacity: 1; }
+
+.c-nav-divider {
+  width: 1px;
+  height: 16px;
+  margin: 0 8px;
+  background: currentColor;
+  opacity: 0.25;
+  color: var(--text-secondary);
+}
+
+.c-nav-avatar {
+  width: 28px;
+  height: 28px;
+  margin: 0 4px;
+  border: 1px solid var(--gold-400);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--gold-300);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.c-nav-avatar:hover { background: var(--gold-400); color: #141513; }
+
+.c-nav-book {
+  display: inline-flex;
+  align-items: center;
+  gap: 28px;
+  padding: 7px 12px 7px 14px;
+  border: 1px solid rgba(245, 242, 235, 0.7);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--t-base);
+}
+
+.c-nav-book:hover { background: var(--text-primary); color: #141513; }
+
+/* Home page: navbar floats above the hero photograph */
+.c-nav.c-nav--home {
+  position: fixed;
+  left: 0;
+  right: 0;
+}
+
+.c-nav.c-nav--overlay {
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom-color: transparent;
+  box-shadow: none;
+}
+
+.c-nav--overlay .c-nav-logo-name,
+.c-nav--overlay .c-nav-link,
+.c-nav--overlay .c-nav-divider { color: var(--ink); }
+
+.c-nav--overlay .c-nav-link.active { color: var(--ink); border-bottom-color: var(--ink); }
+
+.c-nav--overlay .c-nav-avatar { border-color: var(--ink); color: var(--ink); }
+.c-nav--overlay .c-nav-avatar:hover { background: var(--ink); color: #f5f2eb; }
+
+.c-nav--overlay .c-nav-book { border-color: var(--ink); color: var(--ink); }
+.c-nav--overlay .c-nav-book:hover { background: var(--ink); color: #f5f2eb; }
+
+/* ---- Hero ---- */
+.hero-editorial {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  background-size: cover;
+  background-position: center 65%;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+/* Soft sky haze behind the headline only; the photo stays fully visible below */
+.hero-editorial::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 48%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.28) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.hero-editorial-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 48px;
+  padding-top: 148px;
+}
+
+.hero-editorial-title {
+  margin: 0;
+  padding-left: 60px;
+  font-family: var(--font-display);
+  font-size: clamp(40px, 4.6vw, 66px);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  text-shadow: 0 1px 18px rgba(255, 255, 255, 0.45);
+}
+
+.hero-editorial-aside {
+  max-width: 300px;
+  padding-top: 10px;
+  padding-right: 120px;
+  box-sizing: content-box;
+}
+
+.hero-editorial-sub {
+  margin: 0 0 30px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink);
+  text-shadow: 0 1px 12px rgba(255, 255, 255, 0.5);
+}
+
+.hero-editorial-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+  min-width: 250px;
+  padding: 8px 14px;
+  border: 1px solid var(--ink);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all var(--t-base);
+}
+
+.hero-editorial-btn:hover { background: var(--ink); color: #f5f2eb; }
+
+/* ---- Booking band under the hero ---- */
+.hero-booking-band {
+  padding: 40px 0 36px;
+  background: #121410;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.hero-booking-band .hero-stats { margin-top: 28px; }
+
+/* Section headings follow the editorial type */
+.section-title { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.01em; }
+.section-badge {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  border-radius: 0;
+}
+
+@media (max-width: 1100px) {
+  .hero-editorial-title { padding-left: 0; }
+  .hero-editorial-aside { padding-right: 0; }
+}
+
+@media (max-width: 900px) {
+  .hero-editorial-content { grid-template-columns: 1fr; gap: 28px; padding-top: 120px; }
+}
+
+@media (max-width: 768px) {
+  .c-nav-book { gap: 14px; }
+}

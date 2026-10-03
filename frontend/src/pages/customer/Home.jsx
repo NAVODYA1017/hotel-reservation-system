@@ -24,9 +24,16 @@ function CustomerNav() {
   };
 
   const isActive = (path) => location.pathname === path;
+  const isHome = location.pathname === '/';
+  const navClass = [
+    'c-nav',
+    isHome ? 'c-nav--home' : '',
+    isHome && !scrolled ? 'c-nav--overlay' : '',
+    scrolled ? 'scrolled' : '',
+  ].filter(Boolean).join(' ');
 
   return (
-    <nav className={`c-nav${scrolled ? ' scrolled' : ''}`}>
+    <nav className={navClass}>
       <div className="c-nav-inner">
         <button className="c-nav-logo" onClick={() => navigate('/')}>
           <span className="c-nav-logo-name">Aliya Resort</span>
@@ -51,52 +58,31 @@ function CustomerNav() {
           <button className={`c-nav-link${isActive('/events') ? ' active' : ''}`} onClick={() => navigate('/events')}>
             GATHERINGS
           </button>
-        </div>
 
-        <div className="c-nav-actions">
+          <span className="c-nav-divider" />
+
           {guest ? (
             <>
-              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/my-bookings')} style={{ borderRadius: 2 }}>
-                <CalendarDays size={14} style={{ marginRight: 6 }} /> My Bookings
+              <button className={`c-nav-link${isActive('/my-bookings') ? ' active' : ''}`} onClick={() => navigate('/my-bookings')}>
+                MY BOOKINGS
               </button>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div 
-                  className="user-avatar" 
-                  style={{ width: 32, height: 32, fontSize: 13, cursor: 'pointer', borderRadius: 2, background: 'var(--gold-400)', color: '#141513' }}
-                  onClick={() => navigate('/profile')}
-                  title="My Profile"
-                >
-                  {guest.name?.charAt(0).toUpperCase()}
-                </div>
-                <button className="btn btn-ghost btn-sm" onClick={handleLogout} style={{ borderRadius: 2 }}>Logout</button>
-              </div>
+              <button className="c-nav-avatar" onClick={() => navigate('/profile')} title="My Profile">
+                {guest.name?.charAt(0).toUpperCase()}
+              </button>
+              <button className="c-nav-link" onClick={handleLogout}>LOGOUT</button>
             </>
           ) : (
-            <>
-              <button className="btn btn-ghost btn-sm" onClick={() => navigate('/guest-login')} style={{ borderRadius: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: 12 }}>
-                Sign In
-              </button>
-              <button className="btn btn-primary btn-sm" onClick={() => navigate('/guest-login?tab=register')} style={{ borderRadius: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: 12 }}>
-                Join Haven
-              </button>
-            </>
+            <button className="c-nav-link" onClick={() => navigate('/guest-login')}>SIGN IN</button>
           )}
-          <button
-            className="hero-btn-primary"
-            onClick={() => navigate('/browse')}
-            style={{ padding: '8px 18px', fontSize: 12, letterSpacing: '0.14em' }}
-          >
-            BOOK NOW →
-          </button>
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={() => navigate('/admin')}
-            title="Staff Portal"
-            style={{ fontSize: 11, color: 'var(--text-muted)' }}
-          >
-            🔒 Staff
+          <button className="c-nav-link c-nav-link--muted" onClick={() => navigate('/admin')} title="Staff Portal">
+            STAFF
           </button>
         </div>
+
+        <button className="c-nav-book" onClick={() => navigate('/browse')}>
+          <span>BOOK NOW</span>
+          <span aria-hidden="true">→</span>
+        </button>
       </div>
     </nav>
   );
@@ -183,34 +169,28 @@ function Home() {
     <div className="customer-shell">
       <CustomerNav />
 
-      {/* Hero - Countryside Apartment Template (Wix Reference) */}
-      <section className="hero" style={{ 
-        backgroundImage: 'linear-gradient(rgba(19,21,18,0.35), rgba(19,21,18,0.7)), url(/assets/images/hero.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}>
-        <div className="hero-bg" />
-        <div className="hero-bg-pattern" />
-
-        <div className="c-container" style={{ position: 'relative', zIndex: 1 }}>
-          <div className="hero-split">
-            <div className="hero-left">
-              <h1 className="hero-title">
-                Escape the Concrete.<br />
-                Find Your Grit
-              </h1>
-            </div>
-            <div className="hero-right">
-              <p className="hero-subtitle">
-                A raw, secluded haven carved from the wild countryside
-              </p>
-              <button className="btn-escape" onClick={() => navigate('/browse')}>
-                BOOK YOUR ESCAPE →
-              </button>
-            </div>
+      {/* Hero - full-visibility photograph with editorial overlay text */}
+      <section className="hero-editorial" style={{ backgroundImage: 'url(/assets/images/hero.jpg)' }}>
+        <div className="c-container hero-editorial-content">
+          <h1 className="hero-editorial-title">
+            Escape the Concrete.<br />
+            Find Your Paradise
+          </h1>
+          <div className="hero-editorial-aside">
+            <p className="hero-editorial-sub">
+              A lush, secluded resort carved into the tropical hills
+            </p>
+            <button className="hero-editorial-btn" onClick={() => navigate('/browse')}>
+              <span>BOOK YOUR ESCAPE</span>
+              <span aria-hidden="true">→</span>
+            </button>
           </div>
+        </div>
+      </section>
 
+      {/* Booking band - search and key figures */}
+      <section className="hero-booking-band">
+        <div className="c-container">
           <HeroSearch onSearch={handleSearch} />
 
           <div className="hero-stats">

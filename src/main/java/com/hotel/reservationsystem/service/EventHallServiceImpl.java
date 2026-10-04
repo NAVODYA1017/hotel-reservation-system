@@ -69,8 +69,7 @@ public class EventHallServiceImpl implements EventHallService {
         hall.setDescription(request.getDescription());
 
         // Save to database
-        EventHall saved =
-                eventHallRepository.save(hall);
+        EventHall saved = eventHallRepository.save(hall);
 
         // Entity → Response DTO
         return EventHallResponse.fromEntity(saved);

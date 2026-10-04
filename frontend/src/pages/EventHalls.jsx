@@ -518,7 +518,7 @@ function HallModal({ hall, onClose, onSave }) {
               </div>
               <div className="form-group">
                 <label className="form-label">Rate per Event (LKR) *</label>
-                <input className="form-input" type="number" min="1" step="1000" value={form.pricePerDay} onChange={e => set('pricePerDay', Number(e.target.value))} required />
+                <input className="form-input" type="number" min="1" step="1" value={form.pricePerDay} onChange={e => set('pricePerDay', Number(e.target.value))} required />
               </div>
             </div>
             <div className="form-group">
@@ -603,7 +603,7 @@ function PackageModal({ pkg, onClose, onSave }) {
             </div>
             <div className="form-group">
               <label className="form-label">Package Price (LKR) *</label>
-              <input className="form-input" type="number" min="1" step="5000" value={form.price} onChange={e => set('price', Number(e.target.value))} required />
+              <input className="form-input" type="number" min="1" step="1" value={form.price} onChange={e => set('price', Number(e.target.value))} required />
             </div>
             <div className="form-group">
               <label className="form-label">Services Included * (comma separated)</label>

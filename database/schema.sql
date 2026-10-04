@@ -37,21 +37,21 @@ CREATE TABLE rooms (
 CREATE TABLE event_halls (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    capacity INT NOT NULL,
-    price DECIMAL(10,2) NOT NULL,
-    status ENUM('AVAILABLE','BOOKED','MAINTENANCE') NOT NULL DEFAULT 'AVAILABLE'
+    price_per_event DECIMAL(10,2) NOT NULL,
+    seating_capacity INT NOT NULL,
+    available BOOLEAN NOT NULL DEFAULT TRUE,
+    description VARCHAR(255)
 );
 
 -- ============================
--- PACKAGES  (UC-03 — catering / decor / multimedia tied to a hall)
+-- PACKAGES  (UC-03)
 -- ============================
 CREATE TABLE packages (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    hall_id BIGINT NOT NULL,
     name VARCHAR(100) NOT NULL,
-    description TEXT,
+    description VARCHAR(255),
     price DECIMAL(10,2) NOT NULL,
-    CONSTRAINT fk_package_hall FOREIGN KEY (hall_id) REFERENCES event_halls(id) ON DELETE CASCADE
+    services_included VARCHAR(255)
 );
 
 -- ============================
@@ -112,8 +112,21 @@ INSERT INTO rooms (room_number, room_type, price, status) VALUES
 ('101', 'Deluxe', 15000.00, 'AVAILABLE'),
 ('102', 'Standard', 9000.00, 'AVAILABLE');
 
-INSERT INTO event_halls (name, capacity, price, status) VALUES
-('Grand Ballroom', 300, 250000.00, 'AVAILABLE');
+INSERT INTO event_halls
+(name, price_per_event, seating_capacity, available, description)
+VALUES
+    (
+        'Grand Ballroom',
+        250000.00,
+        300,
+        TRUE,
+        'Large event hall suitable for weddings and special events'
+    );
 
-INSERT INTO packages (hall_id, name, description, price) VALUES
-(1, 'Wedding Essentials', 'Basic catering, decor, and sound system', 500000.00);
+INSERT INTO packages (name, description, price, services_included) VALUES
+    (
+        'Wedding Essentials',
+        'Basic wedding event package',
+        500000.00,
+        'Basic catering, decor, and sound system'
+    );

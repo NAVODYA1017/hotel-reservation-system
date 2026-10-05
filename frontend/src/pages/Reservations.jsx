@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
 import { 
-  Calendar, Search, Edit3, XCircle, Trash2, CheckCircle2, AlertTriangle, Plus 
+  Calendar, Search, Edit3, XCircle, Trash2, CheckCircle2, AlertTriangle, Plus, Printer 
 } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 
 const STATUS_OPTIONS = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED'];
 const TYPE_OPTIONS = ['ROOM', 'EVENT_HALL', 'PACKAGE'];
@@ -191,6 +192,60 @@ function Reservations() {
     }
   };
 
+  const handleDownloadReceipt = (r) => {
+    showToast('Generating PDF receipt...', 'success');
+    const container = document.createElement('div');
+    container.innerHTML = `
+      <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; line-height: 1.6; max-width: 800px; margin: 0 auto; background: white;">
+        <div style="text-align: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px;">
+          <h1 style="font-size: 28px; font-weight: bold; margin: 0 0 10px 0; color: #c9a030; letter-spacing: 2px;">ALIYA RESORT</h1>
+          <h2 style="font-size: 20px; margin: 0 0 5px 0; color: #333;">OFFICIAL RESERVATION RECEIPT</h2>
+          <div style="font-size: 14px; color: #666;">Reservation #${r.reservationId || r.id} | Status: ${r.status}</div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5;">
+          <span style="font-weight: bold; color: #555; width: 150px;">Guest Name:</span> 
+          <span style="flex: 1; text-align: right;">${r.guestName || r.userName || 'Guest'}</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5;">
+          <span style="font-weight: bold; color: #555; width: 150px;">Room / Venue:</span> 
+          <span style="flex: 1; text-align: right;">${r.roomType || r.reservationType || 'Room'} (No. ${r.roomNumber || r.roomId})</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5;">
+          <span style="font-weight: bold; color: #555; width: 150px;">Check-In Date:</span> 
+          <span style="flex: 1; text-align: right;">${r.checkInDate || r.checkIn}</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5;">
+          <span style="font-weight: bold; color: #555; width: 150px;">Check-Out Date:</span> 
+          <span style="flex: 1; text-align: right;">${r.checkOutDate || r.checkOut}</span>
+        </div>
+        
+        <div style="margin-top: 40px; border-top: 2px solid #333; padding-top: 20px; text-align: right;">
+          <div style="font-size: 14px; color: #666; margin-bottom: 5px;">Total Amount Paid / Due</div>
+          <div style="font-size: 24px; font-weight: bold; color: #c9a030;">LKR ${Number(r.totalAmount || 0).toLocaleString()}</div>
+        </div>
+        
+        <div style="margin-top: 60px; text-align: center; font-size: 12px; color: #999;">
+          Thank you for choosing Aliya Resort. We look forward to your stay.<br/>
+          This is a computer generated document.
+        </div>
+      </div>
+    `;
+
+    const opt = {
+      margin:       0.5,
+      filename:     `Receipt_RES_${r.reservationId || r.id}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(container).save();
+  };
+
   const filtered = reservations.filter(r => {
     const q = search.toLowerCase();
     return (
@@ -318,6 +373,11 @@ function Reservations() {
                         <button className="btn btn-secondary btn-sm" onClick={() => setModal({ type: 'edit', reservation: r })} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                           <Edit3 size={12} /> Edit
                         </button>
+                        {(r.status === 'CONFIRMED' || r.status === 'CHECKED_IN' || r.status === 'CHECKED_OUT' || r.status === 'PAID') && (
+                          <button className="btn btn-secondary btn-sm" onClick={() => handleDownloadReceipt(r)} title="Download Receipt" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Printer size={12} /> Receipt
+                          </button>
+                        )}
                         {r.status !== 'CANCELLED' && r.status !== 'CHECKED_OUT' && (
                           <button className="btn btn-warning btn-sm" onClick={() => handleCancel(r)} title="Cancel Reservation" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                             <XCircle size={12} /> Cancel

@@ -413,9 +413,11 @@ const FEATURED = [];
 
 export function CustomerRoomCard({ room, onClick }) {
   const rType = String(room.roomType || room.type || 'Standard Cabin');
-  const imgUrl = rType.toLowerCase().includes('suite') ? '/assets/images/suite.jpg' 
-               : rType.toLowerCase().includes('deluxe') ? '/assets/images/deluxe.jpg' 
-               : '/assets/images/standard.jpg';
+  const imgUrl = room.image || room.imageUrl || (
+    rType.toLowerCase().includes('suite') ? '/assets/images/suite.jpg' 
+    : rType.toLowerCase().includes('deluxe') ? '/assets/images/deluxe.jpg' 
+    : '/assets/images/standard.jpg'
+  );
 
   const amenitiesList = Array.isArray(room.amenities) 
     ? room.amenities 

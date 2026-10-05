@@ -59,6 +59,7 @@ function EventHalls() {
       seatingCapacity: Number(form.capacity || form.seatingCapacity),
       available: form.status === 'AVAILABLE' || form.available === true,
       description: form.amenities || form.description,
+      imageUrl: form.imageUrl || '',
     };
 
     try {
@@ -271,6 +272,7 @@ function EventHalls() {
                 <thead>
                   <tr>
                     <th>ID</th>
+                    <th>Image</th>
                     <th>Hall Name</th>
                     <th>Capacity</th>
                     <th>Rate / Event</th>
@@ -287,6 +289,17 @@ function EventHalls() {
                     return (
                       <tr key={h.id}>
                         <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>#{h.id}</td>
+                        <td>
+                          <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-sm)', overflow: 'hidden', background: 'var(--surface-50)' }}>
+                            {h.imageUrl ? (
+                              <img src={h.imageUrl} alt={h.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                                <Sparkles size={20} />
+                              </div>
+                            )}
+                          </div>
+                        </td>
                         <td>
                           <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)' }}>{h.name}</div>
                         </td>
@@ -482,7 +495,15 @@ function HallModal({ hall, onClose, onSave }) {
     pricePerDay: hall.pricePerEvent || hall.pricePerDay || 50000,
     status: (hall.available ?? true) ? 'AVAILABLE' : 'UNAVAILABLE',
     amenities: hall.description || hall.amenities || '',
-  } : { name: '', capacity: 100, pricePerDay: 50000, status: 'AVAILABLE', amenities: 'PA System, Projector, Stage, Lighting' });
+    imageUrl: hall.imageUrl || '',
+  } : { name: '', capacity: 100, pricePerDay: 50000, status: 'AVAILABLE', amenities: 'PA System, Projector, Stage, Lighting', imageUrl: '' });
+
+  const eventHallImages = [
+    'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80'
+  ];
 
   const [saving, setSaving] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -507,6 +528,27 @@ function HallModal({ hall, onClose, onSave }) {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            <div className="form-group">
+              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Select Hall Image</span>
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 16 }}>
+                {eventHallImages.map(url => (
+                  <div 
+                    key={url}
+                    onClick={() => set('imageUrl', url)}
+                    style={{ 
+                      height: 70, borderRadius: 'var(--radius-sm)', overflow: 'hidden', cursor: 'pointer',
+                      border: form.imageUrl === url ? '3px solid var(--gold-400)' : '3px solid transparent',
+                      boxShadow: form.imageUrl === url ? '0 0 0 2px rgba(201,160,48,0.2)' : 'none'
+                    }}
+                  >
+                    <img src={url} alt="Hall Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
             <div className="form-group">
               <label className="form-label">Hall Name *</label>
               <input className="form-input" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Grand Sapphire Ballroom" required />

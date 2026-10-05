@@ -102,6 +102,36 @@ public class HotelReservationSystemApplication {
 				userRepository.save(admin);
 				System.out.println("Updated/Created default admin user: admin@hotel.com / admin123");
 			}
+			
+			// Seed receptionist account
+			User frontdesk = userRepository.findAll().stream().filter(u -> u.getEmail().equals("frontdesk@hotel.com")).findFirst().orElse(new User());
+			frontdesk.setName("Front Desk");
+			frontdesk.setEmail("frontdesk@hotel.com");
+			frontdesk.setPasswordHash(new BCryptPasswordEncoder().encode("desk123"));
+			frontdesk.setRole(Role.RECEPTIONIST);
+			frontdesk.setActive(true);
+			userRepository.save(frontdesk);
+			System.out.println("Updated/Created default receptionist user: frontdesk@hotel.com / desk123");
+
+			// Seed Event Coordinator account
+			User eventCoord = userRepository.findAll().stream().filter(u -> u.getEmail().equals("events@hotel.com")).findFirst().orElse(new User());
+			eventCoord.setName("Event Coordinator");
+			eventCoord.setEmail("events@hotel.com");
+			eventCoord.setPasswordHash(new BCryptPasswordEncoder().encode("events123"));
+			eventCoord.setRole(Role.EVENT_COORDINATOR);
+			eventCoord.setActive(true);
+			userRepository.save(eventCoord);
+			System.out.println("Updated/Created default event coordinator user: events@hotel.com / events123");
+
+			// Seed Hotel Manager account
+			User manager = userRepository.findAll().stream().filter(u -> u.getEmail().equals("manager@hotel.com")).findFirst().orElse(new User());
+			manager.setName("Hotel Manager");
+			manager.setEmail("manager@hotel.com");
+			manager.setPasswordHash(new BCryptPasswordEncoder().encode("manager123"));
+			manager.setRole(Role.HOTEL_MANAGER);
+			manager.setActive(true);
+			userRepository.save(manager);
+			System.out.println("Updated/Created default manager user: manager@hotel.com / manager123");
 		};
 	}
 }

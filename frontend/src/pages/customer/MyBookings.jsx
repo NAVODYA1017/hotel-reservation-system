@@ -4,10 +4,13 @@ import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
 import LoadingScreen from '../../components/LoadingScreen';
 import Reveal from '../../components/Reveal';
+import html2pdf from 'html2pdf.js';
+import { Lottie } from 'lottie-react';
+import paymentSuccessAnim from '../../assets/payment-success.json';
 import { 
   CreditCard, Download, Eye, CheckCircle2, AlertCircle, AlertTriangle, 
   FileText, Calendar, Building2, User, ShieldCheck, Clock, Check, 
-  XCircle, Trash2, Edit3, BedDouble, Trees, DollarSign, Building, Banknote, Sparkles
+  XCircle, Trash2, Edit3, BedDouble, Trees, DollarSign, Building, Banknote, Sparkles, Printer
 } from 'lucide-react';
 
 const STATUS_BADGE = {
@@ -20,7 +23,7 @@ const STATUS_BADGE = {
   AWAITING_PAYMENT: 'badge-warning',
 };
 
-function BookingCard({ booking, onCancel, onDelete, onModify, onPay, onDownloadInvoice, onViewInvoice }) {
+function BookingCard({ booking, onCancel, onDelete, onModify, onPay, onDownloadInvoice, onViewInvoice, onDownloadReceipt }) {
   const [expanded, setExpanded] = useState(false);
   const isPast = new Date(booking.checkOut) < new Date();
   const canCancel = ['CONFIRMED', 'PENDING', 'AWAITING_PAYMENT'].includes(booking.status);
@@ -114,6 +117,17 @@ function BookingCard({ booking, onCancel, onDelete, onModify, onPay, onDownloadI
             </>
           )}
 
+          {(booking.status === 'CONFIRMED' || booking.status === 'CHECKED_IN' || booking.status === 'CHECKED_OUT' || isPaid) && (
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => onDownloadReceipt(booking)}
+              style={{ borderRadius: 2, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              title="Download Reservation Receipt"
+            >
+              <Printer size={14} /> Receipt
+            </button>
+          )}
+
           {canCancel && (
             <button
               className="btn btn-secondary btn-sm"
@@ -169,11 +183,14 @@ function PaymentModal({ booking, onClose, onSuccess }) {
 
   // Format expiry MM/YY
   const handleExpiryChange = (e) => {
-    let raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+    let raw = e.target.value.replace(/\D/g, '');
     if (raw.length >= 3) {
-      raw = raw.slice(0, 2) + '/' + raw.slice(2, 4);
+      setCardExpiry(raw.slice(0, 2) + '/' + raw.slice(2, 4));
+    } else if (raw.length === 2 && !cardExpiry.endsWith('/')) {
+      setCardExpiry(raw + '/');
+    } else {
+      setCardExpiry(raw);
     }
-    setCardExpiry(raw);
   };
 
   const handlePaySubmit = async (e) => {
@@ -435,8 +452,8 @@ function PaymentConfirmationModal({ payment, booking, onClose, onDownloadPdf, on
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" style={{ maxWidth: 520, background: '#181a16', border: '1px solid rgba(197,160,89,0.3)', borderRadius: 2 }} onClick={e => e.stopPropagation()}>
         <div className="modal-body" style={{ textAlign: 'center', padding: '36px 30px 24px' }}>
-          <div style={{ width: 64, height: 64, background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-            <CheckCircle2 size={36} color="#4ade80" />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+            <Lottie src={paymentSuccessAnim} loop={false} style={{ width: 100, height: 100 }} />
           </div>
 
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: 'var(--text-primary)', marginBottom: 8 }}>
@@ -732,6 +749,60 @@ function MyBookings() {
     }
   };
 
+  const handleDownloadReceipt = (r) => {
+    showToast('Generating PDF receipt...', 'success');
+    const container = document.createElement('div');
+    container.innerHTML = `
+      <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; line-height: 1.6; max-width: 800px; margin: 0 auto; background: white;">
+        <div style="text-align: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px;">
+          <h1 style="font-size: 28px; font-weight: bold; margin: 0 0 10px 0; color: #c9a030; letter-spacing: 2px;">ALIYA RESORT</h1>
+          <h2 style="font-size: 20px; margin: 0 0 5px 0; color: #333;">OFFICIAL RESERVATION RECEIPT</h2>
+          <div style="font-size: 14px; color: #666;">Reservation #${r.reservationId || r.id} | Status: ${r.status}</div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5;">
+          <span style="font-weight: bold; color: #555; width: 150px;">Guest Name:</span> 
+          <span style="flex: 1; text-align: right;">${r.guestName || r.userName || 'Guest'}</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5;">
+          <span style="font-weight: bold; color: #555; width: 150px;">Room / Venue:</span> 
+          <span style="flex: 1; text-align: right;">${r.roomType || r.reservationType || 'Room'} (No. ${r.roomNumber || r.roomId})</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5;">
+          <span style="font-weight: bold; color: #555; width: 150px;">Check-In Date:</span> 
+          <span style="flex: 1; text-align: right;">${r.checkInDate || r.checkIn}</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5;">
+          <span style="font-weight: bold; color: #555; width: 150px;">Check-Out Date:</span> 
+          <span style="flex: 1; text-align: right;">${r.checkOutDate || r.checkOut}</span>
+        </div>
+        
+        <div style="margin-top: 40px; border-top: 2px solid #333; padding-top: 20px; text-align: right;">
+          <div style="font-size: 14px; color: #666; margin-bottom: 5px;">Total Amount Paid / Due</div>
+          <div style="font-size: 24px; font-weight: bold; color: #c9a030;">LKR ${Number(r.totalAmount || 0).toLocaleString()}</div>
+        </div>
+        
+        <div style="margin-top: 60px; text-align: center; font-size: 12px; color: #999;">
+          Thank you for choosing Aliya Resort. We look forward to your stay.<br/>
+          This is a computer generated document.
+        </div>
+      </div>
+    `;
+
+    const opt = {
+      margin:       0.5,
+      filename:     `Receipt_RES_${r.reservationId || r.id}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(container).save();
+  };
+
   const handleCancel = async (booking) => {
     try {
       await axios.put(`/api/reservations/${booking.id}/cancel`);
@@ -892,6 +963,7 @@ function MyBookings() {
                   onPay={b => setPaymentModalBooking(b)}
                   onDownloadInvoice={b => handleBookingCardDownload(b)}
                   onViewInvoice={b => handleBookingCardViewInvoice(b)}
+                  onDownloadReceipt={b => handleDownloadReceipt(b)}
                 />
               ))}
             </div>

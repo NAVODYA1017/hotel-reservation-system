@@ -4,6 +4,8 @@ import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
 import LoadingScreen from '../../components/LoadingScreen';
 import Reveal from '../../components/Reveal';
+import { Lottie } from 'lottie-react';
+import paymentSuccessAnim from '../../assets/payment-success.json';
 import { CreditCard, Building, Banknote, ShieldCheck, BedDouble, User, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const PAYMENT_METHODS = [
@@ -20,7 +22,7 @@ function Checkout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const roomId = searchParams.get('roomId') || '1';
+  const roomId = searchParams.get('roomId') || searchParams.get('room') || '14';
   const checkIn = searchParams.get('checkIn') || '';
   const checkOut = searchParams.get('checkOut') || '';
   const guestsCount = Number(searchParams.get('guests') || 1);
@@ -53,6 +55,7 @@ function Checkout() {
   const [guestForm, setGuestForm] = useState({
     name: guest?.name || '',
     email: guest?.email || '',
+    countryCode: '+94',
     phone: guest?.phone || '',
     specialRequests: '',
   });
@@ -61,9 +64,21 @@ function Checkout() {
   const [processing, setProcessing] = useState(false);
   const [bookingRef, setBookingRef] = useState(null);
   const [error, setError] = useState('');
+  const [showPaymentAnim, setShowPaymentAnim] = useState(false);
 
   const setGF = (k, v) => setGuestForm(f => ({ ...f, [k]: v }));
   const setCF = (k, v) => setCardForm(f => ({ ...f, [k]: v }));
+
+  const handleExpiryChange = (e) => {
+    let val = e.target.value.replace(/\D/g, '');
+    if (val.length >= 3) {
+      setCF('expiry', val.slice(0, 2) + '/' + val.slice(2, 4));
+    } else if (val.length === 2 && !cardForm.expiry.endsWith('/')) {
+      setCF('expiry', val + '/');
+    } else {
+      setCF('expiry', val);
+    }
+  };
 
   const handleConfirm = async () => {
     setProcessing(true);
@@ -97,14 +112,21 @@ function Checkout() {
       }
 
       setBookingRef(refCode);
-      setStep(4); // success
+      setProcessing(false);
+      setShowPaymentAnim(true);
+      setTimeout(() => {
+        setShowPaymentAnim(false);
+        setStep(4);
+      }, 3000);
     } catch (err) {
       console.error('Reservation error:', err);
       const msg = err.response?.data?.message || err.message || 'Booking could not be finalized. Please check date availability.';
       setError(msg);
       setStep(1);
     } finally {
-      setProcessing(false);
+      if (step !== 4 && !showPaymentAnim) {
+        setProcessing(false);
+      }
     }
   };
 
@@ -118,8 +140,26 @@ function Checkout() {
     <div className="customer-shell">
       <CustomerNav />
 
-      {processing && (
+      {processing && !showPaymentAnim && (
         <LoadingScreen fullScreen={true} text="Securing your countryside sanctuary reservation..." />
+      )}
+
+      {showPaymentAnim && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <div className="modal animate-fade-in" style={{ background: '#141613', border: '1px solid rgba(197,160,89,0.3)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 60px' }}>
+            <Lottie 
+              src={paymentSuccessAnim} 
+              autoplay={true}
+              loop={false} 
+              subscriptions={{ complete: () => { setShowPaymentAnim(false); setStep(4); } }} 
+              style={{ width: 180, height: 180 }} 
+            />
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: 'var(--text-primary)', marginTop: 16 }}>
+              {payMethod === 'CASH' ? 'Booking Confirmed' : 'Payment Confirmed'}
+            </div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>Preparing your reservation...</div>
+          </div>
+        </div>
       )}
 
       <div className="c-section" style={{ paddingTop: 36 }}>
@@ -211,7 +251,15 @@ function Checkout() {
                         </div>
                         <div className="form-group">
                           <label className="form-label">Phone Number</label>
-                          <input className="form-input" value={guestForm.phone} onChange={e => setGF('phone', e.target.value)} placeholder="+94 77 123 4567" />
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <select className="form-select" style={{ width: 110 }} value={guestForm.countryCode} onChange={e => setGF('countryCode', e.target.value)}>
+                              <option value="+94">+94 (LK)</option>
+                              <option value="+1">+1 (US)</option>
+                              <option value="+44">+44 (UK)</option>
+                              <option value="+61">+61 (AU)</option>
+                            </select>
+                            <input className="form-input" style={{ flex: 1 }} value={guestForm.phone} onChange={e => setGF('phone', e.target.value)} placeholder="77 123 4567" />
+                          </div>
                         </div>
                         <div className="form-group">
                           <label className="form-label">Special Requests</label>
@@ -265,11 +313,11 @@ function Checkout() {
                             <div className="form-grid">
                               <div className="form-group">
                                 <label className="form-label">Expiry *</label>
-                                <input className="form-input" value={cardForm.expiry} onChange={e => setCF('expiry', e.target.value)} placeholder="MM/YY" maxLength={5} />
+                                <input className="form-input" value={cardForm.expiry} onChange={handleExpiryChange} placeholder="MM/YY" maxLength={5} style={{ fontFamily: 'monospace' }} />
                               </div>
                               <div className="form-group">
                                 <label className="form-label">CVV *</label>
-                                <input className="form-input" type="password" value={cardForm.cvv} onChange={e => setCF('cvv', e.target.value)} placeholder="•••" maxLength={4} />
+                                <input className="form-input" type="password" value={cardForm.cvv} onChange={e => setCF('cvv', e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="•••" maxLength={4} style={{ fontFamily: 'monospace', letterSpacing: '2px' }} />
                               </div>
                             </div>
                           </div>
@@ -303,7 +351,29 @@ function Checkout() {
                       </div>
                       <div className="card-footer" style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <button className="btn btn-secondary" onClick={() => setStep(1)}>← Back</button>
-                        <button className="hero-btn-primary" style={{ borderRadius: 'var(--radius-md)' }} onClick={() => setStep(3)}>
+                        <button className="hero-btn-primary" style={{ borderRadius: 'var(--radius-md)' }} onClick={() => {
+                          if (payMethod === 'CREDIT_CARD' || payMethod === 'DEBIT_CARD') {
+                            const digitsOnlyCard = cardForm.number.replace(/\s/g, '');
+                            if (digitsOnlyCard.length < 13 || digitsOnlyCard.length > 19) {
+                              setError('Please enter a valid 13 to 16 digit card number.');
+                              return;
+                            }
+                            if (!cardForm.name.trim() || cardForm.name.trim().length < 2) {
+                              setError('Please enter the cardholder full name as printed on card.');
+                              return;
+                            }
+                            if (!/^(0[1-9]|1[0-2])\/[0-9]{2}$/.test(cardForm.expiry)) {
+                              setError('Card expiry date must be in MM/YY format (e.g. 12/28).');
+                              return;
+                            }
+                            if (!/^[0-9]{3,4}$/.test(cardForm.cvv)) {
+                              setError('CVV security code must be 3 or 4 digits.');
+                              return;
+                            }
+                          }
+                          setError('');
+                          setStep(3);
+                        }}>
                           Review Booking →
                         </button>
                       </div>

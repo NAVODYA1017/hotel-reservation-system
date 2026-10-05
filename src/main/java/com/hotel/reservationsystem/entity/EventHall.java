@@ -42,6 +42,9 @@ public class EventHall {
     @Column(length = 255)
     private String description;
 
+    @Column(length = 500)
+    private String imageUrl;
+
     // @Transient – not stored in the database computed on the fly from
     @Transient
     @JsonIgnore

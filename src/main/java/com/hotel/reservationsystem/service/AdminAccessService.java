@@ -33,7 +33,7 @@ public class AdminAccessService {
 
     // Anyone allowed to sign in to the staff portal (each role is then sent to its own area).
     public static final Set<Role> STAFF_PORTAL_ROLES = EnumSet.of(
-            Role.RECEPTIONIST, Role.HOTEL_MANAGER, Role.SYSTEM_ADMIN, Role.FINANCE_EXECUTIVE);
+            Role.RECEPTIONIST, Role.HOTEL_MANAGER, Role.SYSTEM_ADMIN, Role.FINANCE_EXECUTIVE, Role.EVENT_COORDINATOR);
 
     @Autowired
     private UserRepository userRepository;

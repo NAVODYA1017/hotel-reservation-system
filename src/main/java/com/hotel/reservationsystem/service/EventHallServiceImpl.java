@@ -67,6 +67,7 @@ public class EventHallServiceImpl implements EventHallService {
         );
 
         hall.setDescription(request.getDescription());
+        hall.setImageUrl(request.getImageUrl());
 
         // Save to database
         EventHall saved = eventHallRepository.save(hall);
@@ -215,6 +216,9 @@ public class EventHallServiceImpl implements EventHallService {
                 request.getDescription()
         );
 
+        existingHall.setImageUrl(
+                request.getImageUrl()
+        );
 
         // Save updated entity
         EventHall updated =

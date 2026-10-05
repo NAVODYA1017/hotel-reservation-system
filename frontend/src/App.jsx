@@ -14,8 +14,10 @@ import Rooms      from './pages/Rooms';
 import Payments   from './pages/Payments';
 import EventHalls from './pages/EventHalls';
 
-// ── Front Desk pages ──
+// ── Role-Specific Dashboards ──
 import FrontDeskDashboard from './pages/FrontDeskDashboard';
+import EventCoordinatorDashboard from './pages/EventCoordinatorDashboard';
+import ManagerDashboard from './pages/ManagerDashboard';
 
 // ── Customer pages ──
 import Home        from './pages/customer/Home';
@@ -57,6 +59,28 @@ const FRONTDESK_NAV = [
   ]},
 ];
 
+const EVENT_COORD_NAV = [
+  { group: 'Overview',       items: [{ to: '/events-admin',              icon: <Sparkles size={17} />, label: 'Events Portal',    exact: true }] },
+  { group: 'Operations',     items: [
+    { to: '/events-admin/reservations', icon: <Calendar size={17} />, label: 'Event Bookings' },
+    { to: '/events-admin/halls', icon: <Building2 size={17} />,  label: 'Halls & Spaces'   },
+  ]},
+];
+
+const MANAGER_NAV = [
+  { group: 'Overview',       items: [{ to: '/manager',              icon: <LayoutDashboard size={17} />, label: 'Command Center',    exact: true }] },
+  { group: 'Operations',     items: [
+    { to: '/manager/reservations', icon: <Calendar size={17} />, label: 'Reservations' },
+    { to: '/manager/rooms',        icon: <BedDouble size={17} />, label: 'Rooms'         },
+    { to: '/manager/event-halls',  icon: <Sparkles size={17} />,  label: 'Event Halls'   },
+    { to: '/manager/payments',     icon: <CreditCard size={17} />, label: 'Payments'      },
+  ]},
+  { group: 'Administration', items: [
+    { to: '/manager/users',    icon: <UsersIcon size={17} />,   label: 'Staff Accounts' },
+    { to: '/manager/reports',  icon: <BarChart3 size={17} />,   label: 'Reports & Analytics'       },
+  ]},
+];
+
 const PAGE_META = {
   '/admin':              { title: 'Dashboard',          subtitle: "Welcome back — here's what's happening today" },
   '/admin/reservations': { title: 'Reservations',        subtitle: 'Manage guest bookings and stay requests'       },
@@ -69,6 +93,16 @@ const PAGE_META = {
   '/frontdesk':          { title: 'Front Desk',          subtitle: "Welcome back — here's your desk overview"      },
   '/frontdesk/reservations': { title: 'Reservations',        subtitle: 'Manage walk-ins and guest check-ins'       },
   '/frontdesk/rooms':        { title: 'Room Rack',           subtitle: 'View live room status'               },
+  '/events-admin':       { title: 'Event Coordinator Portal', subtitle: 'Manage luxury halls, catering packages & event scheduling' },
+  '/events-admin/reservations': { title: 'Event Reservations', subtitle: 'Monitor banquet and event hall bookings' },
+  '/events-admin/halls': { title: 'Event Venues & Spaces', subtitle: 'Manage venue readiness and curated event packages' },
+  '/manager':            { title: 'Executive Command Center',   subtitle: 'High-level resort analytics, revenue trajectory & operational oversight' },
+  '/manager/reservations': { title: 'Reservations Oversight',      subtitle: 'Audit and monitor all guest bookings' },
+  '/manager/rooms':      { title: 'Room Rack & Inventory',     subtitle: 'Oversee all hotel rooms and housekeeping status' },
+  '/manager/event-halls': { title: 'Banquets & Venues',        subtitle: 'Oversee event operations and hall revenue' },
+  '/manager/payments':   { title: 'Financial Audit & Billing',  subtitle: 'Monitor business revenue, invoices, and settlement' },
+  '/manager/users':      { title: 'Staff Accounts & Access',      subtitle: 'Manage employee access and departmental roles' },
+  '/manager/reports':    { title: 'Executive Reports & Analytics',    subtitle: 'Comprehensive revenue and occupancy business reports' },
 };
 
 function AdminSidebar({ currentUser, onLogout }) {
@@ -94,7 +128,10 @@ function AdminSidebar({ currentUser, onLogout }) {
       </div>
 
       <nav className="sidebar-nav">
-        {(currentUser?.role === 'RECEPTIONIST' ? FRONTDESK_NAV : ADMIN_NAV).map(group => (
+        {(currentUser?.role === 'RECEPTIONIST' ? FRONTDESK_NAV : 
+          currentUser?.role === 'EVENT_COORDINATOR' ? EVENT_COORD_NAV :
+          currentUser?.role === 'HOTEL_MANAGER' ? MANAGER_NAV :
+          ADMIN_NAV).map(group => (
           <div key={group.group}>
             <div className="nav-section-label">{group.group}</div>
             {group.items.map(item => {
@@ -168,20 +205,14 @@ function AdminLayout({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    let token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
     if (!token) {
-      token = 'admin-session-token';
-      localStorage.setItem('token', token);
-      const defaultAdmin = { name: 'System Admin', role: 'SYSTEM_ADMIN' };
-      localStorage.setItem('currentUser', JSON.stringify(defaultAdmin));
-      setCurrentUser(defaultAdmin);
-    } else {
-      const u = localStorage.getItem('currentUser');
-      if (u) {
-        try { setCurrentUser(JSON.parse(u)); } catch { setCurrentUser({ name: 'System Admin', role: 'SYSTEM_ADMIN' }); }
-      } else {
-        setCurrentUser({ name: 'System Admin', role: 'SYSTEM_ADMIN' });
-      }
+      navigate('/admin/login');
+      return;
+    }
+    const u = localStorage.getItem('currentUser');
+    if (u) {
+      try { setCurrentUser(JSON.parse(u)); } catch { setCurrentUser(null); }
     }
   }, [navigate]);
 
@@ -237,6 +268,20 @@ function App() {
         <Route path="/frontdesk"              element={<AdminLayout><FrontDeskDashboard /></AdminLayout>} />
         <Route path="/frontdesk/reservations" element={<AdminLayout><Reservations /></AdminLayout>} />
         <Route path="/frontdesk/rooms"        element={<AdminLayout><Rooms /></AdminLayout>} />
+
+        {/* ── Event Coordinator routes ── */}
+        <Route path="/events-admin"       element={<AdminLayout><EventCoordinatorDashboard /></AdminLayout>} />
+        <Route path="/events-admin/reservations" element={<AdminLayout><Reservations /></AdminLayout>} />
+        <Route path="/events-admin/halls" element={<AdminLayout><EventHalls /></AdminLayout>} />
+
+        {/* ── Hotel Manager routes ── */}
+        <Route path="/manager"              element={<AdminLayout><ManagerDashboard /></AdminLayout>} />
+        <Route path="/manager/reservations" element={<AdminLayout><Reservations /></AdminLayout>} />
+        <Route path="/manager/rooms"        element={<AdminLayout><Rooms /></AdminLayout>} />
+        <Route path="/manager/event-halls"  element={<AdminLayout><EventHalls /></AdminLayout>} />
+        <Route path="/manager/payments"     element={<AdminLayout><Payments /></AdminLayout>} />
+        <Route path="/manager/users"        element={<AdminLayout><Users /></AdminLayout>} />
+        <Route path="/manager/reports"      element={<AdminLayout><Reports /></AdminLayout>} />
 
         {/* Legacy /login redirect support */}
         <Route path="/login"         element={<Login />} />

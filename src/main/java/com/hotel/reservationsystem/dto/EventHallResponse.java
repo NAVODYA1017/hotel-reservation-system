@@ -29,17 +29,19 @@ public class EventHallResponse {
     private int seatingCapacity;
     private boolean available;
     private String description;
+    private String imageUrl;
     private EventHallStatus status;
 
     // all arguments constructor
     public EventHallResponse(Long id, String name, BigDecimal pricePerEvent, int seatingCapacity,
-                             boolean available, String description, EventHallStatus status) {
+                             boolean available, String description, String imageUrl, EventHallStatus status) {
         this.id = id;
         this.name = name;
         this.pricePerEvent = pricePerEvent;
         this.seatingCapacity = seatingCapacity;
         this.available = available;
         this.description = description;
+        this.imageUrl = imageUrl;
         this.status = status;
     }
 
@@ -58,6 +60,7 @@ public class EventHallResponse {
         private int seatingCapacity;
         private boolean available;
         private String description;
+        private String imageUrl;
         private EventHallStatus status;
 
         public Builder id(Long id) {
@@ -90,6 +93,11 @@ public class EventHallResponse {
             return this;
         }
 
+        public Builder imageUrl(String imageUrl) {
+            this.imageUrl = imageUrl;
+            return this;
+        }
+
         public Builder status(EventHallStatus status) {
             this.status = status;
             return this;
@@ -97,7 +105,7 @@ public class EventHallResponse {
 
         public EventHallResponse build(){
             return new EventHallResponse(id, name,pricePerEvent, seatingCapacity, available,
-                    description, status);
+                    description, imageUrl, status);
         }
 
     }
@@ -116,6 +124,7 @@ public class EventHallResponse {
                 .seatingCapacity( hall.getSeatingCapacity() )
                 .available( hall.isAvailable() )
                 .description( hall.getDescription() )
+                .imageUrl( hall.getImageUrl() )
                 .status( hall.getStatus() )
                 .build();
     }

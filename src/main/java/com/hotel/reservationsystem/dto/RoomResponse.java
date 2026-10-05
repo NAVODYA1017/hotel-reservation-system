@@ -30,6 +30,7 @@ public class RoomResponse {
     private int capacity;
     private RoomStatus status;
     private String description;
+    private String imageUrl;
 
     // Static factory method to convert a JPA Room entity into a RoomResponse DTO.
     public static RoomResponse fromEntity(Room room) {
@@ -42,6 +43,7 @@ public class RoomResponse {
                 .capacity(room.getCapacity())
                 .status(room.getStatus())
                 .description(room.getDescription())
+                .imageUrl(room.getImageUrl())
                 .build();
     }
 }

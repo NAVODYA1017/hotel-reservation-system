@@ -24,6 +24,10 @@ function Login() {
           localStorage.setItem('currentUser', JSON.stringify(res.data.user));
           if (res.data.user.role === 'RECEPTIONIST') {
             navigate('/frontdesk');
+          } else if (res.data.user.role === 'EVENT_COORDINATOR') {
+            navigate('/events-admin');
+          } else if (res.data.user.role === 'HOTEL_MANAGER') {
+            navigate('/manager');
           } else {
             navigate('/admin');
           }
@@ -166,8 +170,14 @@ function Login() {
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
             Admin: admin@hotel.com &nbsp;&bull;&nbsp; admin123
           </p>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
+            Manager: manager@hotel.com &nbsp;&bull;&nbsp; manager123
+          </p>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
             Receptionist: frontdesk@hotel.com &nbsp;&bull;&nbsp; desk123
+          </p>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+            Events: events@hotel.com &nbsp;&bull;&nbsp; events123
           </p>
         </div>
       </div>

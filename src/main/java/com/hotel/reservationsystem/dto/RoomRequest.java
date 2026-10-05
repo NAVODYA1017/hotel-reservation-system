@@ -52,4 +52,7 @@ public class RoomRequest {
 
     // Description of amenities, bed configuration, view, etc.
     private String description;
+
+    // Optional image URL for the room.
+    private String imageUrl;
 }

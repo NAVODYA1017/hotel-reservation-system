@@ -14,13 +14,14 @@ function GuestLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   // Login form
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const setLF = (k, v) => setLoginForm(f => ({ ...f, [k]: v }));
 
   // Register form
-  const [regForm, setRegForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+  const [regForm, setRegForm] = useState({ name: '', email: '', countryCode: '+94', phone: '', password: '', confirmPassword: '' });
   const setRF = (k, v) => setRegForm(f => ({ ...f, [k]: v }));
 
   const handleLogin = async (e) => {
@@ -64,6 +65,11 @@ function GuestLogin() {
       setError('Password must be at least 6 characters.');
       return;
     }
+    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+    if (!specialCharRegex.test(regForm.password)) {
+      setError('Password must contain at least one special character.');
+      return;
+    }
     setLoading(true);
     try {
       // Call Teammate 1's Customer Registration API (/api/auth/register)
@@ -71,7 +77,7 @@ function GuestLogin() {
         name: regForm.name,
         email: regForm.email,
         password: regForm.password,
-        phoneNumber: regForm.phone,
+        phoneNumber: regForm.countryCode + ' ' + regForm.phone,
       });
       if (res.data) {
         localStorage.setItem('guestUser', JSON.stringify(res.data));
@@ -215,7 +221,15 @@ function GuestLogin() {
               </div>
               <div className="form-group">
                 <label className="form-label">Phone Number</label>
-                <input className="form-input" type="tel" value={regForm.phone} onChange={e => setRF('phone', e.target.value)} placeholder="+94 77 123 4567" />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <select className="form-select" style={{ width: 110 }} value={regForm.countryCode} onChange={e => setRF('countryCode', e.target.value)}>
+                    <option value="+94">+94 (LK)</option>
+                    <option value="+1">+1 (US)</option>
+                    <option value="+44">+44 (UK)</option>
+                    <option value="+61">+61 (AU)</option>
+                  </select>
+                  <input className="form-input" style={{ flex: 1 }} type="tel" value={regForm.phone} onChange={e => setRF('phone', e.target.value)} placeholder="77 123 4567" />
+                </div>
               </div>
               <div className="form-grid">
                 <div className="form-group">
@@ -229,7 +243,7 @@ function GuestLogin() {
               </div>
               <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
                 <input type="checkbox" required style={{ marginTop: 2 }} />
-                <span>I agree to the <span style={{ color: 'var(--gold-300)', cursor: 'pointer' }}>Terms of Service</span> and <span style={{ color: 'var(--gold-300)', cursor: 'pointer' }}>Privacy Policy</span></span>
+                <span>I agree to the <span style={{ color: 'var(--gold-300)', cursor: 'pointer' }} onClick={(e) => { e.preventDefault(); setShowTerms(true); }}>Terms of Service & Conditions</span></span>
               </label>
               <button
                 id="guest-register-btn"
@@ -260,6 +274,31 @@ function GuestLogin() {
       </div>
 
       <CustomerFooter />
+
+      {/* Terms Modal */}
+      {showTerms && (
+        <div className="modal-overlay" onClick={() => setShowTerms(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 500, background: '#181a16', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 'var(--radius-md)' }}>
+            <div className="modal-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="modal-title">Terms & Conditions</div>
+              <button className="modal-close" onClick={() => setShowTerms(false)}>×</button>
+            </div>
+            <div className="modal-body" style={{ maxHeight: 400, overflowY: 'auto', fontSize: 13, color: 'var(--text-secondary)', padding: '24px' }}>
+              <h4 style={{ color: 'var(--gold-300)', marginBottom: 8, fontSize: 15 }}>1. Reservation Policy</h4>
+              <p style={{ marginBottom: 16 }}>All reservations are subject to availability. A valid credit card is required to secure your booking. The resort reserves the right to pre-authorize the card prior to arrival.</p>
+              
+              <h4 style={{ color: 'var(--gold-300)', marginBottom: 8, fontSize: 15 }}>2. Cancellation Policy</h4>
+              <p style={{ marginBottom: 16 }}>Cancellations made less than 48 hours before the check-in date will be subject to a charge equivalent to one night's stay.</p>
+              
+              <h4 style={{ color: 'var(--gold-300)', marginBottom: 8, fontSize: 15 }}>3. Check-In & Check-Out</h4>
+              <p style={{ marginBottom: 16 }}>Check-in time is from 2:00 PM and check-out time is by 12:00 PM (Noon). Late check-outs are subject to availability and may incur additional charges.</p>
+            </div>
+            <div className="modal-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              <button className="btn btn-secondary" onClick={() => setShowTerms(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

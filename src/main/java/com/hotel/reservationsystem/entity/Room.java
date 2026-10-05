@@ -70,6 +70,9 @@ public class Room {
     // Maximum number of guests this room can accommodate.
     private int capacity;
 
+    @Column(length = 500)
+    private String imageUrl;
+
     // @Transient → this method is NOT a database column.
     //   It's a convenience alias so UC-04 (ReservationService) can call
     //   room.getPrice() instead of room.getPricePerNight().

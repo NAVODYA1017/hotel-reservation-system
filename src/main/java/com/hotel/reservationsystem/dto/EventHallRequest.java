@@ -46,4 +46,6 @@ public class EventHallRequest {
 
     @JsonAlias({"amenities"})
     private String description;
+
+    private String imageUrl;
 }

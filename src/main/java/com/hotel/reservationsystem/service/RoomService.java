@@ -71,6 +71,7 @@ public class RoomService {
         room.setCapacity(request.getCapacity() != null ? request.getCapacity() : 2);
         room.setStatus(request.getStatus() != null ? request.getStatus() : RoomStatus.AVAILABLE);
         room.setDescription(request.getDescription());
+        room.setImageUrl(request.getImageUrl());
 
         // Save to MySQL database via Spring Data JPA
         Room savedRoom = roomRepository.save(room);
@@ -123,6 +124,7 @@ public class RoomService {
             room.setStatus(request.getStatus());
         }
         room.setDescription(request.getDescription());
+        room.setImageUrl(request.getImageUrl());
 
         Room updated = roomRepository.save(room);
         return RoomResponse.fromEntity(updated);

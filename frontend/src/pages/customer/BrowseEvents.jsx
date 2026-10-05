@@ -160,7 +160,7 @@ function BrowseEvents() {
                     <div key={hall.id} className="booking-card animate-fade-in" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                       <div style={{
                         height: 220,
-                        background: `url(${defaultImg}) center/cover no-repeat`,
+                        background: `url(${hall.imageUrl || defaultImg}) center/cover no-repeat`,
                         position: 'relative'
                       }}>
                         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(15,23,42,0.9) 0%, transparent 60%)' }} />

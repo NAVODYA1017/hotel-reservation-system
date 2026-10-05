@@ -3,6 +3,7 @@ package com.hotel.reservationsystem.exception;
 import com.hotel.reservationsystem.controller.AdminAuthController;
 import com.hotel.reservationsystem.controller.AdminReportController;
 import com.hotel.reservationsystem.controller.AdminUserController;
+import com.hotel.reservationsystem.controller.FrontDeskController;
 import com.hotel.reservationsystem.controller.SystemSettingsController;
 import com.hotel.reservationsystem.dto.ErrorResponse;
 import org.springframework.core.Ordered;

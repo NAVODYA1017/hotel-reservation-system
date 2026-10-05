@@ -28,18 +28,52 @@ const STATUS_BADGE = {
 const TYPE_OPTIONS = ['Standard', 'Deluxe', 'Suite', 'Premium Suite'];
 const STATUS_OPTIONS = ['AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'RESERVED', 'OUT_OF_SERVICE'];
 
+const ROOM_IMAGES = {
+  'Standard': [
+    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800&q=80',
+    'https://images.unsplash.com/photo-1598928506311-c55dd129a0eb?w=800&q=80',
+    'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&q=80',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80',
+    'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80',
+    'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&q=80',
+    'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&q=80',
+    'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=800&q=80',
+    'https://images.unsplash.com/photo-1590490359683-658d3d23f972?w=800&q=80',
+    'https://images.unsplash.com/photo-1590490360182-c33d5773342b?w=800&q=80'
+  ],
+  'Deluxe': [
+    'https://images.unsplash.com/photo-1566195992011-5f6b21e539aa?w=800&q=80',
+    'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&q=80',
+    'https://images.unsplash.com/photo-1606046604972-77cc76aee944?w=800&q=80',
+    'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80',
+    'https://images.unsplash.com/photo-1522771731478-444855018a1a?w=800&q=80'
+  ],
+  'Suite': [
+    'https://images.unsplash.com/photo-1502672260266-1c1ff2d6c411?w=800&q=80',
+    'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&q=80',
+    'https://images.unsplash.com/photo-1574643034914-1eeab3636bdf?w=800&q=80',
+    'https://images.unsplash.com/photo-1630660664869-c9d3cc676880?w=800&q=80',
+    'https://images.unsplash.com/photo-1560185013-1f744e83f2df?w=800&q=80'
+  ],
+  'Premium Suite': [
+    'https://images.unsplash.com/photo-1618221118493-9cfa1a1c00da?w=800&q=80',
+    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80',
+    'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=80'
+  ]
+};
+
 function RoomCard({ room, onEdit, onDelete }) {
   const isAvailable = room.status === 'AVAILABLE';
 
   return (
     <div className="room-card">
       <div className="room-card-img" style={{
-        background: isAvailable
+        background: room.imageUrl ? `url(${room.imageUrl}) center/cover no-repeat` : (isAvailable
           ? 'linear-gradient(135deg, #1e1a33, #2a2545)'
-          : 'linear-gradient(135deg, #13101e, #1e1a33)',
+          : 'linear-gradient(135deg, #13101e, #1e1a33)'),
         display: 'flex', alignItems: 'center', justifyContent: 'center'
       }}>
-        <BedDouble size={48} style={{ color: 'var(--gold-400)', opacity: 0.85, zIndex: 1 }} />
+        {!room.imageUrl && <BedDouble size={48} style={{ color: 'var(--gold-400)', opacity: 0.85, zIndex: 1 }} />}
         <div style={{
           position: 'absolute', top: 12, right: 12, zIndex: 2,
         }}>
@@ -106,7 +140,8 @@ function RoomModal({ room, onClose, onSave }) {
     pricePerNight: room.pricePerNight,
     status: room.status,
     amenities: room.amenities,
-  } : { roomNumber: '', type: 'Standard', floor: 1, capacity: 2, pricePerNight: 8500, status: 'AVAILABLE', amenities: '' });
+    imageUrl: room.imageUrl || '',
+  } : { roomNumber: '', type: 'Standard', floor: 1, capacity: 2, pricePerNight: 8500, status: 'AVAILABLE', amenities: '', imageUrl: ROOM_IMAGES['Standard'][0] });
 
   const [saving, setSaving] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -131,6 +166,30 @@ function RoomModal({ room, onClose, onSave }) {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            <div className="form-group" style={{ marginBottom: 20 }}>
+              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Room Image *</span>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 400 }}>Select from {form.type} gallery</span>
+              </label>
+              <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8 }}>
+                {(ROOM_IMAGES[form.type] || ROOM_IMAGES['Standard']).map((url, i) => (
+                  <img
+                    key={i}
+                    src={url}
+                    alt={`Room Option ${i + 1}`}
+                    onClick={() => set('imageUrl', url)}
+                    style={{
+                      width: 80, height: 60, objectFit: 'cover', borderRadius: 6, cursor: 'pointer',
+                      border: form.imageUrl === url ? '2px solid var(--gold-400)' : '2px solid transparent',
+                      opacity: form.imageUrl === url ? 1 : 0.6,
+                      transition: 'all 0.2s',
+                      flexShrink: 0
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            
             <div className="form-grid">
               <div className="form-group">
                 <label className="form-label">Room Number *</label>
@@ -144,7 +203,9 @@ function RoomModal({ room, onClose, onSave }) {
             <div className="form-grid">
               <div className="form-group">
                 <label className="form-label">Room Type *</label>
-                <select className="form-select" value={form.type} onChange={e => set('type', e.target.value)}>
+                <select className="form-select" value={form.type} onChange={e => {
+                  setForm(f => ({ ...f, type: e.target.value, imageUrl: ROOM_IMAGES[e.target.value]?.[0] || '' }));
+                }}>
                   {TYPE_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
@@ -223,6 +284,7 @@ function Rooms() {
       capacity: Number(form.capacity),
       status: form.status,
       description: form.amenities,
+      imageUrl: form.imageUrl,
     };
 
     try {

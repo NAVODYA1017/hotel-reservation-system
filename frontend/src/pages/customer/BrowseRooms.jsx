@@ -214,7 +214,7 @@ function BrowseRooms() {
                 {filtered.map(room => (
                   <CustomerRoomCard
                     key={room.id}
-                    room={room}
+                    room={{...room, image: room.imageUrl}}
                     onClick={() => handleRoomClick(room)}
                   />
                 ))}

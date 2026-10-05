@@ -40,8 +40,7 @@ public class EventHallResponse {
     private String description;
     private EventHallStatus status;
 
-    // ─────────────────────────────────────────────────────────────────
-    // UI COMPATIBILITY ALIASES
+
 
     public BigDecimal getPricePerDay() {
         return pricePerEvent;
@@ -55,8 +54,6 @@ public class EventHallResponse {
         return description;
     }
 
-    // ─────────────────────────────────────────────────────────────────
-    // STATIC FACTORY MAPPER (Entity → Response DTO)
 
     public static EventHallResponse fromEntity(EventHall hall) {
         if (hall == null) return null;

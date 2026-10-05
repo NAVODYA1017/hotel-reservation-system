@@ -30,9 +30,9 @@ public class EventHallServiceImpl implements EventHallService {
     }
 
 
-    // =========================================================
-    // CREATE EVENT HALL
-    // =========================================================
+    //----------------------------------
+    //      CREATE
+    //-----------------------------
 
     @Override
     @Transactional
@@ -59,7 +59,7 @@ public class EventHallServiceImpl implements EventHallService {
         hall.setSeatingCapacity(request.getSeatingCapacity());
 
         // Make the hall available by default
-        // if availability is not provided.
+        // if availability is not provided
         hall.setAvailable(
                 request.getAvailable() != null
                         ? request.getAvailable()
@@ -76,9 +76,9 @@ public class EventHallServiceImpl implements EventHallService {
     }
 
 
-    // =========================================================
+    // -------------------------------
     // GET ALL EVENT HALLS
-    // =========================================================
+    //---------------------------
 
     @Override
     @Transactional(readOnly = true)
@@ -91,9 +91,9 @@ public class EventHallServiceImpl implements EventHallService {
     }
 
 
-    // =========================================================
+    //-------------------------------------
     // GET AVAILABLE EVENT HALLS
-    // =========================================================
+    //----------------------------------
 
     @Override
     @Transactional(readOnly = true)
@@ -107,9 +107,9 @@ public class EventHallServiceImpl implements EventHallService {
     }
 
 
-    // =========================================================
+    // ---------------------------------
     // GET EVENT HALL BY ID
-    // =========================================================
+    // -----------------------------------------
 
     @Override
     @Transactional(readOnly = true)
@@ -128,9 +128,9 @@ public class EventHallServiceImpl implements EventHallService {
     }
 
 
-    // =========================================================
-    // UPDATE EVENT HALL
-    // =========================================================
+    //---------------------------------------------
+    //   UPDATE
+    // ----------------------------------------
 
     @Override
     @Transactional
@@ -224,9 +224,9 @@ public class EventHallServiceImpl implements EventHallService {
     }
 
 
-    // =========================================================
+    // ----------------------------------------
     // UPDATE HALL AVAILABILITY
-    // =========================================================
+    // -------------------------------
 
     @Override
     @Transactional
@@ -274,9 +274,9 @@ public class EventHallServiceImpl implements EventHallService {
     }
 
 
-    // =========================================================
+    // ----------------------------------
     // DELETE EVENT HALL
-    // =========================================================
+    // -----------------------------
 
     @Override
     @Transactional
@@ -314,9 +314,9 @@ public class EventHallServiceImpl implements EventHallService {
     }
 
 
-    // =========================================================
+    // --------------------------------------------
     // VALIDATE EVENT HALL REQUEST
-    // =========================================================
+    // --------------------------------
 
     private void validateHallRequest(
             EventHallRequest request) {

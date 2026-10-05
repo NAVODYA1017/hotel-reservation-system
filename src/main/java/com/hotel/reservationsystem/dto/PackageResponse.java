@@ -8,14 +8,7 @@
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.dto;
 
-// ── IMPORT EXPLANATIONS ─────────────────────────────────────────────────
-// Package        – The JPA Entity containing the persisted package record.
-// BigDecimal     – High precision monetary value.
-// Lombok:
-//   @Data        – Auto-generates getters, setters, toString, equals, hashCode.
-//   @Builder     – Builder pattern.
-//   @NoArgsConstructor, @AllArgsConstructor – Standard constructors.
-// ─────────────────────────────────────────────────────────────────────────
+
 import com.hotel.reservationsystem.entity.Package;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,8 +29,6 @@ public class PackageResponse {
     private BigDecimal price;
     private String servicesIncluded;
 
-    // ─────────────────────────────────────────────────────────────────
-    // STATIC FACTORY MAPPER (Entity → Response DTO)
 
     public static PackageResponse fromEntity(Package pkg) {
         if (pkg == null) return null;

@@ -29,9 +29,9 @@ public class PackageServiceImpl implements PackageService {
     }
 
 
-    // =========================================================
-    // 1. CREATE EVENT PACKAGE
-    // =========================================================
+    // ----------------------------------------
+    //   CREATE pkg
+    // -------------------------------
 
     @Override
     @Transactional
@@ -85,9 +85,9 @@ public class PackageServiceImpl implements PackageService {
     }
 
 
-    // =========================================================
-    // 2. GET ALL EVENT PACKAGES
-    // =========================================================
+    // -------------------------------------
+    //  GET ALL EVENT PACKAGES
+    // -------------------------------
 
     @Override
     @Transactional(readOnly = true)
@@ -100,9 +100,9 @@ public class PackageServiceImpl implements PackageService {
     }
 
 
-    // =========================================================
-    // 3. GET PACKAGE BY ID
-    // =========================================================
+    // ----------------------------------
+    //  GET PACKAGE BY ID
+    // --------------------------
 
     @Override
     @Transactional(readOnly = true)
@@ -121,9 +121,9 @@ public class PackageServiceImpl implements PackageService {
     }
 
 
-    // =========================================================
-    // 4. UPDATE EVENT PACKAGE
-    // =========================================================
+    // ----------------------------------
+    //  UPDATE EVENT PACKAGE
+    // --------------------------------
 
     @Override
     @Transactional
@@ -190,9 +190,9 @@ public class PackageServiceImpl implements PackageService {
     }
 
 
-    // =========================================================
-    // 5. DELETE EVENT PACKAGE
-    // =========================================================
+    // -----------------------------------------
+    //      DELETE EVENT PACKAGE
+    //-------------------------------
 
     @Override
     @Transactional
@@ -232,9 +232,9 @@ public class PackageServiceImpl implements PackageService {
     }
 
 
-    // =========================================================
-    // 6. VALIDATE PACKAGE REQUEST
-    // =========================================================
+    // -----------------------------------------
+    //      VALIDATE PACKAGE REQUEST
+    // ------------------------------------
 
     private void validatePackageRequest(
             PackageRequest request) {

@@ -1,29 +1,6 @@
-// ═══════════════════════════════════════════════════════════════════════
-// FILE : EventHallController.java
-// LAYER: Controller (Presentation / REST API Layer)
-//
-// WHAT DOES THIS CONTROLLER DO?
-//   Exposes REST endpoints for the management and customer browsing
-//   of hotel event halls:
-//     - POST   /api/event-halls              → Create a new event hall
-//     - GET    /api/event-halls              → List all halls
-//     - GET    /api/event-halls/available    → List available halls
-//     - GET    /api/event-halls/{id}         → View single hall details
-//     - PUT    /api/event-halls/{id}         → Update hall information
-//     - PATCH  /api/event-halls/{id}/availability → Toggle availability
-//     - DELETE /api/event-halls/{id}         → Delete hall
-// ═══════════════════════════════════════════════════════════════════════
+
 package com.hotel.reservationsystem.controller;
 
-// ── IMPORT EXPLANATIONS ─────────────────────────────────────────────────
-// EventHallRequest / Response – DTOs for safe JSON communication.
-// EventHallService            – Injected service carrying business logic.
-// @RestController             – Combines @Controller and @ResponseBody (returns JSON).
-// @RequestMapping             – Base path prefix for all endpoints in this controller.
-// @CrossOrigin                – Permits CORS requests from frontend Vite server.
-// @Autowired                  – Spring dependency injection for the service layer.
-// ResponseEntity              – Encapsulates HTTP status codes, headers, and body.
-// ─────────────────────────────────────────────────────────────────────────
 import com.hotel.reservationsystem.dto.EventHallRequest;
 import com.hotel.reservationsystem.dto.EventHallResponse;
 import com.hotel.reservationsystem.service.EventHallService;
@@ -35,25 +12,27 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@RestController
-@RequestMapping({"/api/event-halls", "/api/halls"})
+@RestController //combine @controller & @responsebody and return json
+@RequestMapping({"/api/event-halls", "/api/halls"}) //base path prefix for all endpoints
 public class EventHallController {
 
-    @Autowired
+    @Autowired // spring annot for dep injection
     private EventHallService eventHallService;
 
 
-    @PostMapping
+    // @ReqBody --> turn http req body into java object
+    @PostMapping //http post req --> create
     public ResponseEntity<EventHallResponse> createEventHall(@RequestBody EventHallRequest request) {
         EventHallResponse response = eventHallService.createEventHall(request);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return new ResponseEntity<>(response, HttpStatus.CREATED); //201
     }
 
 
-    @GetMapping
+    //ResponseEntity - response data + status code
+    @GetMapping //retrieve data
     public ResponseEntity<List<EventHallResponse>> getAllEventHalls() {
         List<EventHallResponse> halls = eventHallService.getAllEventHalls();
-        return ResponseEntity.ok(halls);
+        return ResponseEntity.ok(halls); //200 ok
     }
 
 
@@ -63,6 +42,7 @@ public class EventHallController {
         return ResponseEntity.ok(availableHalls);
     }
 
+    // @PathVar - get val directly from url
 
     @GetMapping("/{id}")
     public ResponseEntity<EventHallResponse> getEventHallById(@PathVariable Long id) {
@@ -80,6 +60,7 @@ public class EventHallController {
     }
 
 
+    //patchmapping - update only specific property
     @PatchMapping("/{id}/availability")
     public ResponseEntity<EventHallResponse> updateAvailability(
             @PathVariable Long id,
@@ -93,6 +74,6 @@ public class EventHallController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEventHall(@PathVariable Long id) {
         eventHallService.deleteEventHall(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build(); //204 no content  .build() - creates final respEntity
     }
 }

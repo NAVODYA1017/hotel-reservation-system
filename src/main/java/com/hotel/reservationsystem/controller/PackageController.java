@@ -12,14 +12,6 @@
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.controller;
 
-// ── IMPORT EXPLANATIONS ─────────────────────────────────────────────────
-// PackageRequest / Response   – DTOs encapsulating package payloads.
-// PackageService              – Injected service providing validation & CRUD.
-// @RestController             – Marks class as Spring REST controller.
-// @RequestMapping             – Directs requests matching /api/packages here.
-// @CrossOrigin                – Enables cross-origin requests from Vite client.
-// ResponseEntity              – Spring wrapper for HTTP response code, headers, body.
-// ─────────────────────────────────────────────────────────────────────────
 import com.hotel.reservationsystem.dto.PackageRequest;
 import com.hotel.reservationsystem.dto.PackageResponse;
 import com.hotel.reservationsystem.service.PackageService;
@@ -57,7 +49,7 @@ public class PackageController {
         return ResponseEntity.ok(pkg);
     }
 
-    // error check --> gets all halls not just the related halls
+    // error check --> pkg & hall issue
     @GetMapping("/hall/{hallId}")
     public ResponseEntity<List<PackageResponse>> getPackagesByHall(@PathVariable Long hallId) {
         List<PackageResponse> packages = packageService.getAllPackages();

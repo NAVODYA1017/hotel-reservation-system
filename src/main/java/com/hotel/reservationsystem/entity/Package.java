@@ -8,11 +8,7 @@
 // ═══════════════════════════════════════════════════════════════════════
 package com.hotel.reservationsystem.entity;
 
-// ── IMPORT EXPLANATIONS ─────────────────────────────────────────────────
-// jakarta.persistence.* – JPA annotations (@Entity, @Table, @Id, @Column, etc.).
-// Lombok                – Code generation annotations (@Data, @NoArgsConstructor, etc.).
-// BigDecimal            – Precise decimal type for monetary amounts.
-// ─────────────────────────────────────────────────────────────────────────
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,30 +16,27 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-@Entity                       // JPA entity → database table.
-@Table(name = "packages")     // Maps to "packages" table in MySQL.
-@Data                         // Lombok: auto-generates getters, setters, toString, etc.
-@NoArgsConstructor            // Lombok: generates empty constructor.
-@AllArgsConstructor           // Lombok: generates all-fields constructor.
+@Entity
+@Table(name = "packages")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+
 public class Package {
 
-    @Id  // Primary key of the packages table.
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // AUTO_INCREMENT in MySQL.
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  //auto increment
     private Long id;
 
-    // Package name, e.g. "Wedding Essentials", "Premium Decor".
     @Column(nullable = false, length = 100)
     private String name;
 
-    // Detailed description of what's included in the package.
     @Column(length = 255)
     private String description;
 
-    // Price of the package – DECIMAL(10,2) in MySQL.
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    // Comma-separated list of services, e.g. "Catering, Decor, Sound System".
     @Column(length = 255)
     private String servicesIncluded;
 }

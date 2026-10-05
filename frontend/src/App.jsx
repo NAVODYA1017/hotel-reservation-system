@@ -14,6 +14,9 @@ import Rooms      from './pages/Rooms';
 import Payments   from './pages/Payments';
 import EventHalls from './pages/EventHalls';
 
+// ── Front Desk pages ──
+import FrontDeskDashboard from './pages/FrontDeskDashboard';
+
 // ── Customer pages ──
 import Home        from './pages/customer/Home';
 import BrowseRooms from './pages/customer/BrowseRooms';
@@ -25,7 +28,7 @@ import Profile     from './pages/customer/Profile';
 import BrowseEvents from './pages/customer/BrowseEvents';
 
 import { 
-  LayoutDashboard, Calendar, BedDouble, Sparkles, CreditCard, Users as UsersIcon, BarChart3, Settings as SettingsIcon, Globe, Building2, LogOut
+  LayoutDashboard, Calendar, BedDouble, Sparkles, CreditCard, Users as UsersIcon, BarChart3, Settings as SettingsIcon, Globe, Building2, LogOut, CheckSquare
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════
@@ -46,6 +49,14 @@ const ADMIN_NAV = [
   ]},
 ];
 
+const FRONTDESK_NAV = [
+  { group: 'Overview',       items: [{ to: '/frontdesk',              icon: <LayoutDashboard size={17} />, label: 'Desk Dashboard',    exact: true }] },
+  { group: 'Operations',     items: [
+    { to: '/frontdesk/reservations', icon: <Calendar size={17} />, label: 'Reservations' },
+    { to: '/frontdesk/rooms',        icon: <BedDouble size={17} />, label: 'Room Rack'         },
+  ]},
+];
+
 const PAGE_META = {
   '/admin':              { title: 'Dashboard',          subtitle: "Welcome back — here's what's happening today" },
   '/admin/reservations': { title: 'Reservations',        subtitle: 'Manage guest bookings and stay requests'       },
@@ -55,6 +66,9 @@ const PAGE_META = {
   '/admin/users':        { title: 'Users & Roles',       subtitle: 'Manage staff accounts and permissions'         },
   '/admin/reports':      { title: 'Reports & Analytics', subtitle: 'Revenue reports and operational insights'      },
   '/admin/settings':     { title: 'System Settings',     subtitle: 'Configure hotel preferences and policies'      },
+  '/frontdesk':          { title: 'Front Desk',          subtitle: "Welcome back — here's your desk overview"      },
+  '/frontdesk/reservations': { title: 'Reservations',        subtitle: 'Manage walk-ins and guest check-ins'       },
+  '/frontdesk/rooms':        { title: 'Room Rack',           subtitle: 'View live room status'               },
 };
 
 function AdminSidebar({ currentUser, onLogout }) {
@@ -80,7 +94,7 @@ function AdminSidebar({ currentUser, onLogout }) {
       </div>
 
       <nav className="sidebar-nav">
-        {ADMIN_NAV.map(group => (
+        {(currentUser?.role === 'RECEPTIONIST' ? FRONTDESK_NAV : ADMIN_NAV).map(group => (
           <div key={group.group}>
             <div className="nav-section-label">{group.group}</div>
             {group.items.map(item => {
@@ -218,6 +232,11 @@ function App() {
         <Route path="/admin/users"        element={<AdminLayout><Users /></AdminLayout>} />
         <Route path="/admin/reports"      element={<AdminLayout><Reports /></AdminLayout>} />
         <Route path="/admin/settings"     element={<AdminLayout><Settings /></AdminLayout>} />
+
+        {/* ── Front Desk routes ── */}
+        <Route path="/frontdesk"              element={<AdminLayout><FrontDeskDashboard /></AdminLayout>} />
+        <Route path="/frontdesk/reservations" element={<AdminLayout><Reservations /></AdminLayout>} />
+        <Route path="/frontdesk/rooms"        element={<AdminLayout><Rooms /></AdminLayout>} />
 
         {/* Legacy /login redirect support */}
         <Route path="/login"         element={<Login />} />

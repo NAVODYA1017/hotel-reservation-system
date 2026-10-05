@@ -22,10 +22,15 @@ function Login() {
         // Store user info if returned
         if (res.data.user) {
           localStorage.setItem('currentUser', JSON.stringify(res.data.user));
+          if (res.data.user.role === 'RECEPTIONIST') {
+            navigate('/frontdesk');
+          } else {
+            navigate('/admin');
+          }
         } else {
           localStorage.setItem('currentUser', JSON.stringify({ name: 'Admin', role: 'SYSTEM_ADMIN' }));
+          navigate('/admin');
         }
-        navigate('/admin');
       } else {
         setError('Login failed: No token received.');
       }
@@ -158,8 +163,11 @@ function Login() {
           <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Demo Credentials
           </p>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
+            Admin: admin@hotel.com &nbsp;&bull;&nbsp; admin123
+          </p>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-            admin@hotel.com &nbsp;&bull;&nbsp; admin123
+            Receptionist: frontdesk@hotel.com &nbsp;&bull;&nbsp; desk123
           </p>
         </div>
       </div>

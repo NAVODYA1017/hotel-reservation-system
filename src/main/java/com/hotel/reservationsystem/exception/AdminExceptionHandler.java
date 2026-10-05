@@ -30,7 +30,8 @@ import java.time.LocalDateTime;
         AdminAuthController.class,
         AdminReportController.class,
         AdminUserController.class,
-        SystemSettingsController.class
+        SystemSettingsController.class,
+        FrontDeskController.class
 })
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class AdminExceptionHandler {

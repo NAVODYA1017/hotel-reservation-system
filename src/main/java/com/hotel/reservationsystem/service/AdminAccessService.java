@@ -27,6 +27,14 @@ public class AdminAccessService {
     // Dashboard and reports only (US-19: Finance & Operations Executive generates revenue reports)
     public static final Set<Role> REPORT_ROLES = EnumSet.of(Role.HOTEL_MANAGER, Role.SYSTEM_ADMIN, Role.FINANCE_EXECUTIVE);
 
+    // Front desk operations: arrivals, check-in/out, guest records, payment verification.
+    // Managers/admins may also open the front desk; receptionists may open NOTHING else.
+    public static final Set<Role> FRONT_DESK_ROLES = EnumSet.of(Role.RECEPTIONIST, Role.HOTEL_MANAGER, Role.SYSTEM_ADMIN);
+
+    // Anyone allowed to sign in to the staff portal (each role is then sent to its own area).
+    public static final Set<Role> STAFF_PORTAL_ROLES = EnumSet.of(
+            Role.RECEPTIONIST, Role.HOTEL_MANAGER, Role.SYSTEM_ADMIN, Role.FINANCE_EXECUTIVE);
+
     @Autowired
     private UserRepository userRepository;
 
@@ -38,6 +46,10 @@ public class AdminAccessService {
         return requireAnyRole(userId, REPORT_ROLES);
     }
 
+    public User requireFrontDesk(Long userId) {
+        return requireAnyRole(userId, FRONT_DESK_ROLES);
+    }
+
     private User requireAnyRole(Long userId, Set<Role> allowedRoles) {
         if (userId == null) {
             throw new AuthenticationFailedException("Please sign in to use administration functions.");
@@ -46,6 +58,9 @@ public class AdminAccessService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthenticationFailedException("Your account no longer exists. Please sign in again."));
 
+        if (!user.isActive()) {
+            throw new UnauthorizedAccessException("Your account has been deactivated. Contact the hotel manager.");
+        }
         if (!allowedRoles.contains(user.getRole())) {
             throw new UnauthorizedAccessException(
                     "Access denied. Role " + user.getRole() + " does not have administrator privileges for this function.");

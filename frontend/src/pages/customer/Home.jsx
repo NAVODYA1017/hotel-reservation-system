@@ -76,9 +76,6 @@ function CustomerNav() {
           ) : (
             <button className="c-nav-link" onClick={() => navigate('/guest-login')}>SIGN IN</button>
           )}
-          <button className="c-nav-link c-nav-link--muted" onClick={() => navigate('/admin')} title="Staff Portal">
-            STAFF
-          </button>
         </div>
 
         <button className="c-nav-book" onClick={() => navigate('/browse')}>

@@ -81,6 +81,13 @@ public class Payment {
     @Column(length = 255)
     private String failureReason;
 
+    // Front desk payment verification (NULL = not yet verified by staff).
+    @Column(name = "verified_at")
+    private LocalDateTime verifiedAt;
+
+    @Column(name = "verified_by", length = 100)
+    private String verifiedBy;
+
     // Timestamp when the payment was made.
     @Column(nullable = false, updatable = false)
     private LocalDateTime paidAt = LocalDateTime.now();

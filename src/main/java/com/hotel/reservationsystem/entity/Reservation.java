@@ -99,6 +99,14 @@ public class Reservation {
     @Column(nullable = false, length = 25)
     private ReservationStatus status = ReservationStatus.PENDING;  // Default: pending.
 
+    // Front desk: when the receptionist checked the guest in / out (NULL until it happens).
+    // A guest is "in-house" when checkedInAt is set and checkedOutAt is still NULL.
+    @Column(name = "checked_in_at")
+    private LocalDateTime checkedInAt;
+
+    @Column(name = "checked_out_at")
+    private LocalDateTime checkedOutAt;
+
     // When this reservation was created (set once, never updated).
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

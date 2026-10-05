@@ -78,10 +78,13 @@ public class AdminAuthService {
         }
         failedAttempts.remove(email);
 
-        // Extension 1a: correct password, but not an administrator role
-        if (!AdminAccessService.REPORT_ROLES.contains(user.getRole())) {
+        // Extension 1a: correct password, but not a staff role (customers use the guest site)
+        if (!AdminAccessService.STAFF_PORTAL_ROLES.contains(user.getRole())) {
             throw new UnauthorizedAccessException(
-                    "Access denied. Your role (" + user.getRole() + ") does not have access to administration functions.");
+                    "Access denied. Your role (" + user.getRole() + ") does not have access to the staff portal.");
+        }
+        if (!user.isActive()) {
+            throw new UnauthorizedAccessException("Your account has been deactivated. Contact the hotel manager.");
         }
 
         String token = newToken();
@@ -113,16 +116,6 @@ public class AdminAuthService {
         }
 
         Session session = sessions.get(token);
-        if (session == null && ("admin-session-token".equals(token) || "demo-token".equals(token))) {
-            User admin = userRepository.findAll().stream()
-                    .filter(u -> AdminAccessService.ADMIN_ROLES.contains(u.getRole()))
-                    .findFirst()
-                    .orElse(null);
-            if (admin != null) {
-                session = new Session(admin.getId(), LocalDateTime.now().plus(SESSION_TIMEOUT));
-                sessions.put(token, session);
-            }
-        }
         if (session == null || session.expiresAt().isBefore(LocalDateTime.now())) {
             sessions.remove(token);
             throw new AuthenticationFailedException("Your session is invalid or has expired. Please sign in again.");

@@ -4,6 +4,8 @@ import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
 import LoadingScreen from '../../components/LoadingScreen';
 import Reveal from '../../components/Reveal';
+import RoomGallery from '../../components/RoomGallery';
+import { getRoomGallery } from '../../utils/galleryData';
 import { BedDouble, Home, Maximize2, Users, Layers, Eye, Info, CheckCircle2, Clock, CalendarDays, Ban, Dog, RefreshCcw } from 'lucide-react';
 
 const MOCK_ROOMS = {
@@ -27,7 +29,6 @@ function RoomDetail() {
   const [checkIn, setCheckIn] = useState(searchParams.get('checkIn') || '');
   const [checkOut, setCheckOut] = useState(searchParams.get('checkOut') || '');
   const [guests, setGuests] = useState(Number(searchParams.get('guests')) || 1);
-  const [activeImg, setActiveImg] = useState(0);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -35,21 +36,26 @@ function RoomDetail() {
     axios.get(`/api/rooms/${id}`)
       .then(res => {
         const r = res.data;
-        setRoom({
-          ...r,
-          type: r.roomType || r.type || 'Standard Room',
-          pricePerNight: Number(r.pricePerNight || r.price || 8500),
-          capacity: Number(r.capacity || 2),
-          amenities: typeof r.description === 'string' 
-            ? r.description.split(',').map(s => s.trim()).filter(Boolean)
-            : Array.isArray(r.amenities) ? r.amenities : ['WiFi', 'AC', 'Smart TV', 'In-room Safe'],
-          view: r.roomNumber?.startsWith('3') ? 'Ocean View' : r.roomNumber?.startsWith('2') ? 'Pool View' : 'Garden View',
-          size: r.roomNumber?.startsWith('3') ? '140 sqm' : r.roomNumber?.startsWith('2') ? '80 sqm' : '46 sqm',
-          description: r.description || 'Experience ultimate luxury with our beautifully appointed room, crafted for relaxation and comfort.',
-        });
+        if (r && (r.roomNumber || r.roomType || r.type)) {
+          setRoom({
+            ...r,
+            type: r.roomType || r.type || 'Standard Room',
+            pricePerNight: Number(r.pricePerNight || r.price || 8500),
+            capacity: Number(r.capacity || 2),
+            imageUrl: r.imageUrl || null,
+            amenities: typeof r.description === 'string' 
+              ? r.description.split(',').map(s => s.trim()).filter(Boolean)
+              : Array.isArray(r.amenities) ? r.amenities : ['WiFi', 'AC', 'Smart TV', 'In-room Safe'],
+            view: r.roomNumber?.startsWith('3') ? 'Ocean View' : r.roomNumber?.startsWith('2') ? 'Pool View' : 'Garden View',
+            size: r.roomNumber?.startsWith('3') ? '140 sqm' : r.roomNumber?.startsWith('2') ? '80 sqm' : '46 sqm',
+            description: r.description || 'Experience ultimate luxury with our beautifully appointed room, crafted for relaxation and comfort.',
+          });
+        } else {
+          setRoom(MOCK_ROOMS[id] || MOCK_ROOMS[1]);
+        }
       })
       .catch(() => {
-        setRoom(null);
+        setRoom(MOCK_ROOMS[id] || MOCK_ROOMS[1]);
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -113,23 +119,11 @@ function RoomDetail() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 40, alignItems: 'flex-start' }}>
           {/* Left: Room Info */}
           <div>
-            {/* Main Image */}
+            {/* Interactive Room Multi-Image Gallery */}
             <Reveal>
-              <div
-                className="room-detail-hero"
-                style={{
-                  backgroundImage: `url(${
-                    (room.type || '').toLowerCase().includes('suite') ? '/assets/images/suite.jpg' :
-                    (room.type || '').toLowerCase().includes('deluxe') ? '/assets/images/deluxe.jpg' :
-                    '/assets/images/standard.jpg'
-                  })`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  borderRadius: 2,
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  marginBottom: 20,
-                  height: 380,
-                }}
+              <RoomGallery 
+                images={getRoomGallery(room.type, room.imageUrl)} 
+                roomTitle={`${room.type} (Room ${room.roomNumber})`} 
               />
             </Reveal>
 

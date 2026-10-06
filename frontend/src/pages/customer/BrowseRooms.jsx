@@ -41,12 +41,13 @@ function BrowseRooms() {
   useEffect(() => {
     axios.get('/api/rooms')
       .then(res => {
-        if (Array.isArray(res.data)) {
+        if (Array.isArray(res.data) && res.data.length > 0) {
           const mapped = res.data.map(r => ({
             ...r,
             type: r.roomType || r.type || 'Standard Room',
             pricePerNight: Number(r.pricePerNight || r.price || 8500),
             capacity: Number(r.capacity || 2),
+            imageUrl: r.imageUrl || null,
             amenities: typeof r.description === 'string'
               ? r.description.split(',').map(s => s.trim()).filter(Boolean)
               : Array.isArray(r.amenities) ? r.amenities : ['WiFi', 'AC', 'TV'],
@@ -54,10 +55,10 @@ function BrowseRooms() {
           }));
           setRooms(mapped);
         } else {
-          setRooms([]);
+          setRooms(MOCK_ROOMS);
         }
       })
-      .catch(() => setRooms([]))
+      .catch(() => setRooms(MOCK_ROOMS))
       .finally(() => setLoading(false));
   }, []);
 

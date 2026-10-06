@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CustomerNav, CustomerFooter } from './Home';
 import LoadingScreen from '../../components/LoadingScreen';
+import HallCarousel from '../../components/HallCarousel';
+import { getHallGallery } from '../../utils/galleryData';
 import { Building2, Package, Sparkles, CheckCircle2 } from 'lucide-react';
 
 const MOCK_HALLS = [
@@ -158,24 +160,25 @@ function BrowseEvents() {
 
                   return (
                     <div key={hall.id} className="booking-card animate-fade-in" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                      <div style={{
-                        height: 220,
-                        background: `url(${hall.imageUrl || defaultImg}) center/cover no-repeat`,
-                        position: 'relative'
-                      }}>
-                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(15,23,42,0.9) 0%, transparent 60%)' }} />
-                        <span className="badge badge-success" style={{ position: 'absolute', top: 16, right: 16 }}>
+                      <div style={{ position: 'relative' }}>
+                        <HallCarousel 
+                          images={getHallGallery(hall.id, hall.name, hall.imageUrl)} 
+                          hallName={hall.name} 
+                          height={230} 
+                        />
+                        <span className="badge badge-success" style={{ position: 'absolute', top: 14, right: 14, zIndex: 7, backdropFilter: 'blur(6px)', background: 'rgba(34, 197, 94, 0.85)' }}>
                           ✓ Available for Booking
                         </span>
-                        <div style={{ position: 'absolute', bottom: 16, left: 20 }}>
-                          <h3 style={{ fontSize: 22, fontWeight: 700, color: '#fff', margin: 0 }}>{hall.name}</h3>
-                          <div style={{ fontSize: 13, color: 'var(--gold-300)', marginTop: 4 }}>
-                            👥 Up to {capacity} Guests Seating
-                          </div>
-                        </div>
                       </div>
 
                       <div style={{ padding: '20px 24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <h3 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>{hall.name}</h3>
+                        <div style={{ fontSize: 13, color: 'var(--gold-300)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span>👥 Up to {capacity} Guests</span>
+                          <span>•</span>
+                          <span style={{ color: 'var(--text-muted)' }}>4 Curated Angles</span>
+                        </div>
+
                         <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>
                           {hall.description || hall.amenities || 'Magnificent event hall with high ceilings, sound dampening and state of the art presentation systems.'}
                         </p>
@@ -290,6 +293,15 @@ function BrowseEvents() {
               </div>
             ) : (
               <div className="modal-body">
+                <div style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: 16, border: '1px solid var(--border-subtle)' }}>
+                  <HallCarousel 
+                    images={getHallGallery(selectedHall.id, selectedHall.name, selectedHall.imageUrl)} 
+                    hallName={selectedHall.name} 
+                    height={170} 
+                    showCaption={true} 
+                  />
+                </div>
+
                 <div style={{ padding: '14px 18px', background: 'var(--dark-750)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', marginBottom: 20 }}>
                   <div className="flex justify-between" style={{ marginBottom: 6 }}>
                     <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Venue:</span>

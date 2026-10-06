@@ -1451,3 +1451,37 @@
   animation: logoPulse 2s ease-in-out infinite;
   object-fit: contain;
 }
+
+/* ---- Advanced Image Gallery & Lightbox ---- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.room-gallery-wrapper {
+  user-select: none;
+}
+
+.room-gallery-wrapper img {
+  user-drag: none;
+  -webkit-user-drag: none;
+}
+
+.hall-carousel-container {
+  user-select: none;
+}
+
+.hall-carousel-container button {
+  opacity: 0.85;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hall-carousel-container:hover button {
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .room-gallery-wrapper div[style*="height: 420"] {
+    height: 280px !important;
+  }
+}

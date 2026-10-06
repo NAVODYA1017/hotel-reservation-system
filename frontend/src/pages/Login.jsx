@@ -43,6 +43,13 @@ function Login() {
         setError(err.response?.data?.message || 'Access denied: You do not have administrator privileges.');
       } else if (err.response?.status === 401) {
         setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
+      } else if (err.response?.status === 500) {
+        const errorText = typeof err.response?.data === 'string' ? err.response.data : (err.response?.data?.message || '');
+        if (errorText.includes('ECONNREFUSED') || !err.response?.data) {
+          setError('Backend server (port 8080) is unreachable. Please ensure the Spring Boot server is started.');
+        } else {
+          setError(err.response?.data?.message || 'Backend Server Error (500). Please check backend connection.');
+        }
       } else if (err.code === 'ERR_NETWORK') {
         // For demo / dev purposes, allow bypass when backend is offline
         localStorage.setItem('token', 'demo-token');
@@ -158,27 +165,49 @@ function Login() {
         </form>
 
         <div style={{
-          marginTop: 28,
+          marginTop: 24,
           padding: '16px',
           background: 'rgba(201,160,48,0.06)',
           border: '1px solid var(--border-gold)',
           borderRadius: 'var(--radius-md)',
         }}>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-            Demo Credentials
+          <p style={{ fontSize: 11, color: 'var(--gold-400)', marginBottom: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            Quick-Fill Staff Accounts (Click to Select)
           </p>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
-            Admin: admin@hotel.com &nbsp;&bull;&nbsp; admin123
-          </p>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
-            Manager: manager@hotel.com &nbsp;&bull;&nbsp; manager123
-          </p>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
-            Receptionist: frontdesk@hotel.com &nbsp;&bull;&nbsp; desk123
-          </p>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-            Events: events@hotel.com &nbsp;&bull;&nbsp; events123
-          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-xs"
+              style={{ justifyContent: 'flex-start', padding: '8px 10px', fontSize: 12, background: 'rgba(255,255,255,0.04)', borderRadius: 4, border: '1px solid rgba(255,255,255,0.08)' }}
+              onClick={() => { setEmail('admin@hotel.com'); setPassword('admin123'); setError(''); }}
+            >
+              🛡️ Admin
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-xs"
+              style={{ justifyContent: 'flex-start', padding: '8px 10px', fontSize: 12, background: 'rgba(255,255,255,0.04)', borderRadius: 4, border: '1px solid rgba(255,255,255,0.08)' }}
+              onClick={() => { setEmail('manager@hotel.com'); setPassword('manager123'); setError(''); }}
+            >
+              👔 Manager
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-xs"
+              style={{ justifyContent: 'flex-start', padding: '8px 10px', fontSize: 12, background: 'rgba(255,255,255,0.04)', borderRadius: 4, border: '1px solid rgba(255,255,255,0.08)' }}
+              onClick={() => { setEmail('frontdesk@hotel.com'); setPassword('desk123'); setError(''); }}
+            >
+              🛎️ Receptionist
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-xs"
+              style={{ justifyContent: 'flex-start', padding: '8px 10px', fontSize: 12, background: 'rgba(255,255,255,0.04)', borderRadius: 4, border: '1px solid rgba(255,255,255,0.08)' }}
+              onClick={() => { setEmail('events@hotel.com'); setPassword('events123'); setError(''); }}
+            >
+              ✨ Event Coord
+            </button>
+          </div>
         </div>
       </div>
     </div>

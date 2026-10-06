@@ -5,8 +5,9 @@ import LoadingScreen from '../components/LoadingScreen';
 import {
   DollarSign, TrendingUp, Users, Calendar, BedDouble, Sparkles,
   BarChart3, ShieldCheck, ArrowUpRight, ArrowDownRight, Building2,
-  Receipt, CheckCircle2, Clock, AlertCircle, FileText, ChevronRight
+  Receipt, CheckCircle2, Clock, AlertCircle, FileText, ChevronRight, Download
 } from 'lucide-react';
+import { downloadExecutiveReportPdf } from '../utils/reportPdfGenerator';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const REVENUE_DATA = [18200, 22400, 19800, 31200, 28600, 35400, 41200, 38800, 29600, 44100, 37200, 31800];
@@ -97,6 +98,39 @@ function ManagerDashboard() {
     .sort((a, b) => (Number(b.totalAmount) || 0) - (Number(a.totalAmount) || 0))
     .slice(0, 5);
 
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+
+  const handleExportPdf = async () => {
+    setPdfGenerating(true);
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+      const today = now.toISOString().slice(0, 10);
+      const params = { from: firstDay, to: today };
+
+      const [revRes, resRes] = await Promise.all([
+        axios.get('/api/admin/reports/revenue', { headers, params }).catch(() => ({ data: null })),
+        axios.get('/api/admin/reports/reservations', { headers, params }).catch(() => ({ data: null }))
+      ]);
+
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{"name":"General Manager","role":"HOTEL_MANAGER"}');
+      await downloadExecutiveReportPdf({
+        revenueReport: revRes.data,
+        reservationReport: resRes.data,
+        fromDate: firstDay,
+        toDate: today,
+        currentUser
+      });
+    } catch (err) {
+      console.error('Failed to export PDF:', err);
+      alert('Failed to generate PDF report: ' + (err.message || 'Error'));
+    } finally {
+      setPdfGenerating(false);
+    }
+  };
+
   return (
     <div className="animate-fade-in" style={{ padding: '0 4px 32px' }}>
       
@@ -142,8 +176,28 @@ function ManagerDashboard() {
 
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <button
-            onClick={() => navigate('/manager/reports')}
+            onClick={handleExportPdf}
+            disabled={pdfGenerating}
             className="btn btn-primary"
+            style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: 8, 
+              padding: '10px 18px', 
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, var(--gold-400, #c5a059), var(--gold-500, #ad8742))',
+              color: '#0d0f0c'
+            }}
+          >
+            {pdfGenerating ? (
+              <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Generating PDF...</>
+            ) : (
+              <><Download size={16} /> Export Statistics PDF</>
+            )}
+          </button>
+          <button
+            onClick={() => navigate('/manager/reports')}
+            className="btn btn-outline"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', fontWeight: 600 }}
           >
             <BarChart3 size={16} />

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
+import { downloadExecutiveReportPdf } from '../utils/reportPdfGenerator';
 import { 
   DollarSign, Calendar, Printer, BarChart3, RotateCw, AlertTriangle, 
   Info, TrendingUp, ArrowDownLeft, BedDouble, CreditCard, Tag, 
-  FileText, XCircle
+  FileText, XCircle, Download
 } from 'lucide-react';
 
 function MiniBarChart({ values, labels, color = '' }) {
@@ -134,6 +135,40 @@ function Reports() {
     generateReport();
   }, [activeType]);
 
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    setPdfGenerating(true);
+    try {
+      let revenue = revReport;
+      let reservation = resReport;
+      const params = { from, to };
+
+      if (!revenue) {
+        const res = await axios.get('/api/admin/reports/revenue', { headers, params }).catch(() => null);
+        if (res?.data) revenue = res.data;
+      }
+      if (!reservation) {
+        const res = await axios.get('/api/admin/reports/reservations', { headers, params }).catch(() => null);
+        if (res?.data) reservation = res.data;
+      }
+
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{"name":"General Manager","role":"HOTEL_MANAGER"}');
+      await downloadExecutiveReportPdf({
+        revenueReport: revenue,
+        reservationReport: reservation,
+        fromDate: from,
+        toDate: to,
+        currentUser
+      });
+    } catch (err) {
+      console.error('Failed to generate PDF report:', err);
+      alert('Failed to generate PDF report: ' + (err.message || 'Error'));
+    } finally {
+      setPdfGenerating(false);
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -169,14 +204,34 @@ function Reports() {
           })}
         </div>
 
-        <button
-          className="btn btn-secondary btn-sm"
-          onClick={handlePrint}
-          title="Print or save this report"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
-        >
-          <Printer size={14} /> Print / Review Report
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={handleDownloadPdf}
+            disabled={pdfGenerating}
+            title="Download Comprehensive Executive PDF Report"
+            style={{ 
+              display: 'inline-flex', alignItems: 'center', gap: 8, 
+              background: 'linear-gradient(135deg, var(--gold-400, #c5a059), var(--gold-500, #ad8742))', 
+              color: '#0d0f0c', fontWeight: 700 
+            }}
+          >
+            {pdfGenerating ? (
+              <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Generating PDF...</>
+            ) : (
+              <><Download size={15} /> Download Executive PDF Report</>
+            )}
+          </button>
+
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={handlePrint}
+            title="Print or save this report"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Printer size={14} /> Print / Review
+          </button>
+        </div>
       </div>
 
       {/* Date Filter & Generation Controls */}

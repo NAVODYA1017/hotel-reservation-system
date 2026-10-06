@@ -499,10 +499,10 @@ function HallModal({ hall, onClose, onSave }) {
   } : { name: '', capacity: 100, pricePerDay: 50000, status: 'AVAILABLE', amenities: 'PA System, Projector, Stage, Lighting', imageUrl: '' });
 
   const eventHallImages = [
-    'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80'
+    '/assets/images/halls/hall-1-1.jpg',
+    '/assets/images/halls/hall-1-2.jpg',
+    '/assets/images/halls/hall-1-3.jpg',
+    '/assets/images/halls/hall-1-4.jpg'
   ];
 
   const [saving, setSaving] = useState(false);

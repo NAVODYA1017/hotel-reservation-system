@@ -30,35 +30,35 @@ const STATUS_OPTIONS = ['AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'RESERVED', 'OUT
 
 const ROOM_IMAGES = {
   'Standard': [
-    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800&q=80',
-    'https://images.unsplash.com/photo-1598928506311-c55dd129a0eb?w=800&q=80',
-    'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&q=80',
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80',
-    'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80',
-    'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&q=80',
-    'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&q=80',
-    'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=800&q=80',
-    'https://images.unsplash.com/photo-1590490359683-658d3d23f972?w=800&q=80',
-    'https://images.unsplash.com/photo-1590490360182-c33d5773342b?w=800&q=80'
+    '/assets/images/rooms/standard-1.jpg',
+    '/assets/images/rooms/standard-2.jpg',
+    '/assets/images/rooms/standard-3.jpg',
+    '/assets/images/rooms/standard-4.jpg',
+    '/assets/images/rooms/standard-5.jpg',
+    '/assets/images/rooms/standard-6.jpg',
+    '/assets/images/rooms/standard-7.jpg',
+    '/assets/images/rooms/standard-8.jpg',
+    '/assets/images/rooms/standard-9.jpg',
+    '/assets/images/rooms/standard-10.jpg'
   ],
   'Deluxe': [
-    'https://images.unsplash.com/photo-1566195992011-5f6b21e539aa?w=800&q=80',
-    'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&q=80',
-    'https://images.unsplash.com/photo-1606046604972-77cc76aee944?w=800&q=80',
-    'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80',
-    'https://images.unsplash.com/photo-1522771731478-444855018a1a?w=800&q=80'
+    '/assets/images/rooms/deluxe-1.jpg',
+    '/assets/images/rooms/deluxe-2.jpg',
+    '/assets/images/rooms/deluxe-3.jpg',
+    '/assets/images/rooms/deluxe-4.jpg',
+    '/assets/images/rooms/deluxe-5.jpg'
   ],
   'Suite': [
-    'https://images.unsplash.com/photo-1502672260266-1c1ff2d6c411?w=800&q=80',
-    'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&q=80',
-    'https://images.unsplash.com/photo-1574643034914-1eeab3636bdf?w=800&q=80',
-    'https://images.unsplash.com/photo-1630660664869-c9d3cc676880?w=800&q=80',
-    'https://images.unsplash.com/photo-1560185013-1f744e83f2df?w=800&q=80'
+    '/assets/images/rooms/suite-1.jpg',
+    '/assets/images/rooms/suite-2.jpg',
+    '/assets/images/rooms/suite-3.jpg',
+    '/assets/images/rooms/suite-4.jpg',
+    '/assets/images/rooms/suite-5.jpg'
   ],
   'Premium Suite': [
-    'https://images.unsplash.com/photo-1618221118493-9cfa1a1c00da?w=800&q=80',
-    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80',
-    'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=80'
+    '/assets/images/rooms/premium-1.jpg',
+    '/assets/images/rooms/premium-2.jpg',
+    '/assets/images/rooms/premium-3.jpg'
   ]
 };
 

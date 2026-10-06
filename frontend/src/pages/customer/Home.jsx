@@ -60,6 +60,9 @@ function CustomerNav() {
           <button className={`c-nav-link${isActive('/events') ? ' active' : ''}`} onClick={() => navigate('/events')}>
             GATHERINGS
           </button>
+          <button className={`c-nav-link${isActive('/buffet') || isActive('/dining') ? ' active' : ''}`} onClick={() => navigate('/buffet')}>
+            DINING & BUFFET
+          </button>
 
           <span className="c-nav-divider" />
 
@@ -264,6 +267,93 @@ function Home() {
                 </div>
               </Reveal>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── THE ALAKA BUFFET SHOWCASE ── */}
+      <section className="c-section" style={{
+        background: 'linear-gradient(180deg, #141613 0%, #1a1c18 100%)',
+        borderTop: '1px solid rgba(197, 160, 89, 0.2)',
+        borderBottom: '1px solid rgba(197, 160, 89, 0.2)'
+      }}>
+        <div className="c-container">
+          <Reveal>
+            <div className="section-header">
+              <div className="section-badge">Fine Resort Gastronomy</div>
+              <h2 className="section-title">The Alaka Buffet & Dining Sanctuary</h2>
+              <p className="section-subtitle">
+                Authentic Ceylon village curries, sunrise champagne breakfasts, and grand starlit seafood barbecues with finite capacity slots preserved for exquisite dining comfort.
+              </p>
+            </div>
+          </Reveal>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: 24,
+            marginBottom: 36
+          }}>
+            <Reveal delay={50}>
+              <div style={{ background: '#161814', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, overflow: 'hidden' }}>
+                <img src="/assets/images/dining/breakfast_buffet.jpg" alt="Breakfast Buffet" style={{ width: '100%', height: 190, objectFit: 'cover' }} />
+                <div style={{ padding: 20 }}>
+                  <div style={{ fontSize: 11, color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase' }}>06:30 AM - 10:30 AM</div>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: '4px 0 8px', color: '#fff' }}>Sunrise Champagne Breakfast</h3>
+                  <p style={{ fontSize: 13, color: '#aaa', margin: '0 0 14px', lineHeight: 1.5 }}>
+                    Fresh tropical fruit pavilion, live egg & hopper station, artisanal Ceylon teas, and European bakery selections.
+                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--gold-400)' }}>LKR 4,500 <span style={{ fontSize: 11, color: '#888' }}>/ person</span></span>
+                    <button className="btn btn-outline btn-sm" onClick={() => navigate('/buffet')}>Reserve Slot</button>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal delay={150}>
+              <div style={{ background: '#161814', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, overflow: 'hidden' }}>
+                <img src="/assets/images/dining/lunch_buffet.jpg" alt="Lunch Buffet" style={{ width: '100%', height: 190, objectFit: 'cover' }} />
+                <div style={{ padding: 20 }}>
+                  <div style={{ fontSize: 11, color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase' }}>12:30 PM - 03:30 PM</div>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: '4px 0 8px', color: '#fff' }}>Ceylon Royal Spice Lunch</h3>
+                  <p style={{ fontSize: 13, color: '#aaa', margin: '0 0 14px', lineHeight: 1.5 }}>
+                    Authentic Sigiriya clay pot curries, fragrant biryanis, ocean catches, roast carvings, and garden salad bars.
+                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--gold-400)' }}>LKR 6,500 <span style={{ fontSize: 11, color: '#888' }}>/ person</span></span>
+                    <button className="btn btn-outline btn-sm" onClick={() => navigate('/buffet')}>Reserve Slot</button>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal delay={250}>
+              <div style={{ background: '#161814', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, overflow: 'hidden' }}>
+                <img src="/assets/images/dining/dinner_buffet.jpg" alt="Dinner Buffet" style={{ width: '100%', height: 190, objectFit: 'cover' }} />
+                <div style={{ padding: 20 }}>
+                  <div style={{ fontSize: 11, color: 'var(--gold-400)', fontWeight: 700, textTransform: 'uppercase' }}>07:00 PM - 10:30 PM</div>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: '4px 0 8px', color: '#fff' }}>Grand Seafood & Starlit Dinner</h3>
+                  <p style={{ fontSize: 13, color: '#aaa', margin: '0 0 14px', lineHeight: 1.5 }}>
+                    Jumbo prawns, yellowfin tuna steaks, live Mongolian grill, hand-rolled sushi, and flambé dessert station.
+                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--gold-400)' }}>LKR 8,900 <span style={{ fontSize: 11, color: '#888' }}>/ person</span></span>
+                    <button className="btn btn-outline btn-sm" onClick={() => navigate('/buffet')}>Reserve Slot</button>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+
+          <div style={{ textAlign: 'center' }}>
+            <button
+              className="btn-escape"
+              onClick={() => navigate('/buffet')}
+              style={{ fontSize: 13, padding: '14px 32px' }}
+            >
+              BOOK A BUFFET TABLE & VIEW LIVE SLOTS →
+            </button>
           </div>
         </div>
       </section>

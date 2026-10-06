@@ -13,6 +13,7 @@ import Reservations from './pages/Reservations';
 import Rooms      from './pages/Rooms';
 import Payments   from './pages/Payments';
 import EventHalls from './pages/EventHalls';
+import FrontDeskBuffet from './pages/FrontDeskBuffet';
 
 // ── Role-Specific Dashboards ──
 import FrontDeskDashboard from './pages/FrontDeskDashboard';
@@ -28,9 +29,10 @@ import MyBookings  from './pages/customer/MyBookings';
 import GuestLogin  from './pages/customer/GuestLogin';
 import Profile     from './pages/customer/Profile';
 import BrowseEvents from './pages/customer/BrowseEvents';
+import BuffetReservation from './pages/customer/BuffetReservation';
 
 import { 
-  LayoutDashboard, Calendar, BedDouble, Sparkles, CreditCard, Users as UsersIcon, BarChart3, Settings as SettingsIcon, Globe, Building2, LogOut, CheckSquare
+  LayoutDashboard, Calendar, BedDouble, Sparkles, CreditCard, Users as UsersIcon, BarChart3, Settings as SettingsIcon, Globe, Building2, LogOut, CheckSquare, UtensilsCrossed
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════
@@ -40,6 +42,7 @@ const ADMIN_NAV = [
   { group: 'Overview',       items: [{ to: '/admin',              icon: <LayoutDashboard size={17} />, label: 'Dashboard',    exact: true }] },
   { group: 'Operations',     items: [
     { to: '/admin/reservations', icon: <Calendar size={17} />, label: 'Reservations' },
+    { to: '/admin/buffet',       icon: <UtensilsCrossed size={17} />, label: 'Buffet Dining' },
     { to: '/admin/rooms',        icon: <BedDouble size={17} />, label: 'Rooms'         },
     { to: '/admin/event-halls',  icon: <Sparkles size={17} />,  label: 'Event Halls'   },
     { to: '/admin/payments',     icon: <CreditCard size={17} />, label: 'Payments'      },
@@ -55,6 +58,7 @@ const FRONTDESK_NAV = [
   { group: 'Overview',       items: [{ to: '/frontdesk',              icon: <LayoutDashboard size={17} />, label: 'Desk Dashboard',    exact: true }] },
   { group: 'Operations',     items: [
     { to: '/frontdesk/reservations', icon: <Calendar size={17} />, label: 'Reservations' },
+    { to: '/frontdesk/buffet',       icon: <UtensilsCrossed size={17} />, label: 'Buffet Check-In' },
     { to: '/frontdesk/rooms',        icon: <BedDouble size={17} />, label: 'Room Rack'         },
   ]},
 ];
@@ -71,6 +75,7 @@ const MANAGER_NAV = [
   { group: 'Overview',       items: [{ to: '/manager',              icon: <LayoutDashboard size={17} />, label: 'Command Center',    exact: true }] },
   { group: 'Operations',     items: [
     { to: '/manager/reservations', icon: <Calendar size={17} />, label: 'Reservations' },
+    { to: '/manager/buffet',       icon: <UtensilsCrossed size={17} />, label: 'Buffet Dining' },
     { to: '/manager/rooms',        icon: <BedDouble size={17} />, label: 'Rooms'         },
     { to: '/manager/event-halls',  icon: <Sparkles size={17} />,  label: 'Event Halls'   },
     { to: '/manager/payments',     icon: <CreditCard size={17} />, label: 'Payments'      },
@@ -84,6 +89,7 @@ const MANAGER_NAV = [
 const PAGE_META = {
   '/admin':              { title: 'Dashboard',          subtitle: "Welcome back — here's what's happening today" },
   '/admin/reservations': { title: 'Reservations',        subtitle: 'Manage guest bookings and stay requests'       },
+  '/admin/buffet':       { title: 'Buffet Dining Management', subtitle: 'Manage restaurant meal sessions, capacity pacing & bookings' },
   '/admin/rooms':        { title: 'Room Management',     subtitle: 'View and manage all hotel rooms'               },
   '/admin/event-halls':  { title: 'Event Halls',         subtitle: 'Manage event spaces and packages'              },
   '/admin/payments':     { title: 'Payments & Billing',  subtitle: 'Track payments, invoices, and refunds'         },
@@ -92,12 +98,14 @@ const PAGE_META = {
   '/admin/settings':     { title: 'System Settings',     subtitle: 'Configure hotel preferences and policies'      },
   '/frontdesk':          { title: 'Front Desk',          subtitle: "Welcome back — here's your desk overview"      },
   '/frontdesk/reservations': { title: 'Reservations',        subtitle: 'Manage walk-ins and guest check-ins'       },
+  '/frontdesk/buffet':   { title: 'Alaka Buffet Reception', subtitle: 'Verify dining passes, check in guests & allocate tables' },
   '/frontdesk/rooms':        { title: 'Room Rack',           subtitle: 'View live room status'               },
   '/events-admin':       { title: 'Event Coordinator Portal', subtitle: 'Manage luxury halls, catering packages & event scheduling' },
   '/events-admin/reservations': { title: 'Event Reservations', subtitle: 'Monitor banquet and event hall bookings' },
   '/events-admin/halls': { title: 'Event Venues & Spaces', subtitle: 'Manage venue readiness and curated event packages' },
   '/manager':            { title: 'Executive Command Center',   subtitle: 'High-level resort analytics, revenue trajectory & operational oversight' },
   '/manager/reservations': { title: 'Reservations Oversight',      subtitle: 'Audit and monitor all guest bookings' },
+  '/manager/buffet':     { title: 'Buffet Dining Oversight',  subtitle: 'Monitor restaurant covers, capacity utilization & bookings' },
   '/manager/rooms':      { title: 'Room Rack & Inventory',     subtitle: 'Oversee all hotel rooms and housekeeping status' },
   '/manager/event-halls': { title: 'Banquets & Venues',        subtitle: 'Oversee event operations and hall revenue' },
   '/manager/payments':   { title: 'Financial Audit & Billing',  subtitle: 'Monitor business revenue, invoices, and settlement' },
@@ -245,6 +253,8 @@ function App() {
         <Route path="/browse"        element={<BrowseRooms />} />
         <Route path="/events"        element={<BrowseEvents />} />
         <Route path="/event-halls"   element={<BrowseEvents />} />
+        <Route path="/buffet"        element={<BuffetReservation />} />
+        <Route path="/dining"        element={<BuffetReservation />} />
         <Route path="/room/:id"      element={<RoomDetail />} />
         <Route path="/checkout"      element={<Checkout />} />
         <Route path="/my-bookings"   element={<MyBookings />} />
@@ -257,6 +267,7 @@ function App() {
         {/* ── Admin panel routes (all under /admin) ── */}
         <Route path="/admin"              element={<AdminLayout><Dashboard /></AdminLayout>} />
         <Route path="/admin/reservations" element={<AdminLayout><Reservations /></AdminLayout>} />
+        <Route path="/admin/buffet"       element={<AdminLayout><FrontDeskBuffet /></AdminLayout>} />
         <Route path="/admin/rooms"        element={<AdminLayout><Rooms /></AdminLayout>} />
         <Route path="/admin/event-halls"  element={<AdminLayout><EventHalls /></AdminLayout>} />
         <Route path="/admin/payments"     element={<AdminLayout><Payments /></AdminLayout>} />
@@ -267,6 +278,7 @@ function App() {
         {/* ── Front Desk routes ── */}
         <Route path="/frontdesk"              element={<AdminLayout><FrontDeskDashboard /></AdminLayout>} />
         <Route path="/frontdesk/reservations" element={<AdminLayout><Reservations /></AdminLayout>} />
+        <Route path="/frontdesk/buffet"       element={<AdminLayout><FrontDeskBuffet /></AdminLayout>} />
         <Route path="/frontdesk/rooms"        element={<AdminLayout><Rooms /></AdminLayout>} />
 
         {/* ── Event Coordinator routes ── */}
@@ -277,6 +289,7 @@ function App() {
         {/* ── Hotel Manager routes ── */}
         <Route path="/manager"              element={<AdminLayout><ManagerDashboard /></AdminLayout>} />
         <Route path="/manager/reservations" element={<AdminLayout><Reservations /></AdminLayout>} />
+        <Route path="/manager/buffet"       element={<AdminLayout><FrontDeskBuffet /></AdminLayout>} />
         <Route path="/manager/rooms"        element={<AdminLayout><Rooms /></AdminLayout>} />
         <Route path="/manager/event-halls"  element={<AdminLayout><EventHalls /></AdminLayout>} />
         <Route path="/manager/payments"     element={<AdminLayout><Payments /></AdminLayout>} />

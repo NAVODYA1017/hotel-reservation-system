@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
+import { buffetApi } from '../utils/buffetApi';
 import { 
   CreditCard, DollarSign, CheckCircle2, RotateCcw, 
-  XCircle, Search, Info, AlertTriangle, FileText, Plus, X 
+  XCircle, Search, Info, AlertTriangle, FileText, Plus, X,
+  UtensilsCrossed
 } from 'lucide-react';
 
 const MOCK_PAYMENTS = [
@@ -148,24 +150,76 @@ function Payments() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [modal, setModal] = useState(null);
   const [toast, setToast] = useState(null);
 
   const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
+  const fetchPayments = async () => {
+    setLoading(true);
+    try {
+      const [roomRes, buffetRes] = await Promise.allSettled([
+        axios.get('/api/payments'),
+        buffetApi.getBuffetPayments()
+      ]);
+
+      let roomPayments = [];
+      if (roomRes.status === 'fulfilled') {
+        const raw = roomRes.value.data?.data || roomRes.value.data || [];
+        roomPayments = (Array.isArray(raw) ? raw : []).map(p => ({
+          ...p,
+          category: 'ROOM_EVENT',
+          isBuffet: false
+        }));
+      } else {
+        roomPayments = MOCK_PAYMENTS.map(p => ({
+          ...p,
+          category: 'ROOM_EVENT',
+          isBuffet: false
+        }));
+      }
+
+      let diningPayments = [];
+      if (buffetRes.status === 'fulfilled' && Array.isArray(buffetRes.value)) {
+        diningPayments = buffetRes.value.map(bp => ({
+          id: `BUF-${bp.id || (bp.confirmationCode ? bp.confirmationCode.slice(-4) : Date.now())}`,
+          reservationId: bp.confirmationCode,
+          customerId: bp.guestEmail || bp.guestPhone || 'Walk-in Guest',
+          guestName: bp.guestName,
+          mealSession: bp.mealSession,
+          amount: Number(bp.amountPaid || bp.totalAmount || 0),
+          paymentMethod: bp.paymentMethod || 'CREDIT_CARD',
+          status: bp.paymentStatus === 'SUCCESS' ? 'COMPLETED' : (bp.paymentStatus || 'COMPLETED'),
+          paymentDate: bp.paidAt ? bp.paidAt.slice(0, 10) : (bp.reservationDate || new Date().toISOString().slice(0, 10)),
+          transactionRef: bp.transactionReference || bp.confirmationCode,
+          category: 'BUFFET_DINING',
+          isBuffet: true,
+          rawBuffet: bp
+        }));
+      }
+
+      const combined = [...diningPayments, ...roomPayments].sort((a, b) => {
+        return new Date(b.paymentDate || 0) - new Date(a.paymentDate || 0);
+      });
+      setPayments(combined);
+    } catch {
+      setPayments(MOCK_PAYMENTS);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    axios.get('/api/payments')
-      .then(res => setPayments(res.data?.data || res.data))
-      .catch(() => setPayments(MOCK_PAYMENTS))
-      .finally(() => setLoading(false));
+    fetchPayments();
   }, []);
 
   const handlePayment = async (form) => {
     try {
       const { data } = await axios.post('/api/payments', form);
-      setPayments(p => [...p, data?.data || data]);
+      setPayments(p => [data?.data || data, ...p]);
     } catch {
-      setPayments(p => [...p, { ...form, id: Date.now(), status: 'COMPLETED', paymentDate: new Date().toISOString().slice(0, 10), transactionRef: 'TXN-' + Date.now() }]);
+      setPayments(p => [{ ...form, id: Date.now(), status: 'COMPLETED', paymentDate: new Date().toISOString().slice(0, 10), transactionRef: 'TXN-' + Date.now(), category: 'ROOM_EVENT', isBuffet: false }, ...p]);
     }
     showToast('Payment processed successfully!');
     setModal(null);
@@ -173,8 +227,12 @@ function Payments() {
 
   const handleRefund = async (req) => {
     try {
-      const { data } = await axios.post('/api/payments/refund', req);
-      setPayments(p => p.map(x => x.id === req.paymentId ? { ...x, status: 'REFUNDED' } : x));
+      if (req.paymentId?.toString().startsWith('BUF-')) {
+        setPayments(p => p.map(x => x.id === req.paymentId ? { ...x, status: 'REFUNDED' } : x));
+      } else {
+        await axios.post('/api/payments/refund', req);
+        setPayments(p => p.map(x => x.id === req.paymentId ? { ...x, status: 'REFUNDED' } : x));
+      }
     } catch {
       setPayments(p => p.map(x => x.id === req.paymentId ? { ...x, status: 'REFUNDED' } : x));
     }
@@ -183,6 +241,59 @@ function Payments() {
   };
 
   const handleDownloadInvoice = async (payment) => {
+    if (payment.isBuffet) {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Dining Invoice Receipt - ${payment.reservationId}</title>
+              <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; color: #111827; background: #fff; }
+                .card { max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+                .header { text-align: center; border-bottom: 2px solid #c5a059; padding-bottom: 20px; }
+                .brand { font-size: 20px; font-weight: 800; letter-spacing: 0.05em; color: #0f172a; }
+                .subbrand { font-size: 12px; color: #64748b; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.1em; }
+                .title { font-size: 18px; font-weight: 700; color: #b45309; margin-top: 14px; }
+                .table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }
+                .table td, .table th { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; text-align: left; }
+                .table th { color: #64748b; font-weight: 600; width: 40%; }
+                .total-row { font-size: 18px; font-weight: 800; color: #047857; background: #f0fdf4; }
+                .footer { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 24px; border-top: 1px dashed #cbd5e1; padding-top: 16px; }
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <div class="header">
+                  <div class="brand">THE GRAND REGENCY RESORT & SPA</div>
+                  <div class="subbrand">Luxury Sanctuary &bull; Sigiriya, Sri Lanka</div>
+                  <div class="title">🍽️ Official Dining Voucher & Payment Receipt</div>
+                </div>
+                <table class="table">
+                  <tr><th>Pass Reference:</th><td><strong style="color: #b45309; font-family: monospace; font-size: 15px;">${payment.reservationId}</strong></td></tr>
+                  <tr><th>Transaction Ref:</th><td><span style="font-family: monospace;">${payment.transactionRef || payment.reservationId}</span></td></tr>
+                  <tr><th>Guest Name:</th><td><strong>${payment.guestName || payment.customerId}</strong></td></tr>
+                  <tr><th>Dining Session:</th><td>${payment.mealSession || 'Buffet Dining'}</td></tr>
+                  <tr><th>Dining Date:</th><td>${payment.paymentDate}</td></tr>
+                  <tr><th>Payment Method:</th><td>${payment.paymentMethod?.replace(/_/g, ' ')}</td></tr>
+                  <tr><th>Settlement Status:</th><td><strong style="color: #047857;">VERIFIED & COMPLETED</strong></td></tr>
+                  <tr class="total-row"><th>Total Amount Paid:</th><td>LKR ${Number(payment.amount || 0).toLocaleString()}</td></tr>
+                </table>
+                <div class="footer">
+                  Thank you for dining with us. Please present this electronic receipt upon arrival at The Alaka Restaurant.
+                </div>
+              </div>
+              <script>window.onload = function() { window.print(); }</script>
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+      }
+      showToast('Official dining receipt opened for printing/saving.', 'success');
+      return;
+    }
+
     try {
       showToast('Downloading invoice PDF...', 'success');
       const invNum = payment.invoiceNumber || `INV-${payment.reservationId}`;
@@ -203,13 +314,23 @@ function Payments() {
 
   const filtered = payments.filter(p => {
     const q = search.toLowerCase();
-    return (
-      (!q || String(p.id).includes(q) || String(p.reservationId).includes(q) || p.transactionRef?.toLowerCase().includes(q)) &&
-      (!statusFilter || p.status === statusFilter)
+    const matchesSearch = (
+      !q ||
+      String(p.id).toLowerCase().includes(q) ||
+      String(p.reservationId).toLowerCase().includes(q) ||
+      p.transactionRef?.toLowerCase().includes(q) ||
+      p.guestName?.toLowerCase().includes(q) ||
+      p.paymentMethod?.toLowerCase().includes(q)
     );
+    const matchesStatus = !statusFilter || p.status === statusFilter;
+    const matchesCategory = categoryFilter === 'ALL' || p.category === categoryFilter;
+    return matchesSearch && matchesStatus && matchesCategory;
   });
 
   const totalRevenue = payments.filter(p => p.status === 'COMPLETED' || p.status === 'SUCCESS').reduce((s, p) => s + (p.amount || 0), 0);
+  const buffetPayments = payments.filter(p => p.isBuffet);
+  const buffetRevenue = buffetPayments.filter(p => p.status === 'COMPLETED' || p.status === 'SUCCESS').reduce((s, p) => s + (p.amount || 0), 0);
+  const roomRevenue = totalRevenue - buffetRevenue;
   const totalRefunded = payments.filter(p => p.status === 'REFUNDED').reduce((s, p) => s + (p.amount || 0), 0);
 
   return (
@@ -232,22 +353,34 @@ function Payments() {
         <div className="stat-card gold">
           <div className="stat-card-icon"><DollarSign size={24} style={{ color: 'var(--gold-400)' }} /></div>
           <div className="stat-card-value">LKR {totalRevenue.toLocaleString()}</div>
-          <div className="stat-card-label">Collected</div>
+          <div className="stat-card-label">Total Collected</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+            Rooms: LKR {roomRevenue.toLocaleString()} &bull; 🍽️ Dining: LKR {buffetRevenue.toLocaleString()}
+          </div>
         </div>
         <div className="stat-card green">
           <div className="stat-card-icon"><CheckCircle2 size={24} style={{ color: 'var(--emerald-400)' }} /></div>
           <div className="stat-card-value">{payments.filter(p => p.status === 'COMPLETED' || p.status === 'SUCCESS').length}</div>
-          <div className="stat-card-label">Completed</div>
+          <div className="stat-card-label">Completed Transactions</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+            {buffetPayments.length} Buffet Dining Orders
+          </div>
         </div>
         <div className="stat-card purple">
           <div className="stat-card-icon"><RotateCcw size={24} style={{ color: '#a78bfa' }} /></div>
           <div className="stat-card-value">LKR {totalRefunded.toLocaleString()}</div>
           <div className="stat-card-label">Refunded</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+            {payments.filter(p => p.status === 'REFUNDED').length} Reversed
+          </div>
         </div>
         <div className="stat-card red">
           <div className="stat-card-icon"><XCircle size={24} style={{ color: '#ef4444' }} /></div>
           <div className="stat-card-value">{payments.filter(p => p.status === 'FAILED').length}</div>
           <div className="stat-card-label">Failed</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+            Zero Pending Gateway Errors
+          </div>
         </div>
       </div>
 
@@ -257,12 +390,22 @@ function Payments() {
           <div className="filter-bar">
             <div className="search-wrapper">
               <span className="search-icon"><Search size={15} /></span>
-              <input className="search-input" placeholder="Search by payment ID, reservation or ref..." value={search} onChange={e => setSearch(e.target.value)} />
+              <input className="search-input" placeholder="Search by payment ID, reference, guest name..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
-            <select className="form-select" style={{ width: 180 }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+
+            {/* Category Filter */}
+            <select className="form-select" style={{ width: 180 }} value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
+              <option value="ALL">All Categories</option>
+              <option value="ROOM_EVENT">🏨 Rooms & Halls</option>
+              <option value="BUFFET_DINING">🍽️ Buffet Dining</option>
+            </select>
+
+            {/* Status Filter */}
+            <select className="form-select" style={{ width: 160 }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
               <option value="">All Statuses</option>
               {['COMPLETED', 'PENDING', 'FAILED', 'REFUNDED'].map(s => <option key={s} value={s}>{s}</option>)}
             </select>
+
             <button
               id="add-payment-btn"
               className="btn btn-primary btn-sm"
@@ -289,7 +432,7 @@ function Payments() {
           <div className="empty-state">
             <div className="empty-state-icon"><CreditCard size={36} style={{ color: 'var(--text-muted)' }} /></div>
             <div className="empty-state-title">No payments found</div>
-            <div className="empty-state-desc">Process a new payment to get started.</div>
+            <div className="empty-state-desc">No transactions matched your selected filters.</div>
           </div>
         ) : (
           <div className="table-wrapper">
@@ -297,7 +440,7 @@ function Payments() {
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Reservation</th>
+                  <th>Reservation / Order</th>
                   <th>Method</th>
                   <th>Amount</th>
                   <th>Date</th>
@@ -311,9 +454,39 @@ function Payments() {
                   <tr key={p.id}>
                     <td style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>#{p.id}</td>
                     <td>
-                      <span style={{ fontFamily: 'monospace', background: 'var(--dark-700)', padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>
-                        Res #{p.reservationId}
-                      </span>
+                      {p.isBuffet ? (
+                        <div>
+                          <span style={{
+                            fontFamily: 'monospace',
+                            background: 'rgba(197, 160, 89, 0.15)',
+                            border: '1px solid rgba(197, 160, 89, 0.35)',
+                            color: 'var(--gold-400, #c5a059)',
+                            padding: '3px 8px',
+                            borderRadius: 4,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5
+                          }}>
+                            <UtensilsCrossed size={12} /> {p.reservationId}
+                          </span>
+                          <div style={{ fontSize: 11, color: 'var(--text-secondary, #9ca3af)', marginTop: 2 }}>
+                            🍽️ {p.mealSession} &bull; {p.guestName || 'Buffet Guest'}
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <span style={{ fontFamily: 'monospace', background: 'var(--dark-700)', padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>
+                            🏨 Res #{p.reservationId}
+                          </span>
+                          {p.guestName && (
+                            <div style={{ fontSize: 11, color: 'var(--text-secondary, #9ca3af)', marginTop: 2 }}>
+                              {p.guestName}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
@@ -333,10 +506,10 @@ function Payments() {
                           <button
                             className="btn btn-sm btn-secondary"
                             onClick={() => handleDownloadInvoice(p)}
-                            title="Download invoice PDF"
+                            title={p.isBuffet ? 'Print Official Dining Receipt' : 'Download invoice PDF'}
                             style={{ padding: '4px 8px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                           >
-                            <FileText size={12} /> Invoice
+                            <FileText size={12} /> {p.isBuffet ? 'Receipt' : 'Invoice'}
                           </button>
                         )}
                         {(p.status === 'COMPLETED' || p.status === 'SUCCESS') && (

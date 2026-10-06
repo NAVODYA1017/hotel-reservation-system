@@ -101,4 +101,23 @@ public class BuffetReservationController {
     public ResponseEntity<BuffetReservation> cancelReservation(@PathVariable Long id) {
         return ResponseEntity.ok(buffetReservationService.cancelReservation(id));
     }
+
+    /**
+     * Customer or Front Desk: Process payment for a buffet dining reservation.
+     * POST /api/buffet/payment
+     */
+    @PostMapping("/payment")
+    public ResponseEntity<BuffetReservation> processPayment(
+            @Valid @RequestBody com.hotel.reservationsystem.dto.BuffetPaymentRequest request) {
+        return ResponseEntity.ok(buffetReservationService.processPayment(request));
+    }
+
+    /**
+     * Staff/Admin Payment Management: List all buffet dining payments.
+     * GET /api/buffet/payments
+     */
+    @GetMapping("/payments")
+    public ResponseEntity<List<com.hotel.reservationsystem.dto.BuffetPaymentResponse>> getBuffetPayments() {
+        return ResponseEntity.ok(buffetReservationService.getAllPayments());
+    }
 }

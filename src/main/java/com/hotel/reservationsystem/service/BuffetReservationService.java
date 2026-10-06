@@ -211,6 +211,34 @@ public class BuffetReservationService {
         return buffetReservationRepository.save(reservation);
     }
 
+    /**
+     * Process online or front-desk payment for a buffet reservation.
+     */
+    @Transactional
+    public BuffetReservation processPayment(com.hotel.reservationsystem.dto.BuffetPaymentRequest request) {
+        BuffetReservation reservation = getByConfirmationCode(request.getConfirmationCode());
+
+        reservation.setAmountPaid(request.getAmount());
+        reservation.setPaymentStatus(com.hotel.reservationsystem.entity.enums.PaymentStatus.SUCCESS);
+        reservation.setPaymentMethod(request.getPaymentMethod());
+        reservation.setPaidAt(LocalDateTime.now());
+        reservation.setTransactionReference("TXN-BUF-" + System.currentTimeMillis());
+
+        return buffetReservationRepository.save(reservation);
+    }
+
+    /**
+     * Return all buffet payments for the Payment Management Ledger.
+     */
+    @Transactional(readOnly = true)
+    public List<com.hotel.reservationsystem.dto.BuffetPaymentResponse> getAllPayments() {
+        return buffetReservationRepository.findAll().stream()
+                .filter(r -> r.getPaymentStatus() == com.hotel.reservationsystem.entity.enums.PaymentStatus.SUCCESS
+                        || (r.getAmountPaid() != null && r.getAmountPaid().compareTo(BigDecimal.ZERO) > 0))
+                .map(com.hotel.reservationsystem.dto.BuffetPaymentResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
     private String generateConfirmationCode(LocalDate date) {
         String datePart = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         int randomDigits = 1000 + RANDOM.nextInt(9000);

@@ -5,7 +5,7 @@ import { buffetApi } from '../../utils/buffetApi';
 import {
   UtensilsCrossed, Calendar, Clock, Users, CheckCircle2, ShieldCheck,
   Sparkles, Coffee, Sun, Moon, AlertTriangle, ArrowRight, Printer, Search,
-  Check, Info, ChevronRight, HeartHandshake, Award
+  Check, Info, ChevronRight, HeartHandshake, Award, CreditCard
 } from 'lucide-react';
 
 const DIETARY_OPTIONS = [
@@ -142,6 +142,42 @@ function BuffetReservation() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleProceedToOnlinePayment = (e) => {
+    if (e) e.preventDefault();
+    setErrorMsg('');
+
+    if (!guestName.trim()) {
+      setErrorMsg('Please enter your full name.');
+      return;
+    }
+    if (!guestEmail.trim()) {
+      setErrorMsg('Please enter a valid email address for confirmation.');
+      return;
+    }
+
+    if (totalGuests > activeAvailability.remainingSeats) {
+      setErrorMsg(`Sorry, only ${activeAvailability.remainingSeats} seat(s) remaining for ${activeSessionMeta.sessionTitle} on ${selectedDate}.`);
+      return;
+    }
+
+    const queryParams = new URLSearchParams({
+      type: 'BUFFET',
+      session: selectedSession,
+      title: activeSessionMeta.sessionTitle,
+      date: selectedDate,
+      slot: selectedSlot || activeSessionMeta.timeRange,
+      adults: String(adultCount),
+      children: String(childCount),
+      amount: String(totalAmount),
+      guestName: guestName.trim(),
+      guestEmail: guestEmail.trim(),
+      guestPhone: guestPhone.trim(),
+      dietary: `${selectedDietary.join(', ')}${specialNotes ? ` | Note: ${specialNotes}` : ''}${celebration ? ` | Occasion: ${celebration}` : ''}`
+    });
+
+    navigate(`/checkout?${queryParams.toString()}`);
   };
 
   const handleLookup = async (e) => {
@@ -294,25 +330,70 @@ function BuffetReservation() {
               </div>
 
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Total Amount</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Total & Payment Status</div>
                 <div style={{ fontSize: 20, fontWeight: 800, color: '#9e7d3b', marginTop: 4 }}>
                   LKR {Number(confirmedReservation.totalAmount || 0).toLocaleString()}
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
-                  Payable upon check-in or bill to room
+                <div style={{ marginTop: 4 }}>
+                  {confirmedReservation.paymentStatus === 'SUCCESS' ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 4, background: '#dcfce7', color: '#166534', fontSize: 11, fontWeight: 700 }}>
+                      <CheckCircle2 size={13} /> PAID ONLINE ({confirmedReservation.paymentMethod || 'CARD'})
+                    </span>
+                  ) : (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 4, background: '#fef3c7', color: '#92400e', fontSize: 11, fontWeight: 700 }}>
+                      PAYMENT PENDING
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>
+                  {confirmedReservation.paymentStatus === 'SUCCESS'
+                    ? `Ref: ${confirmedReservation.transactionReference || confirmedReservation.confirmationCode}`
+                    : 'Payable at reception or settle online below'}
                 </div>
               </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
               <div style={{ fontSize: 13, color: '#9ca3af' }}>
-                &bull; Please present this code <strong>{confirmedReservation.confirmationCode}</strong> to the Front Desk or Restaurant Receptionist for seat allocation.
+                &bull; Please present this pass <strong>{confirmedReservation.confirmationCode}</strong> upon arrival at The Alaka Restaurant.
               </div>
-              <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {confirmedReservation.paymentStatus !== 'SUCCESS' && (
+                  <button
+                    onClick={() => {
+                      const q = new URLSearchParams({
+                        type: 'BUFFET',
+                        buffetCode: confirmedReservation.confirmationCode,
+                        session: confirmedReservation.mealSession,
+                        title: activeSessionMeta.sessionTitle,
+                        date: confirmedReservation.reservationDate,
+                        slot: confirmedReservation.timeSlot || '',
+                        adults: String(confirmedReservation.adultCount),
+                        children: String(confirmedReservation.childCount),
+                        amount: String(confirmedReservation.totalAmount),
+                        guestName: confirmedReservation.guestName,
+                        guestEmail: confirmedReservation.guestEmail || '',
+                        guestPhone: confirmedReservation.guestPhone || ''
+                      });
+                      navigate(`/checkout?${q.toString()}`);
+                    }}
+                    className="btn btn-primary btn-sm"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      background: 'linear-gradient(135deg, var(--gold-400), var(--gold-500))',
+                      color: '#000',
+                      fontWeight: 700
+                    }}
+                  >
+                    <CreditCard size={15} /> Pay Online via Checkout &rarr;
+                  </button>
+                )}
                 <button onClick={() => window.print()} className="btn btn-secondary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <Printer size={15} /> Print Pass
                 </button>
-                <button onClick={() => setConfirmedReservation(null)} className="btn btn-primary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <button onClick={() => setConfirmedReservation(null)} className="btn btn-secondary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   Reserve Another Slot &rarr;
                 </button>
               </div>
@@ -727,34 +808,70 @@ function BuffetReservation() {
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={submitting || activeAvailability.isSoldOut}
-              className="btn btn-primary btn-lg"
-              style={{
-                width: '100%',
-                padding: '14px',
-                fontWeight: 700,
-                fontSize: 15,
-                background: 'linear-gradient(135deg, var(--gold-400, #c5a059), var(--gold-500, #ad8742))',
-                color: '#0d0f0c',
-                justifyContent: 'center',
-                boxShadow: '0 4px 18px rgba(197, 160, 89, 0.4)'
-              }}
-            >
-              {submitting ? (
-                <>
-                  <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
-                  Securing Dining Slot...
-                </>
-              ) : activeAvailability.isSoldOut ? (
-                'Slot Sold Out for Selected Date'
-              ) : (
-                <>
-                  Reserve Buffet Table <ArrowRight size={18} style={{ marginLeft: 8 }} />
-                </>
-              )}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Primary: Online Payment via Checkout */}
+              <button
+                type="button"
+                onClick={handleProceedToOnlinePayment}
+                disabled={activeAvailability.isSoldOut}
+                className="btn btn-primary btn-lg"
+                style={{
+                  width: '100%',
+                  padding: '14px 20px',
+                  fontWeight: 700,
+                  fontSize: 15,
+                  background: 'linear-gradient(135deg, var(--gold-400, #c5a059), var(--gold-500, #ad8742))',
+                  color: '#0d0f0c',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 18px rgba(197, 160, 89, 0.4)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  cursor: activeAvailability.isSoldOut ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {activeAvailability.isSoldOut ? (
+                  'Slot Sold Out for Selected Date'
+                ) : (
+                  <>
+                    <CreditCard size={18} />
+                    <span>Proceed to Online Payment (Card / Bank Transfer)</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+
+              {/* Secondary: Reserve without paying now (Pay at restaurant) */}
+              <button
+                type="submit"
+                disabled={submitting || activeAvailability.isSoldOut}
+                className="btn btn-secondary"
+                style={{
+                  width: '100%',
+                  padding: '12px 18px',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.18)',
+                  color: '#e5e7eb',
+                  justifyContent: 'center',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8
+                }}
+              >
+                {submitting ? (
+                  <>
+                    <span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
+                    <span>Securing Table...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Reserve & Pay at Restaurant (Cash / Room Charge)</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </form>
 
@@ -824,6 +941,42 @@ function BuffetReservation() {
                 </div>
                 <div style={{ fontSize: 12, color: '#aaa', marginTop: 2 }}>
                   Date: {lookupResult.reservationDate} &bull; Time: {lookupResult.timeSlot} &bull; Guests: {lookupResult.numberOfGuests}
+                </div>
+                <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {lookupResult.paymentStatus === 'SUCCESS' ? (
+                    <span style={{ padding: '2px 8px', borderRadius: 4, background: '#dcfce7', color: '#166534', fontSize: 11, fontWeight: 700 }}>
+                      ✓ PAID ONLINE ({lookupResult.paymentMethod || 'CARD'})
+                    </span>
+                  ) : (
+                    <span style={{ padding: '2px 8px', borderRadius: 4, background: '#fef3c7', color: '#92400e', fontSize: 11, fontWeight: 700 }}>
+                      PAYMENT PENDING
+                    </span>
+                  )}
+                  {lookupResult.paymentStatus !== 'SUCCESS' && (
+                    <button
+                      onClick={() => {
+                        const q = new URLSearchParams({
+                          type: 'BUFFET',
+                          buffetCode: lookupResult.confirmationCode,
+                          session: lookupResult.mealSession,
+                          title: activeSessionMeta.sessionTitle,
+                          date: lookupResult.reservationDate,
+                          slot: lookupResult.timeSlot || '',
+                          adults: String(lookupResult.adultCount || 1),
+                          children: String(lookupResult.childCount || 0),
+                          amount: String(lookupResult.totalAmount || 0),
+                          guestName: lookupResult.guestName,
+                          guestEmail: lookupResult.guestEmail || '',
+                          guestPhone: lookupResult.guestPhone || ''
+                        });
+                        navigate(`/checkout?${q.toString()}`);
+                      }}
+                      className="btn btn-primary btn-sm"
+                      style={{ padding: '3px 8px', fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                    >
+                      <CreditCard size={12} /> Pay Online Now &rarr;
+                    </button>
+                  )}
                 </div>
               </div>
 

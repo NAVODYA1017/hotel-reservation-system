@@ -78,6 +78,23 @@ public class BuffetReservation {
     @Column(name = "booked_by", length = 30)
     private String bookedBy = "CLIENT_WEBSITE";
 
+    @Column(name = "amount_paid", precision = 10, scale = 2)
+    private BigDecimal amountPaid = BigDecimal.ZERO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", length = 25)
+    private com.hotel.reservationsystem.entity.enums.PaymentStatus paymentStatus = com.hotel.reservationsystem.entity.enums.PaymentStatus.PENDING;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", length = 25)
+    private com.hotel.reservationsystem.entity.enums.PaymentMethod paymentMethod;
+
+    @Column(name = "transaction_reference", length = 45)
+    private String transactionReference;
+
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
     @Column(name = "checked_in_at")
     private LocalDateTime checkedInAt;
 

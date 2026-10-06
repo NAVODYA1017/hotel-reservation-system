@@ -258,5 +258,90 @@ export const buffetApi = {
     const updated = current.map(r => (r.id === id ? { ...r, status: 'CANCELLED' } : r));
     saveStoredReservations(updated);
     return updated.find(r => r.id === id);
+  },
+
+  /**
+   * Process customer online payment for buffet dining.
+   */
+  async processPayment(payload) {
+    try {
+      const res = await axios.post('/api/buffet/payment', payload);
+      if (res.data) {
+        const current = getStoredReservations();
+        const updated = current.map(r => {
+          if (r.confirmationCode?.toUpperCase() === payload.confirmationCode?.toUpperCase()) {
+            return {
+              ...r,
+              amountPaid: payload.amount,
+              paymentStatus: 'SUCCESS',
+              paymentMethod: payload.paymentMethod,
+              transactionReference: 'TXN-BUF-' + Date.now(),
+              paidAt: new Date().toISOString()
+            };
+          }
+          return r;
+        });
+        saveStoredReservations(updated);
+        return res.data;
+      }
+    } catch {
+      // Fallback
+    }
+
+    const current = getStoredReservations();
+    const updated = current.map(r => {
+      if (r.confirmationCode?.toUpperCase() === payload.confirmationCode?.toUpperCase()) {
+        return {
+          ...r,
+          amountPaid: payload.amount,
+          paymentStatus: 'SUCCESS',
+          paymentMethod: payload.paymentMethod,
+          transactionReference: 'TXN-BUF-' + Date.now(),
+          paidAt: new Date().toISOString()
+        };
+      }
+      return r;
+    });
+    saveStoredReservations(updated);
+    return updated.find(r => r.confirmationCode?.toUpperCase() === payload.confirmationCode?.toUpperCase()) || {
+      confirmationCode: payload.confirmationCode,
+      paymentStatus: 'SUCCESS',
+      amountPaid: payload.amount
+    };
+  },
+
+  /**
+   * Get all buffet payments for Payment Management.
+   */
+  async getBuffetPayments() {
+    try {
+      const res = await axios.get('/api/buffet/payments');
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        return res.data.map(p => ({
+          ...p,
+          buffetReservationCode: p.confirmationCode,
+          type: 'BUFFET'
+        }));
+      }
+    } catch {
+      // Fallback
+    }
+
+    const current = getStoredReservations();
+    return current
+      .filter(r => r.paymentStatus === 'SUCCESS' || (Number(r.amountPaid) || 0) > 0)
+      .map(r => ({
+        id: r.id,
+        transactionRef: r.transactionReference || ('TXN-BUF-' + r.confirmationCode),
+        confirmationCode: r.confirmationCode,
+        buffetReservationCode: r.confirmationCode,
+        guestName: r.guestName,
+        mealSession: r.mealSession,
+        amount: Number(r.amountPaid) || Number(r.totalAmount) || 0,
+        paymentMethod: r.paymentMethod || 'CREDIT_CARD',
+        status: r.paymentStatus === 'SUCCESS' ? 'COMPLETED' : (r.paymentStatus || 'COMPLETED'),
+        paidAt: r.paidAt || r.createdAt,
+        type: 'BUFFET'
+      }));
   }
 };

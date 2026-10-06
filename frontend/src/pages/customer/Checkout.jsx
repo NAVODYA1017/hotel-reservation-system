@@ -6,7 +6,8 @@ import LoadingScreen from '../../components/LoadingScreen';
 import Reveal from '../../components/Reveal';
 import { Lottie } from 'lottie-react';
 import paymentSuccessAnim from '../../assets/payment-success.json';
-import { CreditCard, Building, Banknote, ShieldCheck, BedDouble, User, CheckCircle2, AlertCircle } from 'lucide-react';
+import { CreditCard, Building, Banknote, ShieldCheck, BedDouble, User, CheckCircle2, AlertCircle, UtensilsCrossed } from 'lucide-react';
+import { buffetApi } from '../../utils/buffetApi';
 
 const PAYMENT_METHODS = [
   { id: 'CREDIT_CARD', icon: <CreditCard size={18} />, label: 'Credit Card' },
@@ -22,42 +23,56 @@ function Checkout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  // Buffet specific query parameters
+  const isBuffet = searchParams.get('type') === 'BUFFET' || Boolean(searchParams.get('buffetCode'));
+  const buffetCode = searchParams.get('buffetCode') || '';
+  const buffetSession = searchParams.get('session') || 'DINNER';
+  const buffetSessionTitle = searchParams.get('title') || 'Alaka Gourmet Buffet';
+  const buffetDate = searchParams.get('date') || new Date().toISOString().slice(0, 10);
+  const buffetSlot = searchParams.get('slot') || '07:00 PM';
+  const buffetAdults = Number(searchParams.get('adults') || 1);
+  const buffetChildren = Number(searchParams.get('children') || 0);
+  const buffetAmount = Number(searchParams.get('amount') || 8900);
+
   const roomId = searchParams.get('roomId') || searchParams.get('room') || '14';
-  const checkIn = searchParams.get('checkIn') || '';
+  const checkIn = isBuffet ? `${buffetDate} (${buffetSlot})` : (searchParams.get('checkIn') || '');
   const checkOut = searchParams.get('checkOut') || '';
-  const guestsCount = Number(searchParams.get('guests') || 1);
+  const guestsCount = isBuffet ? (buffetAdults + buffetChildren) : Number(searchParams.get('guests') || 1);
 
   const guest = JSON.parse(localStorage.getItem('guestUser') || 'null');
 
   const [dbRoom, setDbRoom] = useState(null);
 
   useEffect(() => {
-    if (roomId) {
+    if (!isBuffet && roomId) {
       axios.get(`/api/rooms/${roomId}`)
         .then(res => setDbRoom(res.data))
         .catch(() => {});
     }
-  }, [roomId]);
+  }, [roomId, isBuffet]);
 
   const nights = (() => {
+    if (isBuffet) return 1;
     if (!checkIn || !checkOut) return 1;
     const ms = new Date(checkOut) - new Date(checkIn);
     return Math.max(1, Math.floor(ms / (1000 * 60 * 60 * 24)));
   })();
 
   const pricePerNight = dbRoom ? Number(dbRoom.pricePerNight || dbRoom.price || 8500) : (MOCK_ROOM_PRICES[roomId] || 12000);
-  const subtotal = pricePerNight * nights;
-  const tax = Math.round(subtotal * 0.1);
+  const subtotal = isBuffet ? buffetAmount : (pricePerNight * nights);
+  const tax = isBuffet ? 0 : Math.round(subtotal * 0.1);
   const total = subtotal + tax;
-  const roomName = dbRoom ? `${dbRoom.roomType || 'Room'} #${dbRoom.roomNumber}` : (MOCK_ROOM_NAMES[roomId] || 'Deluxe Room');
+  const roomName = isBuffet
+    ? `The Alaka Restaurant — ${buffetSessionTitle}`
+    : (dbRoom ? `${dbRoom.roomType || 'Room'} #${dbRoom.roomNumber}` : (MOCK_ROOM_NAMES[roomId] || 'Deluxe Room'));
 
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Confirm
   const [guestForm, setGuestForm] = useState({
-    name: guest?.name || '',
-    email: guest?.email || '',
+    name: searchParams.get('guestName') || guest?.name || '',
+    email: searchParams.get('guestEmail') || guest?.email || '',
     countryCode: '+94',
-    phone: guest?.phone || '',
-    specialRequests: '',
+    phone: searchParams.get('guestPhone') || guest?.phone || '',
+    specialRequests: searchParams.get('dietary') || '',
   });
   const [payMethod, setPayMethod] = useState('CREDIT_CARD');
   const [cardForm, setCardForm] = useState({ number: '', name: '', expiry: '', cvv: '' });
@@ -84,6 +99,44 @@ function Checkout() {
     setProcessing(true);
     setError('');
     try {
+      if (isBuffet) {
+        let finalCode = buffetCode;
+        if (!finalCode) {
+          const res = await buffetApi.createReservation({
+            guestName: guestForm.name || guest?.name || 'Valued Guest',
+            guestEmail: guestForm.email || guest?.email || 'guest@example.com',
+            guestPhone: guestForm.phone || guest?.phone || '',
+            reservationDate: buffetDate,
+            mealSession: buffetSession,
+            timeSlot: buffetSlot,
+            adultCount: buffetAdults,
+            childCount: buffetChildren,
+            specialDietary: guestForm.specialRequests || 'Standard Dining'
+          });
+          finalCode = res.confirmationCode;
+        }
+
+        if (payMethod !== 'CASH') {
+          await buffetApi.processPayment({
+            confirmationCode: finalCode,
+            amount: total,
+            paymentMethod: payMethod,
+            paymentReferenceInfo: (payMethod === 'CREDIT_CARD' || payMethod === 'DEBIT_CARD')
+              ? `Card ending in ${cardForm.number.slice(-4) || '4242'}`
+              : 'Bank Transfer Online'
+          });
+        }
+
+        setBookingRef(finalCode);
+        setProcessing(false);
+        setShowPaymentAnim(true);
+        setTimeout(() => {
+          setShowPaymentAnim(false);
+          setStep(4);
+        }, 2800);
+        return;
+      }
+
       // Step 1: Create reservation in MySQL backend
       const resRes = await axios.post('/api/reservations', {
         userId: guest?.id,
@@ -167,29 +220,40 @@ function Checkout() {
           {step === 4 ? (
             /* SUCCESS */
           <div className="success-hero">
-            <span className="success-icon">🌲</span>
+            <span className="success-icon">{isBuffet ? '🍽️' : '🌲'}</span>
             <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
-              Countryside Sanctuary Reserved
+              {isBuffet ? 'Alaka Buffet Dining Reserved' : 'Countryside Sanctuary Reserved'}
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: 16, marginBottom: 32 }}>
-              Your retreat at Aliya Resort is confirmed. A raw sanctuary awaits your arrival.
+              {isBuffet 
+                ? 'Your table reservation at The Alaka Restaurant is secured. Please present your booking reference upon arrival.' 
+                : 'Your retreat at Aliya Resort is confirmed. A raw sanctuary awaits your arrival.'}
             </p>
             <div style={{
               background: '#1a1c18', border: '1px solid rgba(197,160,89,0.3)',
               borderRadius: 2, padding: 32, maxWidth: 520, margin: '0 auto 36px',
             }}>
-              <div style={{ fontSize: 11, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700, marginBottom: 8 }}>Haven Reference Code</div>
+              <div style={{ fontSize: 11, color: 'var(--gold-400)', textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700, marginBottom: 8 }}>
+                {isBuffet ? 'Buffet Confirmation Code' : 'Haven Reference Code'}
+              </div>
               <div style={{ fontFamily: 'monospace', fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 24 }}>{bookingRef}</div>
               <hr className="divider" style={{ marginBottom: 20 }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {[
+                {(isBuffet ? [
+                  ['Dining Experience', roomName],
+                  ['Date of Dining', buffetDate],
+                  ['Arrival Window', buffetSlot],
+                  ['Guests', `${buffetAdults} Adult(s)${buffetChildren > 0 ? `, ${buffetChildren} Child(ren)` : ''}`],
+                  ['Total Amount', `LKR ${total.toLocaleString()}`],
+                  ['Payment Status', payMethod === 'CASH' ? 'Pay upon Arrival at Restaurant' : 'Confirmed & Paid Online'],
+                ] : [
                   ['Space', roomName],
                   ['Arrival', checkIn],
                   ['Departure', checkOut],
                   ['Guests', `${guestsCount} Person(s)`],
                   ['Total Amount', `LKR ${total.toLocaleString()}`],
                   ['Payment Status', payMethod === 'CASH' ? 'Pay upon Check-in' : 'Confirmed & Paid'],
-                ].map(([k, v]) => (
+                ]).map(([k, v]) => (
                   <div key={k} className="flex justify-between">
                     <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{k}</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{v}</span>
@@ -198,12 +262,25 @@ function Checkout() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 14, justifyContent: 'center' }}>
-              <button className="btn-escape" onClick={() => navigate('/my-bookings')}>
-                MY RESERVATIONS & INVOICES →
-              </button>
-              <button className="btn btn-secondary" style={{ borderRadius: 2 }} onClick={() => navigate('/')}>
-                Back to Haven Home
-              </button>
+              {isBuffet ? (
+                <>
+                  <button className="btn-escape" onClick={() => navigate('/buffet')}>
+                    BOOK ANOTHER BUFFET →
+                  </button>
+                  <button className="btn btn-secondary" style={{ borderRadius: 2 }} onClick={() => navigate('/')}>
+                    Back to Resort Home
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="btn-escape" onClick={() => navigate('/my-bookings')}>
+                    MY RESERVATIONS & INVOICES →
+                  </button>
+                  <button className="btn btn-secondary" style={{ borderRadius: 2 }} onClick={() => navigate('/')}>
+                    Back to Haven Home
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ) : (
@@ -435,17 +512,23 @@ function Checkout() {
               <div className="checkout-summary">
                 <div className="checkout-summary-header">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8, color: 'var(--gold-400)' }}>
-                    <BedDouble size={26} />
+                    {isBuffet ? <UtensilsCrossed size={26} /> : <BedDouble size={26} />}
                   </div>
                   <div className="checkout-summary-title">{roomName}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Room #{roomId} · {nights} night{nights !== 1 ? 's' : ''}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    {isBuffet ? `${buffetDate} · ${buffetSlot}` : `Room #${roomId} · ${nights} night${nights !== 1 ? 's' : ''}`}
+                  </div>
                 </div>
                 <div className="checkout-summary-body">
-                  {[
+                  {(isBuffet ? [
+                    ['Date', buffetDate],
+                    ['Time Window', buffetSlot],
+                    ['Party Size', `${buffetAdults} Adult(s)${buffetChildren > 0 ? `, ${buffetChildren} Child(ren)` : ''}`],
+                  ] : [
                     ['Check-in', checkIn || '—'],
                     ['Check-out', checkOut || '—'],
                     ['Guests', guestsCount],
-                  ].map(([k, v]) => (
+                  ]).map(([k, v]) => (
                     <div key={k} className="flex justify-between" style={{ marginBottom: 12 }}>
                       <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{k}</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{v}</span>
@@ -453,22 +536,38 @@ function Checkout() {
                   ))}
                   <hr className="divider" style={{ margin: '16px 0' }} />
                   <div className="price-breakdown" style={{ margin: 0 }}>
-                    <div className="price-row">
-                      <span>LKR {pricePerNight.toLocaleString()} × {nights} night{nights !== 1 ? 's' : ''}</span>
-                      <span>LKR {subtotal.toLocaleString()}</span>
-                    </div>
-                    <div className="price-row">
-                      <span>Tax (10%)</span>
-                      <span>LKR {tax.toLocaleString()}</span>
-                    </div>
+                    {isBuffet ? (
+                      <>
+                        <div className="price-row">
+                          <span>{buffetAdults} Adult(s) + {buffetChildren} Child(ren)</span>
+                          <span>LKR {subtotal.toLocaleString()}</span>
+                        </div>
+                        <div className="price-row">
+                          <span>Taxes & Service Charge</span>
+                          <span style={{ color: '#22c55e' }}>Included</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="price-row">
+                          <span>LKR {pricePerNight.toLocaleString()} × {nights} night{nights !== 1 ? 's' : ''}</span>
+                          <span>LKR {subtotal.toLocaleString()}</span>
+                        </div>
+                        <div className="price-row">
+                          <span>Tax (10%)</span>
+                          <span>LKR {tax.toLocaleString()}</span>
+                        </div>
+                      </>
+                    )}
                     <div className="price-row total">
                       <span>Total</span>
                       <span style={{ color: 'var(--gold-300)', fontSize: 18 }}>LKR {total.toLocaleString()}</span>
                     </div>
                   </div>
                   <div style={{ marginTop: 20, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, textAlign: 'center' }}>
-                    Free cancellation up to 3 days before check-in<br />
-                    Secure, encrypted payment processing
+                    {isBuffet 
+                      ? 'Guaranteed dining slot & tables allocated at restaurant.\n256-bit encrypted checkout.' 
+                      : 'Free cancellation up to 3 days before check-in\nSecure, encrypted payment processing'}
                   </div>
                 </div>
               </div>

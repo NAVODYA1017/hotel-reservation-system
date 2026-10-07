@@ -5,6 +5,7 @@ import {
   Calendar, Search, Edit3, XCircle, Trash2, CheckCircle2, AlertTriangle, Plus, Printer 
 } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
+import { buffetApi } from '../utils/buffetApi';
 
 const STATUS_OPTIONS = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED'];
 const TYPE_OPTIONS = ['ROOM', 'EVENT_HALL', 'PACKAGE'];
@@ -126,6 +127,7 @@ function Reservations() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('ROOM');
   const [modal, setModal] = useState(null);
   const [toast, setToast] = useState(null);
 
@@ -134,12 +136,37 @@ function Reservations() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const fetchReservations = () => {
+  const fetchReservations = async () => {
     setLoading(true);
-    axios.get('/api/reservations')
-      .then(res => setReservations(Array.isArray(res.data) ? res.data : []))
-      .catch(() => setReservations([]))
-      .finally(() => setLoading(false));
+    try {
+      const [res, buffets] = await Promise.all([
+        axios.get('/api/reservations').catch(() => ({ data: [] })),
+        buffetApi ? buffetApi.getAllReservations().catch(() => []) : Promise.resolve([])
+      ]);
+      const allRes = Array.isArray(res.data) ? res.data : [];
+      const allBuffets = Array.isArray(buffets) ? buffets : (buffets.data || []);
+      
+      const mappedBuffets = allBuffets.map(b => ({
+        id: `BUF-${b.id}`,
+        realId: b.id,
+        guestName: b.guestName,
+        guestEmail: b.guestEmail,
+        reservationType: 'BUFFET',
+        checkInDate: b.reservationDate,
+        checkOutDate: b.reservationDate,
+        status: b.status,
+        totalAmount: b.totalAmount,
+        roomType: `Buffet: ${b.mealSession}`,
+        roomId: b.tableNumber || 'TBD'
+      }));
+
+      // Combine room/hall reservations with buffet reservations
+      setReservations([...allRes, ...mappedBuffets]);
+    } catch (e) {
+      setReservations([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -172,8 +199,12 @@ function Reservations() {
 
   const handleCancel = async (res) => {
     try {
-      await axios.put(`/api/reservations/${res.id}/cancel`);
-      showToast(`Reservation #${res.id} marked CANCELLED in MySQL.`, 'success');
+      if (res.reservationType === 'BUFFET') {
+        if (buffetApi) await buffetApi.cancelReservation(res.realId);
+      } else {
+        await axios.put(`/api/reservations/${res.id}/cancel`);
+      }
+      showToast(`Reservation cancelled successfully.`, 'success');
       fetchReservations();
     } catch (err) {
       const msg = err.response?.data?.message || 'Error cancelling reservation';
@@ -250,7 +281,12 @@ function Reservations() {
     const q = search.toLowerCase();
     return (
       (!q || r.guestName?.toLowerCase().includes(q) || r.guestEmail?.toLowerCase().includes(q) || String(r.id).includes(q)) &&
-      (!statusFilter || r.status === statusFilter)
+      (!statusFilter || r.status === statusFilter) &&
+      (
+        categoryFilter === 'ROOM' ? (r.reservationType === 'ROOM' || !r.reservationType || (!r.hallName && !r.packageId && r.reservationType !== 'BUFFET')) :
+        categoryFilter === 'EVENT_HALL' ? (r.reservationType === 'EVENT_HALL' || !!r.hallName || !!r.packageId) :
+        (r.reservationType === 'BUFFET')
+      )
     );
   });
 
@@ -272,7 +308,29 @@ function Reservations() {
         </div>
       )}
 
-      {/* Summary Pills */}
+
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: '1px solid var(--border-color)', paddingBottom: 12 }}>
+        <button 
+          className={`btn ${categoryFilter === 'ROOM' ? 'btn-primary' : 'btn-ghost'}`} 
+          onClick={() => setCategoryFilter('ROOM')}
+        >
+          Room Reservations
+        </button>
+        <button 
+          className={`btn ${categoryFilter === 'EVENT_HALL' ? 'btn-primary' : 'btn-ghost'}`} 
+          onClick={() => setCategoryFilter('EVENT_HALL')}
+        >
+          Event Hall Reservations
+        </button>
+        <button 
+          className={`btn ${categoryFilter === 'BUFFET' ? 'btn-primary' : 'btn-ghost'}`} 
+          onClick={() => setCategoryFilter('BUFFET')}
+        >
+          Buffet / Dining Reservations
+        </button>
+      </div>
       <div className="flex gap-3 flex-wrap">
         {STATUS_OPTIONS.map(s => {
           const count = reservations.filter(r => r.status === s).length;
@@ -286,11 +344,17 @@ function Reservations() {
             </button>
           );
         })}
-        <button className="btn btn-ghost btn-sm" onClick={() => setStatusFilter('')}>Show All ({reservations.length})</button>
+        <button className="btn btn-ghost btn-sm" onClick={() => setStatusFilter('')}>Show All</button>
         <button
           id="add-reservation-btn"
           className="btn btn-primary btn-sm ml-auto"
-          onClick={() => setModal({ type: 'add' })}
+          onClick={() => {
+             if (categoryFilter === 'BUFFET') {
+               showToast('Please manage buffet reservations via the Dining Admin panel.', 'warning');
+               return;
+             }
+             setModal({ type: 'add' });
+          }}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
           <Plus size={14} /> New Reservation

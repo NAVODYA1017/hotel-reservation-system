@@ -112,8 +112,11 @@ public class ReservationService {
         if (request.getCheckIn() == null || request.getCheckOut() == null) {
             throw new IllegalArgumentException("Check-in and check-out dates are required.");
         }
-        if (request.getCheckOut().isBefore(request.getCheckIn()) || request.getCheckOut().isEqual(request.getCheckIn())) {
-            throw new IllegalArgumentException("Check-out date must be at least one day after check-in date.");
+        if (request.getCheckOut().isBefore(request.getCheckIn())) {
+            throw new IllegalArgumentException("Check-out date cannot be before check-in date.");
+        }
+        if (request.getRoomId() != null && request.getCheckOut().isEqual(request.getCheckIn())) {
+            throw new IllegalArgumentException("Check-out date must be at least one day after check-in date for room bookings.");
         }
 
         // Build the new Reservation entity
@@ -174,6 +177,10 @@ public class ReservationService {
                 reservation.setEventPackage(eventPackage);
             }
         }
+
+        // Add 10% tax to match frontend calculations (JS Math.round)
+        BigDecimal taxAmount = totalAmount.multiply(new BigDecimal("0.10")).setScale(0, java.math.RoundingMode.HALF_UP);
+        totalAmount = totalAmount.add(taxAmount);
 
         reservation.setTotalAmount(totalAmount);
 
@@ -259,8 +266,11 @@ public class ReservationService {
         if (request.getCheckIn() == null || request.getCheckOut() == null) {
             throw new IllegalArgumentException("Both new check-in and check-out dates are required for modification.");
         }
-        if (request.getCheckOut().isBefore(request.getCheckIn()) || request.getCheckOut().isEqual(request.getCheckIn())) {
-            throw new IllegalArgumentException("Check-out date must be after check-in date.");
+        if (request.getCheckOut().isBefore(request.getCheckIn())) {
+            throw new IllegalArgumentException("Check-out date cannot be before check-in date.");
+        }
+        if (reservation.getRoom() != null && request.getCheckOut().isEqual(request.getCheckIn())) {
+            throw new IllegalArgumentException("Check-out date must be after check-in date for room bookings.");
         }
 
         // Conflict check on new dates (excluding current reservation ID)
@@ -271,7 +281,10 @@ public class ReservationService {
 
             // Recalculate total amount for new date span
             long nights = ChronoUnit.DAYS.between(request.getCheckIn(), request.getCheckOut());
-            reservation.setTotalAmount(reservation.getRoom().getPrice().multiply(BigDecimal.valueOf(nights)));
+            BigDecimal newTotal = reservation.getRoom().getPrice().multiply(BigDecimal.valueOf(nights));
+            // Add 10% tax
+            BigDecimal taxAmount = newTotal.multiply(new BigDecimal("0.10")).setScale(0, java.math.RoundingMode.HALF_UP);
+            reservation.setTotalAmount(newTotal.add(taxAmount));
         } else if (reservation.getHall() != null) {
             if (isHallBooked(reservation.getHall().getId(), request.getCheckIn(), request.getCheckOut(), reservation.getId())) {
                 throw new IllegalStateException("Event Hall '" + reservation.getHall().getName() + "' is already booked for the new dates.");
@@ -328,7 +341,7 @@ public class ReservationService {
                 .filter(r -> excludeReservationId == null || !r.getId().equals(excludeReservationId))
                 .filter(r -> r.getHall() != null && r.getHall().getId().equals(hallId))
                 .filter(r -> r.getStatus() != ReservationStatus.CANCELLED)
-                .anyMatch(r -> r.getCheckIn().isBefore(checkOut) && r.getCheckOut().isAfter(checkIn));
+                .anyMatch(r -> !r.getCheckIn().isAfter(checkOut) && !r.getCheckOut().isBefore(checkIn));
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -340,6 +353,9 @@ public class ReservationService {
         response.setId(reservation.getId());
         response.setConfirmationCode(reservation.getConfirmationCode());
         response.setStatus(reservation.getStatus().name());
+        if (reservation.getReservationType() != null) {
+            response.setReservationType(reservation.getReservationType().name());
+        }
         response.setCheckIn(reservation.getCheckIn());
         response.setCheckOut(reservation.getCheckOut());
         response.setTotalAmount(reservation.getTotalAmount());

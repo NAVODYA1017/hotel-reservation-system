@@ -15,8 +15,9 @@ const STATUS_BADGE = {
 function EventHalls() {
   const [halls, setHalls] = useState([]);
   const [packages, setPackages] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('halls'); // 'halls' or 'packages'
+  const [activeTab, setActiveTab] = useState('halls'); // 'halls', 'packages', or 'bookings'
   const [search, setSearch] = useState('');
   
   // Modals
@@ -32,12 +33,16 @@ function EventHalls() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resHalls, resPkgs] = await Promise.all([
+      const [resHalls, resPkgs, resBks] = await Promise.all([
         axios.get('/api/event-halls'),
-        axios.get('/api/packages')
+        axios.get('/api/packages'),
+        axios.get('/api/reservations').catch(() => ({ data: [] }))
       ]);
       setHalls(Array.isArray(resHalls.data) ? resHalls.data : []);
       setPackages(Array.isArray(resPkgs.data) ? resPkgs.data : []);
+      
+      const allBks = Array.isArray(resBks.data) ? resBks.data : [];
+      setBookings(allBks.filter(r => r.reservationType === 'EVENT_HALL' || !!r.hallName || !!r.packageId));
     } catch (err) {
       console.error('Error fetching event data:', err);
     } finally {
@@ -156,6 +161,10 @@ function EventHalls() {
     !search || p.name?.toLowerCase().includes(search.toLowerCase()) || p.description?.toLowerCase().includes(search.toLowerCase()) || p.servicesIncluded?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const filteredBookings = bookings.filter(b => 
+    !search || b.guestName?.toLowerCase().includes(search.toLowerCase()) || b.guestEmail?.toLowerCase().includes(search.toLowerCase())
+  );
+
   const availableHallsCount = halls.filter(h => h.available || h.status === 'AVAILABLE').length;
 
   return (
@@ -221,6 +230,13 @@ function EventHalls() {
             >
               <Package size={14} /> Event Packages ({packages.length})
             </button>
+            <button
+              className={`btn ${activeTab === 'bookings' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => { setActiveTab('bookings'); setSearch(''); }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <Users size={14} /> Hall Bookings ({bookings.length})
+            </button>
           </div>
 
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -237,11 +253,11 @@ function EventHalls() {
               <button className="btn btn-primary btn-sm" onClick={() => setModal({ type: 'hall' })} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <Plus size={14} /> Add Event Hall
               </button>
-            ) : (
+            ) : activeTab === 'packages' ? (
               <button className="btn btn-primary btn-sm" onClick={() => setModal({ type: 'package' })} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <Plus size={14} /> Add Package
               </button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -422,6 +438,64 @@ function EventHalls() {
                             <Trash2 size={13} />
                           </button>
                         </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: BOOKINGS */}
+      {activeTab === 'bookings' && (
+        <div className="card">
+          <div className="card-header flex justify-between items-center">
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Users size={18} style={{ color: 'var(--gold-400)' }} /> Event Hall & Package Bookings
+            </div>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Showing {filteredBookings.length} bookings</span>
+          </div>
+          {loading ? (
+            <LoadingScreen text="Loading bookings..." />
+          ) : filteredBookings.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon"><Package size={36} style={{ color: 'var(--text-muted)' }} /></div>
+              <div className="empty-state-title">No bookings found</div>
+            </div>
+          ) : (
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Guest</th>
+                    <th>Event Hall / Package</th>
+                    <th>Event Date</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredBookings.map(b => (
+                    <tr key={b.id}>
+                      <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>#{b.id}</td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{b.guestName || b.userName || 'Guest'}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{b.guestEmail || b.userEmail || '—'}</div>
+                      </td>
+                      <td>
+                        <span style={{ fontFamily: 'monospace', background: 'var(--dark-700)', padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>
+                          {b.hallName ? b.hallName : b.packageName ? b.packageName : `#${b.roomId}`}
+                        </span>
+                      </td>
+                      <td>{b.checkInDate || b.checkIn}</td>
+                      <td style={{ color: 'var(--gold-300)', fontWeight: 600 }}>LKR {Number(b.totalAmount || 0).toLocaleString()}</td>
+                      <td>
+                        <span className={`badge ${b.status === 'CONFIRMED' || b.status === 'PAID' ? 'badge-success' : 'badge-warning'}`}>
+                          {b.status}
+                        </span>
                       </td>
                     </tr>
                   ))}

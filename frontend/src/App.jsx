@@ -262,7 +262,7 @@ function App() {
         <Route path="/guest-login"   element={<GuestLogin />} />
 
         {/* ── Admin login ── */}
-        <Route path="/admin/login"   element={<Login />} />
+        <Route path="/admin/login"   element={<GuestLogin />} />
 
         {/* ── Admin panel routes (all under /admin) ── */}
         <Route path="/admin"              element={<AdminLayout><Dashboard /></AdminLayout>} />
@@ -297,7 +297,7 @@ function App() {
         <Route path="/manager/reports"      element={<AdminLayout><Reports /></AdminLayout>} />
 
         {/* Legacy /login redirect support */}
-        <Route path="/login"         element={<Login />} />
+        <Route path="/login"         element={<GuestLogin />} />
       </Routes>
     </BrowserRouter>
   );

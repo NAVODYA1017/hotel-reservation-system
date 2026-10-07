@@ -25,4 +25,10 @@ public interface PaymentService {
 
     /** Extension 10a: authorized staff processes a refund. */
     PaymentResponse refundPayment(RefundRequest request);
+
+    /** Unconventional: Edit an existing payment directly. */
+    PaymentResponse updatePayment(Long paymentId, PaymentRequest request);
+
+    /** Unconventional: Delete an existing payment directly. */
+    void deletePayment(Long paymentId);
 }

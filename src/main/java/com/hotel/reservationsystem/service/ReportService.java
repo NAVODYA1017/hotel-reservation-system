@@ -255,8 +255,14 @@ public class ReportService {
             Map<String, BigDecimal> byType = new LinkedHashMap<>();
             byType.put("ROOM", BigDecimal.ZERO);
             byType.put("EVENT_HALL", BigDecimal.ZERO);
-            successful.forEach(p -> byType.merge(
-                    p.getReservation().getRoom() != null ? "ROOM" : "EVENT_HALL", p.getAmount(), BigDecimal::add));
+            byType.put("BUFFET", BigDecimal.ZERO);
+            successful.forEach(p -> {
+                String type = "BUFFET";
+                if (p.getReservation() != null) {
+                    type = p.getReservation().getRoom() != null ? "ROOM" : "EVENT_HALL";
+                }
+                byType.merge(type, p.getAmount(), BigDecimal::add);
+            });
             report.setRevenueByBookingType(byType);
 
             Map<LocalDate, BigDecimal> daily = new TreeMap<>();

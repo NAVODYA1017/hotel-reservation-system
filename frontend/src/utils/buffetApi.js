@@ -38,12 +38,94 @@ const DEFAULT_SESSIONS = [
   }
 ];
 
+const DEFAULT_BUFFET_RESERVATIONS = [
+  {
+    id: 101,
+    confirmationCode: 'BUF-20261005-7821',
+    guestName: 'Dr. Rohan Jayasinghe',
+    guestEmail: 'rohan.j@gmail.com',
+    guestPhone: '0771239876',
+    reservationDate: '2026-10-05',
+    mealSession: 'DINNER',
+    timeSlot: '07:30 PM',
+    adultCount: 2,
+    childCount: 0,
+    numberOfGuests: 2,
+    pricePerPerson: 8900,
+    totalAmount: 17800,
+    amountPaid: 17800,
+    paymentStatus: 'SUCCESS',
+    paymentMethod: 'CREDIT_CARD',
+    transactionReference: 'TXN-BUF-892182',
+    paidAt: '2026-10-05T19:15:00',
+    specialDietary: 'Seafood Lovers',
+    status: 'CHECKED_IN',
+    tableNumber: 'T-14',
+    bookedBy: 'CLIENT_WEBSITE',
+    createdAt: '2026-10-05T10:00:00'
+  },
+  {
+    id: 102,
+    confirmationCode: 'BUF-20261006-4412',
+    guestName: 'Anoma Wickramasinghe',
+    guestEmail: 'anoma.w@gmail.com',
+    guestPhone: '0719876543',
+    reservationDate: '2026-10-06',
+    mealSession: 'LUNCH',
+    timeSlot: '01:15 PM',
+    adultCount: 2,
+    childCount: 1,
+    numberOfGuests: 3,
+    pricePerPerson: 6500,
+    totalAmount: 16250,
+    amountPaid: 16250,
+    paymentStatus: 'SUCCESS',
+    paymentMethod: 'CASH',
+    transactionReference: 'TXN-BUF-553190',
+    paidAt: '2026-10-06T12:45:00',
+    specialDietary: 'Authentic Sri Lankan curries',
+    status: 'CONFIRMED',
+    tableNumber: 'T-08',
+    bookedBy: 'RECEPTIONIST_WALKIN',
+    createdAt: '2026-10-06T11:00:00'
+  },
+  {
+    id: 103,
+    confirmationCode: 'BUF-20261006-9934',
+    guestName: 'Kasun Silva',
+    guestEmail: 'kasun.silva@outlook.com',
+    guestPhone: '0754433221',
+    reservationDate: '2026-10-06',
+    mealSession: 'BREAKFAST',
+    timeSlot: '08:30 AM',
+    adultCount: 2,
+    childCount: 0,
+    numberOfGuests: 2,
+    pricePerPerson: 4500,
+    totalAmount: 9000,
+    amountPaid: 9000,
+    paymentStatus: 'SUCCESS',
+    paymentMethod: 'ONLINE',
+    transactionReference: 'TXN-BUF-339011',
+    paidAt: '2026-10-06T08:15:00',
+    specialDietary: 'None',
+    status: 'CHECKED_IN',
+    tableNumber: 'T-03',
+    bookedBy: 'CLIENT_WEBSITE',
+    createdAt: '2026-10-06T07:30:00'
+  }
+];
+
 function getStoredReservations() {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed;
+    }
+    return DEFAULT_BUFFET_RESERVATIONS;
   } catch {
-    return [];
+    return DEFAULT_BUFFET_RESERVATIONS;
   }
 }
 
@@ -197,6 +279,31 @@ export const buffetApi = {
       );
     }
     return list;
+  },
+
+  /**
+   * Cancel a buffet reservation.
+   */
+  async cancelReservation(id) {
+    try {
+      const res = await axios.post(`/api/buffet/admin/cancel/${id}`);
+      if (res.data) return res.data;
+    } catch {
+      // Fallback
+    }
+
+    const current = getStoredReservations();
+    const updated = current.map(r => {
+      if (r.id === id) {
+        return {
+          ...r,
+          status: 'CANCELLED'
+        };
+      }
+      return r;
+    });
+    saveStoredReservations(updated);
+    return updated.find(r => r.id === id);
   },
 
   /**

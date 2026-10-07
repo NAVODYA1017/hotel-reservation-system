@@ -186,7 +186,7 @@ function Login() {
             <button
               type="button"
               className="btn btn-ghost btn-xs"
-              style={{ justifyContent: 'flex-start', padding: '8px 10px', fontSize: 12, background: 'rgba(255,255,255,0.04)', borderRadius: 4, border: '1px solid rgba(255,255,255,0.08)' }}
+              style={{ justifyContent: 'flex-start', padding: '8px 10px', fontSize: 12, background: 'rgba(241, 9, 9, 0.93)', borderRadius: 4, border: '1px solid rgba(241, 6, 6, 0.93)' }}
               onClick={() => { setEmail('manager@hotel.com'); setPassword('manager123'); setError(''); }}
             >
               👔 Manager

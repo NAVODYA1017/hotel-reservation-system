@@ -26,6 +26,7 @@ public class ReservationResponse {
     private Long id;
     private String confirmationCode; // e.g. "RES-3FA9B01C"
     private String status;           // PENDING, CONFIRMED, CANCELLED, COMPLETED
+    private String reservationType;  // ROOM or EVENT_HALL
     private LocalDate checkIn;
     private LocalDate checkOut;
     private BigDecimal totalAmount;

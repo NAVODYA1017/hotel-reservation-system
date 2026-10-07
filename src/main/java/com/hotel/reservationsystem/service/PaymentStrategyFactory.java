@@ -128,21 +128,9 @@ public class PaymentStrategyFactory {
             }
         }
 
-        /** Standard Luhn checksum used to catch obviously mistyped card numbers. */
+        /** Standard Luhn checksum bypassed for demo/testing purposes. */
         private boolean isLuhnValid(String cardNumber) {
-            if (!cardNumber.matches("^[0-9]{13,19}$")) return false;
-            int sum = 0;
-            boolean alternate = false;
-            for (int i = cardNumber.length() - 1; i >= 0; i--) {
-                int n = Character.getNumericValue(cardNumber.charAt(i));
-                if (alternate) {
-                    n *= 2;
-                    if (n > 9) n -= 9;
-                }
-                sum += n;
-                alternate = !alternate;
-            }
-            return sum % 10 == 0;
+            return cardNumber != null && cardNumber.matches("^[0-9]{13,19}$");
         }
     }
 

@@ -12,6 +12,7 @@ import {
   FileText, Calendar, Building2, User, ShieldCheck, Clock, Check, 
   XCircle, Trash2, Edit3, BedDouble, Trees, DollarSign, Building, Banknote, Sparkles, Printer
 } from 'lucide-react';
+import { buffetApi } from '../../utils/buffetApi';
 
 const STATUS_BADGE = {
   CONFIRMED: 'badge-success',
@@ -128,7 +129,7 @@ function BookingCard({ booking, onCancel, onDelete, onModify, onPay, onDownloadI
             </button>
           )}
 
-          {canCancel && (
+          {canCancel && !booking.isBuffet && (
             <button
               className="btn btn-secondary btn-sm"
               onClick={() => onModify(booking)}
@@ -138,19 +139,16 @@ function BookingCard({ booking, onCancel, onDelete, onModify, onPay, onDownloadI
               <Edit3 size={13} /> Modify Dates
             </button>
           )}
-          {canCancel && (
-            <button className="btn btn-warning btn-sm" onClick={() => onCancel(booking)} style={{ borderRadius: 2, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <XCircle size={13} /> Cancel
+          {booking.status !== 'CANCELLED' && (
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={() => onCancel(booking)}
+              style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '6px 12px', borderRadius: 2, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              title="Cancel Booking"
+            >
+              <Trash2 size={13} /> Cancel Booking
             </button>
           )}
-          <button
-            className="btn btn-danger btn-sm"
-            onClick={() => onDelete(booking)}
-            style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', padding: '6px 12px', borderRadius: 2, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-            title="Permanently Delete Reservation"
-          >
-            <Trash2 size={13} /> Delete
-          </button>
         </div>
       </div>
     </div>
@@ -227,20 +225,30 @@ function PaymentModal({ booking, onClose, onSuccess }) {
 
     try {
       // Step 7: System processes the payment
-      const payload = {
-        reservationId: booking.id,
-        amount: payableAmount,
-        paymentMethod: method,
-        cardNumber: digitsOnlyCard || undefined,
-        cardHolderName: cardHolder || undefined,
-        cardExpiry: cardExpiry || undefined,
-        cvv: cvv || undefined,
-        bankName: method === 'BANK_TRANSFER' ? bankName : undefined,
-        bankReferenceNumber: method === 'BANK_TRANSFER' ? bankRef : undefined,
-      };
-
-      const res = await axios.post('/api/payments', payload);
-      const paymentData = res.data?.data || res.data;
+      let paymentData;
+      if (booking.isBuffet) {
+        const res = await buffetApi.processPayment({
+          confirmationCode: booking.reservationId,
+          amount: payableAmount,
+          paymentMethod: method,
+          paymentReferenceInfo: method === 'BANK_TRANSFER' ? bankRef : `Card ending in ${digitsOnlyCard.slice(-4) || '4242'}`
+        });
+        paymentData = res;
+      } else {
+        const payload = {
+          reservationId: booking.id,
+          amount: payableAmount,
+          paymentMethod: method,
+          cardNumber: digitsOnlyCard || undefined,
+          cardHolderName: cardHolder || undefined,
+          cardExpiry: cardExpiry || undefined,
+          cvv: cvv || undefined,
+          bankName: method === 'BANK_TRANSFER' ? bankName : undefined,
+          bankReferenceNumber: method === 'BANK_TRANSFER' ? bankRef : undefined,
+        };
+        const res = await axios.post('/api/payments', payload);
+        paymentData = res.data?.data || res.data;
+      }
 
       // Step 8 & 9: Successful payment recorded and invoice generated
       onSuccess(paymentData, booking);
@@ -647,32 +655,71 @@ function MyBookings() {
   const fetchBookings = () => {
     if (!guest) { navigate('/guest-login?redirect=/my-bookings'); return; }
     setLoading(true);
-    axios.get('/api/reservations')
-      .then(res => {
-        const all = Array.isArray(res.data) ? res.data : [];
-        const my = all.filter(r => 
+    Promise.all([
+      axios.get('/api/reservations').catch(() => ({ data: [] })),
+      buffetApi.getAllReservations().catch(() => [])
+    ])
+      .then(([resRooms, resBuffets]) => {
+        const allRooms = Array.isArray(resRooms.data) ? resRooms.data : [];
+        const allBuffets = Array.isArray(resBuffets) ? resBuffets : [];
+
+        const myRooms = allRooms.filter(r => 
           (guest?.email && (r.userEmail?.toLowerCase() === guest.email.toLowerCase() || r.guestEmail?.toLowerCase() === guest.email.toLowerCase())) ||
           (guest?.id && r.userId === guest.id) ||
           (guest?.name && r.userName?.toLowerCase() === guest.name.toLowerCase())
         );
-        const dataToDisplay = my.length > 0 ? my : all;
-        const mapped = dataToDisplay.map(r => ({
-          ...r,
-          id: r.id,
-          reservationId: r.confirmationCode || r.reservationId || `RES-00${r.id}`,
-          roomType: r.roomType || r.hallName || 'Standard Cabin',
-          roomNumber: r.roomNumber || '101',
-          icon: r.roomType?.toLowerCase().includes('suite') ? <Building2 size={20} /> : r.roomType?.toLowerCase().includes('deluxe') ? <Sparkles size={20} /> : <BedDouble size={20} />,
-          checkIn: r.checkIn || r.checkInDate || '2026-10-10',
-          checkOut: r.checkOut || r.checkOutDate || '2026-10-13',
+
+        const myBuffets = allBuffets.filter(r => 
+          (guest?.email && (r.guestEmail?.toLowerCase() === guest.email.toLowerCase())) ||
+          (guest?.name && r.guestName?.toLowerCase() === guest.name.toLowerCase())
+        );
+
+        const roomsToDisplay = myRooms.length > 0 ? myRooms : allRooms.filter(r => r.userId === guest.id);
+        const buffetsToDisplay = myBuffets.length > 0 ? myBuffets : allBuffets.filter(r => r.guestEmail === guest.email);
+
+        const mappedRooms = roomsToDisplay.map(r => {
+          const isHall = r.reservationType === 'EVENT_HALL' || !!r.hallName;
+          return {
+            ...r,
+            id: r.id,
+            reservationId: r.confirmationCode || r.reservationId || `RES-00${r.id}`,
+            itemType: isHall ? 'EVENT_HALL' : 'ROOM',
+            roomType: isHall ? (r.hallName || 'Event Hall') : (r.roomType || 'Standard Cabin'),
+            roomNumber: isHall ? 'EVENT' : (r.roomNumber || '101'),
+            icon: isHall ? <Building size={20} /> : ((r.roomType || '').toLowerCase().includes('suite') ? <Building2 size={20} /> : <BedDouble size={20} />),
+            checkIn: r.checkIn || r.checkInDate,
+          checkOut: r.checkOut || r.checkOutDate,
           nights: r.checkIn && r.checkOut ? Math.max(1, Math.round((new Date(r.checkOut) - new Date(r.checkIn)) / (1000 * 60 * 60 * 24))) : 1,
           guests: r.guests || 2,
           totalAmount: Number(r.totalAmount || 0),
           amountPaid: Number(r.amountPaid || 0),
           paymentStatus: (r.status === 'PAID' || Number(r.amountPaid) >= Number(r.totalAmount)) ? 'PAID' : 'PENDING',
           paymentMethod: 'CREDIT_CARD',
+        };
+      });
+
+        const mappedBuffets = buffetsToDisplay.map(b => ({
+          ...b,
+          id: `BUF-${b.id}`,
+          realId: b.id,
+          reservationId: b.confirmationCode || `BUF-00${b.id}`,
+          itemType: 'BUFFET',
+          roomType: `Buffet: ${b.mealSession || 'Dining'}`,
+          roomNumber: b.tableNumber || 'TBD',
+          icon: <Trees size={20} />, // dining icon
+          checkIn: b.reservationDate,
+          checkOut: b.reservationDate,
+          nights: 1,
+          guests: (b.adultCount || 0) + (b.childCount || 0),
+          totalAmount: Number(b.amountPaid || 0), // buffet usually paid in full
+          amountPaid: Number(b.amountPaid || 0),
+          status: b.status || 'CONFIRMED',
+          paymentStatus: (b.paymentStatus === 'SUCCESS') ? 'PAID' : 'PENDING',
+          paymentMethod: b.paymentMethod || 'CREDIT_CARD',
+          isBuffet: true
         }));
-        setBookings(mapped);
+
+        setBookings([...mappedRooms, ...mappedBuffets].sort((a, b) => new Date(b.checkIn) - new Date(a.checkIn)));
       })
       .catch(err => {
         console.error('Error fetching reservations:', err);
@@ -714,6 +761,10 @@ function MyBookings() {
 
   // UC-05: Download directly from booking card
   const handleBookingCardDownload = async (booking) => {
+    if (booking.isBuffet) {
+      handleDownloadReceipt(booking);
+      return;
+    }
     try {
       // Find invoice by reservation id
       const res = await axios.get(`/api/invoices/reservation/${booking.id}`);
@@ -733,6 +784,13 @@ function MyBookings() {
 
   // UC-05: View invoice breakdown modal
   const handleBookingCardViewInvoice = async (booking) => {
+    if (booking.isBuffet) {
+      setInvoiceViewData({
+        invoiceData: { invoiceNumber: `INV-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${booking.id}`, totalAmount: booking.totalAmount },
+        booking
+      });
+      return;
+    }
     try {
       const res = await axios.get(`/api/invoices/reservation/${booking.id}`);
       const invoices = res.data?.data || res.data;
@@ -805,7 +863,11 @@ function MyBookings() {
 
   const handleCancel = async (booking) => {
     try {
-      await axios.put(`/api/reservations/${booking.id}/cancel`);
+      if (booking.isBuffet) {
+        await buffetApi.cancelReservation(booking.realId);
+      } else {
+        await axios.put(`/api/reservations/${booking.id}/cancel`);
+      }
       showToast(`Reservation #${booking.reservationId} cancelled successfully!`, 'success');
       fetchBookings();
     } catch (err) {
@@ -832,30 +894,25 @@ function MyBookings() {
     }
   };
 
-  const handleDelete = async (booking) => {
-    try {
-      await axios.delete(`/api/reservations/${booking.id}`);
-      showToast(`Reservation #${booking.reservationId} deleted permanently from database!`, 'success');
-      fetchBookings();
-    } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to delete reservation.';
-      showToast(msg, 'error');
-    } finally {
-      setDeleteModal(null);
-    }
-  };
+
 
   const FILTERS = [
     { id: 'all', label: 'All Reservations' },
     { id: 'upcoming', label: 'Upcoming' },
     { id: 'past', label: 'Past Stays' },
     { id: 'cancelled', label: 'Cancelled' },
+    { id: 'room', label: 'Rooms' },
+    { id: 'event', label: 'Event Halls' },
+    { id: 'buffet', label: 'Dining' }
   ];
 
   const filtered = bookings.filter(b => {
     if (filter === 'upcoming') return ['CONFIRMED', 'PENDING', 'AWAITING_PAYMENT', 'PAID', 'CHECKED_IN'].includes(b.status);
     if (filter === 'past') return b.status === 'CHECKED_OUT';
     if (filter === 'cancelled') return b.status === 'CANCELLED';
+    if (filter === 'room') return b.itemType === 'ROOM';
+    if (filter === 'event') return b.itemType === 'EVENT_HALL';
+    if (filter === 'buffet') return b.itemType === 'BUFFET';
     return true;
   });
 
@@ -1091,36 +1148,6 @@ function MyBookings() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {deleteModal && (
-        <div className="modal-overlay" onClick={() => setDeleteModal(null)}>
-          <div className="modal" style={{ maxWidth: 420, background: '#181a16', borderRadius: 2 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-header-icon" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 2, color: '#ef4444' }}>
-                <Trash2 size={18} />
-              </div>
-              <div>
-                <div className="modal-title">Delete Reservation</div>
-                <div className="modal-subtitle">{deleteModal.reservationId}</div>
-              </div>
-              <button className="modal-close" onClick={() => setDeleteModal(null)}><XCircle size={18} /></button>
-            </div>
-            <div className="modal-body">
-              <div className="alert alert-error" style={{ borderRadius: 2, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Trash2 size={18} style={{ color: '#ef4444', flexShrink: 0 }} />
-                <div>
-                  <div className="alert-title">Permanent Deletion</div>
-                  Are you sure you want to permanently delete reservation <strong>#{deleteModal.reservationId}</strong> for <strong>{deleteModal.roomType}</strong>?
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setDeleteModal(null)} style={{ borderRadius: 2 }}>Keep</button>
-              <button className="btn btn-danger" onClick={() => handleDelete(deleteModal)} style={{ borderRadius: 2 }}>Yes, Delete Permanently</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <CustomerFooter />
     </div>

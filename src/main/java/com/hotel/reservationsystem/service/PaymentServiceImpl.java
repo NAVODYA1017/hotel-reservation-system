@@ -42,6 +42,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final ReservationRepository reservationRepository;
+    private final com.hotel.reservationsystem.repository.BuffetReservationRepository buffetReservationRepository;
     private final InvoiceRepository invoiceRepository;
     private final PaymentStrategyFactory paymentStrategyFactory;
     private final InvoiceService invoiceService;
@@ -109,33 +110,33 @@ public class PaymentServiceImpl implements PaymentService {
         // Step 9: generate an itemized invoice.
         Invoice invoice = invoiceService.generateInvoice(savedPayment);
 
-        return toDto(savedPayment, invoice, reservation);
+        return toDto(savedPayment, invoice);
     }
 
     @Override
     public PaymentResponse getPaymentById(Long paymentId) {
         Payment payment = findPaymentOrThrow(paymentId);
-        return toDto(payment, findInvoiceForPayment(payment), payment.getReservation());
+        return toDto(payment, findInvoiceForPayment(payment));
     }
 
     @Override
     public List<PaymentResponse> getPaymentsForReservation(Long reservationId) {
         return paymentRepository.findByReservationIdOrderByPaidAtDesc(reservationId).stream()
-                .map(p -> toDto(p, findInvoiceForPayment(p), p.getReservation()))
+                .map(p -> toDto(p, findInvoiceForPayment(p)))
                 .toList();
     }
 
     @Override
     public List<PaymentResponse> getPaymentsForCustomer(Long customerId) {
         return paymentRepository.findByReservation_User_IdOrderByPaidAtDesc(customerId).stream()
-                .map(p -> toDto(p, findInvoiceForPayment(p), p.getReservation()))
+                .map(p -> toDto(p, findInvoiceForPayment(p)))
                 .toList();
     }
 
     @Override
     public List<PaymentResponse> getAllPayments() {
         return paymentRepository.findAllByOrderByPaidAtDesc().stream()
-                .map(p -> toDto(p, findInvoiceForPayment(p), p.getReservation()))
+                .map(p -> toDto(p, findInvoiceForPayment(p)))
                 .toList();
     }
 
@@ -157,18 +158,52 @@ public class PaymentServiceImpl implements PaymentService {
         paymentRepository.save(payment);
 
         Reservation reservation = payment.getReservation();
-        reservation.setAmountPaid(reservation.getAmountPaid().subtract(request.getRefundAmount()));
-        if (reservation.getStatus() == ReservationStatus.PAID) {
-            reservation.setStatus(ReservationStatus.AWAITING_PAYMENT);
+        if (reservation != null) {
+            reservation.setAmountPaid(reservation.getAmountPaid().subtract(request.getRefundAmount()));
+            if (reservation.getStatus() == ReservationStatus.PAID) {
+                reservation.setStatus(ReservationStatus.AWAITING_PAYMENT);
+            }
+            reservationRepository.save(reservation);
+        } else if (payment.getBuffetReservation() != null) {
+            var buffet = payment.getBuffetReservation();
+            buffet.setAmountPaid(buffet.getAmountPaid().subtract(request.getRefundAmount()));
+            if (buffet.getPaymentStatus() == com.hotel.reservationsystem.entity.enums.PaymentStatus.SUCCESS) {
+                buffet.setPaymentStatus(com.hotel.reservationsystem.entity.enums.PaymentStatus.PENDING);
+            }
+            buffetReservationRepository.save(buffet);
         }
-        reservationRepository.save(reservation);
 
         invoiceRepository.findByPaymentId(payment.getId()).ifPresent(invoice -> {
             invoice.setStatus(InvoiceStatus.REFUNDED);
             invoiceRepository.save(invoice);
         });
 
-        return toDto(payment, findInvoiceForPayment(payment), reservation);
+        return toDto(payment, findInvoiceForPayment(payment));
+    }
+
+    @Override
+    @Transactional
+    public PaymentResponse updatePayment(Long paymentId, PaymentRequest request) {
+        Payment payment = findPaymentOrThrow(paymentId);
+        if (request.getAmount() != null) {
+            payment.setAmount(request.getAmount());
+        }
+        if (request.getPaymentMethod() != null) {
+            payment.setPaymentMethod(request.getPaymentMethod());
+        }
+        Payment saved = paymentRepository.save(payment);
+        return toDto(saved, findInvoiceForPayment(saved));
+    }
+
+    @Override
+    @Transactional
+    public void deletePayment(Long paymentId) {
+        Payment payment = findPaymentOrThrow(paymentId);
+        Invoice invoice = findInvoiceForPayment(payment);
+        if (invoice != null) {
+            invoiceRepository.delete(invoice);
+        }
+        paymentRepository.delete(payment);
     }
 
     // ---------------------------------------------------------------
@@ -184,19 +219,59 @@ public class PaymentServiceImpl implements PaymentService {
         return invoiceRepository.findByPaymentId(payment.getId()).orElse(null);
     }
 
-    private PaymentResponse toDto(Payment payment, Invoice invoice, Reservation reservation) {
+    private PaymentResponse toDto(Payment payment, Invoice invoice) {
+        Reservation reservation = payment.getReservation();
+        var buffet = payment.getBuffetReservation();
+        
+        String bookingType = "OTHER";
+        String roomNumber = null;
+        String roomType = null;
+        String hallName = null;
+        String packageName = null;
+        String customerName = null;
+        String customerEmail = null;
+
+        if (reservation != null) {
+            if (reservation.getUser() != null) {
+                customerName = reservation.getUser().getName();
+                customerEmail = reservation.getUser().getEmail();
+            }
+            if (reservation.getRoom() != null) {
+                bookingType = "ROOM";
+                roomNumber = reservation.getRoom().getRoomNumber();
+                roomType = reservation.getRoom().getRoomType();
+            } else if (reservation.getHall() != null) {
+                bookingType = "EVENT_HALL";
+                hallName = reservation.getHall().getName();
+                if (reservation.getEventPackage() != null) {
+                    packageName = reservation.getEventPackage().getName();
+                }
+            }
+        } else if (buffet != null) {
+            bookingType = "BUFFET";
+            customerName = buffet.getGuestName();
+            customerEmail = buffet.getGuestEmail();
+        }
+
         return PaymentResponse.builder()
                 .paymentId(payment.getId())
                 .transactionReference(payment.getTransactionReference())
-                .reservationId(reservation.getId())
-                .reservationConfirmationCode(reservation.getConfirmationCode())
+                .reservationId(reservation != null ? reservation.getId() : null)
+                .reservationConfirmationCode(reservation != null ? reservation.getConfirmationCode() : (buffet != null ? buffet.getConfirmationCode() : null))
                 .amount(payment.getAmount())
                 .paymentMethod(payment.getPaymentMethod())
                 .status(payment.getStatus())
                 .failureReason(payment.getFailureReason())
-                .remainingBalance(reservation.getBalanceDue())
+                .remainingBalance(reservation != null ? reservation.getBalanceDue() : null)
                 .invoiceNumber(invoice != null ? invoice.getInvoiceNumber() : null)
                 .paidAt(payment.getPaidAt())
+                .bookingType(bookingType)
+                .roomNumber(roomNumber)
+                .roomType(roomType)
+                .hallName(hallName)
+                .packageName(packageName)
+                .customerName(customerName)
+                .customerEmail(customerEmail)
                 .build();
     }
 }

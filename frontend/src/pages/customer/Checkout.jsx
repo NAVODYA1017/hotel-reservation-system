@@ -25,6 +25,8 @@ function Checkout() {
 
   // Buffet specific query parameters
   const isBuffet = searchParams.get('type') === 'BUFFET' || Boolean(searchParams.get('buffetCode'));
+  const isEventHall = searchParams.get('type') === 'EVENT_HALL';
+  const isPackage = searchParams.get('type') === 'PACKAGE';
   const buffetCode = searchParams.get('buffetCode') || '';
   const buffetSession = searchParams.get('session') || 'DINNER';
   const buffetSessionTitle = searchParams.get('title') || 'Alaka Gourmet Buffet';
@@ -35,36 +37,55 @@ function Checkout() {
   const buffetAmount = Number(searchParams.get('amount') || 8900);
 
   const roomId = searchParams.get('roomId') || searchParams.get('room') || '14';
-  const checkIn = isBuffet ? `${buffetDate} (${buffetSlot})` : (searchParams.get('checkIn') || '');
-  const checkOut = searchParams.get('checkOut') || '';
+  const hallId = searchParams.get('hallId');
+  const packageId = searchParams.get('packageId');
+  
+  const checkIn = isBuffet ? `${buffetDate} (${buffetSlot})` : (searchParams.get('date') || searchParams.get('checkIn') || '');
+  const checkOut = isEventHall ? checkIn : (searchParams.get('checkOut') || '');
   const guestsCount = isBuffet ? (buffetAdults + buffetChildren) : Number(searchParams.get('guests') || 1);
 
   const guest = JSON.parse(localStorage.getItem('guestUser') || 'null');
 
   const [dbRoom, setDbRoom] = useState(null);
+  const [dbHall, setDbHall] = useState(null);
+  const [dbPackage, setDbPackage] = useState(null);
 
   useEffect(() => {
-    if (!isBuffet && roomId) {
+    if (!isBuffet && !isEventHall && !isPackage && roomId) {
       axios.get(`/api/rooms/${roomId}`)
         .then(res => setDbRoom(res.data))
         .catch(() => {});
+    } else if (isEventHall && hallId) {
+      axios.get(`/api/event-halls/${hallId}`)
+        .then(res => setDbHall(res.data))
+        .catch(() => {});
+    } else if (isPackage && packageId) {
+      axios.get(`/api/packages/${packageId}`)
+        .then(res => setDbPackage(res.data))
+        .catch(() => {});
     }
-  }, [roomId, isBuffet]);
+  }, [roomId, hallId, packageId, isBuffet, isEventHall, isPackage]);
 
   const nights = (() => {
-    if (isBuffet) return 1;
+    if (isBuffet || isEventHall || isPackage) return 1;
     if (!checkIn || !checkOut) return 1;
     const ms = new Date(checkOut) - new Date(checkIn);
     return Math.max(1, Math.floor(ms / (1000 * 60 * 60 * 24)));
   })();
 
-  const pricePerNight = dbRoom ? Number(dbRoom.pricePerNight || dbRoom.price || 8500) : (MOCK_ROOM_PRICES[roomId] || 12000);
+  const pricePerNight = isEventHall 
+    ? (dbHall ? Number(dbHall.pricePerEvent || dbHall.pricePerDay || 150000) : 150000)
+    : (isPackage ? (dbPackage ? Number(dbPackage.price || 180000) : 180000) : (dbRoom ? Number(dbRoom.pricePerNight || dbRoom.price || 8500) : (MOCK_ROOM_PRICES[roomId] || 12000)));
+
   const subtotal = isBuffet ? buffetAmount : (pricePerNight * nights);
   const tax = isBuffet ? 0 : Math.round(subtotal * 0.1);
   const total = subtotal + tax;
   const roomName = isBuffet
     ? `The Alaka Restaurant — ${buffetSessionTitle}`
-    : (dbRoom ? `${dbRoom.roomType || 'Room'} #${dbRoom.roomNumber}` : (MOCK_ROOM_NAMES[roomId] || 'Deluxe Room'));
+    : (isEventHall 
+        ? (dbHall ? dbHall.name : 'Event Hall') 
+        : (isPackage ? (dbPackage ? dbPackage.name : 'Event Package') : (dbRoom ? `${dbRoom.roomType || 'Room'} #${dbRoom.roomNumber}` : (MOCK_ROOM_NAMES[roomId] || 'Deluxe Room')))
+      );
 
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Confirm
   const [guestForm, setGuestForm] = useState({
@@ -138,14 +159,23 @@ function Checkout() {
       }
 
       // Step 1: Create reservation in MySQL backend
-      const resRes = await axios.post('/api/reservations', {
+      const payload = {
         userId: guest?.id,
         guestName: guestForm.name || guest?.name || 'Valued Guest',
         guestEmail: guestForm.email || guest?.email || 'guest@example.com',
-        roomId: Number(roomId),
         checkIn: checkIn || new Date().toISOString().slice(0, 10),
         checkOut: checkOut || new Date(Date.now() + 86400000).toISOString().slice(0, 10),
-      });
+        numberOfGuests: guestsCount,
+        specialRequests: guestForm.specialRequests || '',
+      };
+      if (isEventHall || isPackage) {
+        payload.hallId = Number(hallId) || 1; // Default to first hall if not provided in URL
+        if (isPackage) payload.packageId = Number(packageId);
+      } else {
+        payload.roomId = Number(roomId);
+      }
+      
+      const resRes = await axios.post('/api/reservations', payload);
 
       const reservationId = resRes.data?.id;
       const refCode = resRes.data?.confirmationCode || resRes.data?.reservationId || `LXS-${Date.now().toString().slice(-6)}`;
@@ -153,14 +183,24 @@ function Checkout() {
       // Step 2: Process payment
       if (payMethod !== 'CASH' && reservationId) {
         try {
+          const digitsOnlyCard = cardForm.number.replace(/\s/g, '');
           await axios.post('/api/payments', {
             reservationId,
             customerId: guest?.id || 1,
             amount: total,
             paymentMethod: payMethod,
+            cardNumber: digitsOnlyCard || undefined,
+            cardHolderName: cardForm.name || undefined,
+            cardExpiry: cardForm.expiry || undefined,
+            cvv: cardForm.cvv || undefined,
           });
         } catch (payErr) {
           console.warn('Payment recording note:', payErr);
+          const payMsg = payErr.response?.data?.message || 'Payment processing failed. Please check your card details and try again.';
+          setError(payMsg);
+          setStep(2);
+          setProcessing(false);
+          return;
         }
       }
 
@@ -227,7 +267,9 @@ function Checkout() {
             <p style={{ color: 'var(--text-secondary)', fontSize: 16, marginBottom: 32 }}>
               {isBuffet 
                 ? 'Your table reservation at The Alaka Restaurant is secured. Please present your booking reference upon arrival.' 
-                : 'Your retreat at Aliya Resort is confirmed. A raw sanctuary awaits your arrival.'}
+                : (isEventHall || isPackage 
+                    ? 'Your gathering space is secured. Our event coordinator will contact you shortly.' 
+                    : 'Your retreat at Aliya Resort is confirmed. A raw sanctuary awaits your arrival.')}
             </p>
             <div style={{
               background: '#1a1c18', border: '1px solid rgba(197,160,89,0.3)',
@@ -469,18 +511,40 @@ function Checkout() {
                       </div>
                     </div>
                     <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                      {[
-                        ['Guest Name', guestForm.name],
-                        ['Email', guestForm.email],
-                        ['Phone', guestForm.phone || '—'],
-                        ['Room Space', roomName],
-                        ['Check-in Date', checkIn],
-                        ['Check-out Date', checkOut],
-                        ['Guests', guestsCount],
-                        ['Nights', nights],
-                        ['Payment Method', payMethod.replace('_', ' ')],
-                        ['Total Amount', `LKR ${total.toLocaleString()}`],
-                      ].map(([k, v]) => (
+                      {(() => {
+                        let details = [
+                          ['Guest Name', guestForm.name],
+                          ['Email', guestForm.email],
+                          ['Phone', guestForm.phone || '—'],
+                        ];
+                        if (isBuffet) {
+                          details.push(
+                            ['Dining Style', roomName],
+                            ['Reservation Date', buffetDate],
+                            ['Time Window', buffetSlot],
+                            ['Party Size', `${buffetAdults} Adult(s), ${buffetChildren} Child(ren)`]
+                          );
+                        } else if (isEventHall || isPackage) {
+                          details.push(
+                            [isPackage ? 'Package Selected' : 'Event Space', roomName],
+                            ['Event Date', checkIn],
+                            ['Capacity', `${guestsCount} Guests max`]
+                          );
+                        } else {
+                          details.push(
+                            ['Room Space', roomName],
+                            ['Check-in Date', checkIn],
+                            ['Check-out Date', checkOut],
+                            ['Guests', guestsCount],
+                            ['Nights', nights]
+                          );
+                        }
+                        details.push(
+                          ['Payment Method', payMethod.replace('_', ' ')],
+                          ['Total Amount', `LKR ${total.toLocaleString()}`]
+                        );
+                        return details;
+                      })().map(([k, v]) => (
                         <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--border-subtle)' }}>
                           <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>{k}</span>
                           <span style={{ fontSize: 14, fontWeight: 600, color: k.includes('Total') ? 'var(--gold-300)' : 'var(--text-primary)' }}>{v}</span>
@@ -516,19 +580,30 @@ function Checkout() {
                   </div>
                   <div className="checkout-summary-title">{roomName}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    {isBuffet ? `${buffetDate} · ${buffetSlot}` : `Room #${roomId} · ${nights} night${nights !== 1 ? 's' : ''}`}
+                    {isBuffet ? `${buffetDate} · ${buffetSlot}` : (isEventHall || isPackage ? `Event Date: ${checkIn}` : `Room #${roomId} · ${nights} night${nights !== 1 ? 's' : ''}`)}
                   </div>
                 </div>
                 <div className="checkout-summary-body">
-                  {(isBuffet ? [
-                    ['Date', buffetDate],
-                    ['Time Window', buffetSlot],
-                    ['Party Size', `${buffetAdults} Adult(s)${buffetChildren > 0 ? `, ${buffetChildren} Child(ren)` : ''}`],
-                  ] : [
-                    ['Check-in', checkIn || '—'],
-                    ['Check-out', checkOut || '—'],
-                    ['Guests', guestsCount],
-                  ]).map(([k, v]) => (
+                  {(() => {
+                    if (isBuffet) {
+                      return [
+                        ['Date', buffetDate],
+                        ['Time Window', buffetSlot],
+                        ['Party Size', `${buffetAdults} Adult(s)${buffetChildren > 0 ? `, ${buffetChildren} Child(ren)` : ''}`],
+                      ];
+                    } else if (isEventHall || isPackage) {
+                      return [
+                        ['Event Date', checkIn || '—'],
+                        ['Capacity', `${guestsCount} Guests max`],
+                      ];
+                    } else {
+                      return [
+                        ['Check-in', checkIn || '—'],
+                        ['Check-out', checkOut || '—'],
+                        ['Guests', guestsCount],
+                      ];
+                    }
+                  })().map(([k, v]) => (
                     <div key={k} className="flex justify-between" style={{ marginBottom: 12 }}>
                       <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{k}</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{v}</span>
@@ -545,6 +620,17 @@ function Checkout() {
                         <div className="price-row">
                           <span>Taxes & Service Charge</span>
                           <span style={{ color: '#22c55e' }}>Included</span>
+                        </div>
+                      </>
+                    ) : (isEventHall || isPackage) ? (
+                      <>
+                        <div className="price-row">
+                          <span>{isPackage ? 'Package Rate' : 'Hall Rate (Full Day)'}</span>
+                          <span>LKR {subtotal.toLocaleString()}</span>
+                        </div>
+                        <div className="price-row">
+                          <span>Tax (10%)</span>
+                          <span>LKR {tax.toLocaleString()}</span>
                         </div>
                       </>
                     ) : (

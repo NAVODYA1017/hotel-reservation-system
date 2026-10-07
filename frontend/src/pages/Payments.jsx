@@ -96,6 +96,56 @@ function PaymentModal({ onClose, onSubmit }) {
   );
 }
 
+function EditModal({ payment, onClose, onEdit }) {
+  const [form, setForm] = useState({ id: payment.id, amount: payment.amount || '', paymentMethod: payment.paymentMethod || 'CREDIT_CARD' });
+  const [saving, setSaving] = useState(false);
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    await onEdit(form);
+    setSaving(false);
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-header-icon" style={{ background: 'rgba(59,130,246,0.15)', color: '#93c5fd' }}><Info size={20} /></div>
+          <div>
+            <div className="modal-title">Edit Payment #{payment.id}</div>
+            <div className="modal-subtitle">WARNING: Editing violates audit integrity</div>
+          </div>
+          <button className="modal-close" onClick={onClose}><X size={18} /></button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body">
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label">Amount (LKR) *</label>
+                <input className="form-input" type="number" min="0" step="0.01" value={form.amount} onChange={e => set('amount', e.target.value)} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Payment Method *</label>
+                <select className="form-select" value={form.paymentMethod} onChange={e => set('paymentMethod', e.target.value)}>
+                  {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function RefundModal({ payment, onClose, onRefund }) {
   const [reason, setReason] = useState('');
   const [processing, setProcessing] = useState(false);
@@ -103,7 +153,7 @@ function RefundModal({ payment, onClose, onRefund }) {
   const handle = async (e) => {
     e.preventDefault();
     setProcessing(true);
-    await onRefund({ paymentId: payment.id, reason });
+    await onRefund({ paymentId: payment.id, reason, refundAmount: payment.amount });
     setProcessing(false);
   };
 
@@ -159,47 +209,20 @@ function Payments() {
   const fetchPayments = async () => {
     setLoading(true);
     try {
-      const [roomRes, buffetRes] = await Promise.allSettled([
-        axios.get('/api/payments'),
-        buffetApi.getBuffetPayments()
-      ]);
-
-      let roomPayments = [];
-      if (roomRes.status === 'fulfilled') {
-        const raw = roomRes.value.data?.data || roomRes.value.data || [];
-        roomPayments = (Array.isArray(raw) ? raw : []).map(p => ({
-          ...p,
-          category: 'ROOM_EVENT',
-          isBuffet: false
-        }));
-      } else {
-        roomPayments = MOCK_PAYMENTS.map(p => ({
-          ...p,
-          category: 'ROOM_EVENT',
-          isBuffet: false
-        }));
-      }
-
-      let diningPayments = [];
-      if (buffetRes.status === 'fulfilled' && Array.isArray(buffetRes.value)) {
-        diningPayments = buffetRes.value.map(bp => ({
-          id: `BUF-${bp.id || (bp.confirmationCode ? bp.confirmationCode.slice(-4) : Date.now())}`,
-          reservationId: bp.confirmationCode,
-          customerId: bp.guestEmail || bp.guestPhone || 'Walk-in Guest',
-          guestName: bp.guestName,
-          mealSession: bp.mealSession,
-          amount: Number(bp.amountPaid || bp.totalAmount || 0),
-          paymentMethod: bp.paymentMethod || 'CREDIT_CARD',
-          status: bp.paymentStatus === 'SUCCESS' ? 'COMPLETED' : (bp.paymentStatus || 'COMPLETED'),
-          paymentDate: bp.paidAt ? bp.paidAt.slice(0, 10) : (bp.reservationDate || new Date().toISOString().slice(0, 10)),
-          transactionRef: bp.transactionReference || bp.confirmationCode,
-          category: 'BUFFET_DINING',
-          isBuffet: true,
-          rawBuffet: bp
-        }));
-      }
-
-      const combined = [...diningPayments, ...roomPayments].sort((a, b) => {
+      const res = await axios.get('/api/payments');
+      const raw = res.data?.data || res.data || [];
+      
+      const mapped = (Array.isArray(raw) ? raw : []).map(p => ({
+        ...p,
+        id: p.paymentId || p.id,
+        category: p.bookingType === 'BUFFET' ? 'BUFFET' : p.bookingType === 'EVENT_HALL' ? 'EVENT_HALL' : 'ROOM',
+        isBuffet: p.bookingType === 'BUFFET',
+        guestName: p.customerName || p.guestName,
+        transactionRef: p.transactionReference,
+        paymentDate: p.paidAt ? p.paidAt.slice(0, 10) : new Date().toISOString().slice(0, 10)
+      }));
+      
+      const combined = mapped.sort((a, b) => {
         return new Date(b.paymentDate || 0) - new Date(a.paymentDate || 0);
       });
       setPayments(combined);
@@ -238,6 +261,30 @@ function Payments() {
     }
     showToast('Refund issued successfully!');
     setModal(null);
+  };
+
+  const handleEdit = async (form) => {
+    try {
+      const { data } = await axios.put(`/api/payments/${form.id}`, form);
+      setPayments(p => p.map(x => x.id === form.id ? { ...x, amount: form.amount, paymentMethod: form.paymentMethod } : x));
+      showToast('Payment updated successfully!');
+    } catch {
+      setPayments(p => p.map(x => x.id === form.id ? { ...x, amount: form.amount, paymentMethod: form.paymentMethod } : x));
+      showToast('Mock payment updated');
+    }
+    setModal(null);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this payment? This violates financial audit trails!')) return;
+    try {
+      await axios.delete(`/api/payments/${id}`);
+      setPayments(p => p.filter(x => x.id !== id));
+      showToast('Payment deleted!');
+    } catch {
+      setPayments(p => p.filter(x => x.id !== id));
+      showToast('Mock payment deleted');
+    }
   };
 
   const handleDownloadInvoice = async (payment) => {
@@ -384,6 +431,14 @@ function Payments() {
         </div>
       </div>
 
+      {/* Category Tabs */}
+      <div className="flex gap-3 mb-4 mt-6">
+        <button className={`btn ${categoryFilter === 'ALL' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setCategoryFilter('ALL')}>All Payments</button>
+        <button className={`btn ${categoryFilter === 'ROOM' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setCategoryFilter('ROOM')}>Room Payments</button>
+        <button className={`btn ${categoryFilter === 'BUFFET' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setCategoryFilter('BUFFET')}>Buffet Payments</button>
+        <button className={`btn ${categoryFilter === 'EVENT_HALL' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setCategoryFilter('EVENT_HALL')}>Event Hall Payments</button>
+      </div>
+
       {/* Filter Bar */}
       <div className="card">
         <div className="card-body" style={{ padding: '14px 20px' }}>
@@ -392,13 +447,6 @@ function Payments() {
               <span className="search-icon"><Search size={15} /></span>
               <input className="search-input" placeholder="Search by payment ID, reference, guest name..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
-
-            {/* Category Filter */}
-            <select className="form-select" style={{ width: 180 }} value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
-              <option value="ALL">All Categories</option>
-              <option value="ROOM_EVENT">🏨 Rooms & Halls</option>
-              <option value="BUFFET_DINING">🍽️ Buffet Dining</option>
-            </select>
 
             {/* Status Filter */}
             <select className="form-select" style={{ width: 160 }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
@@ -501,8 +549,7 @@ function Payments() {
                     <td style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-muted)' }}>{p.transactionRef || p.transactionReference}</td>
                     <td><span className={`badge ${STATUS_BADGE[p.status] || (p.status === 'SUCCESS' ? 'badge-success' : 'badge-muted')}`}>{p.status}</span></td>
                     <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-                        {(p.status === 'COMPLETED' || p.status === 'SUCCESS') && (
+                        <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
                           <button
                             className="btn btn-sm btn-secondary"
                             onClick={() => handleDownloadInvoice(p)}
@@ -511,8 +558,6 @@ function Payments() {
                           >
                             <FileText size={12} /> {p.isBuffet ? 'Receipt' : 'Invoice'}
                           </button>
-                        )}
-                        {(p.status === 'COMPLETED' || p.status === 'SUCCESS') && (
                           <button
                             className="btn btn-sm"
                             style={{ background: 'rgba(139,92,246,0.15)', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.3)', padding: '4px 8px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
@@ -520,8 +565,21 @@ function Payments() {
                           >
                             <RotateCcw size={12} /> Refund
                           </button>
-                        )}
-                      </div>
+                          <button
+                            className="btn btn-sm"
+                            style={{ background: 'rgba(59,130,246,0.15)', color: '#93c5fd', border: '1px solid rgba(59,130,246,0.3)', padding: '4px 8px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                            onClick={() => setModal({ type: 'edit', payment: p })}
+                          >
+                            <Info size={12} /> Edit
+                          </button>
+                          <button
+                            className="btn btn-sm"
+                            style={{ background: 'rgba(239,68,68,0.15)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.3)', padding: '4px 8px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                            onClick={() => handleDelete(p.id)}
+                          >
+                            <XCircle size={12} /> Delete
+                          </button>
+                        </div>
                     </td>
                   </tr>
                 ))}
@@ -533,6 +591,7 @@ function Payments() {
 
       {modal?.type === 'pay' && <PaymentModal onClose={() => setModal(null)} onSubmit={handlePayment} />}
       {modal?.type === 'refund' && <RefundModal payment={modal.payment} onClose={() => setModal(null)} onRefund={handleRefund} />}
+      {modal?.type === 'edit' && <EditModal payment={modal.payment} onClose={() => setModal(null)} onEdit={handleEdit} />}
     </>
   );
 }

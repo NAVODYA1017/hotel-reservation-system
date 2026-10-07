@@ -18,7 +18,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/buffet")
-@CrossOrigin(origins = "*")
 public class BuffetReservationController {
 
     @Autowired

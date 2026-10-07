@@ -49,9 +49,14 @@ public class Payment {
 
     // @ManyToOne – many payments can belong to ONE reservation.
     //   → A customer might pay in instalments or retry after a failure.
+    // Nullable because it could be a buffet reservation instead.
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reservation_id", nullable = false)
+    @JoinColumn(name = "reservation_id", nullable = true)
     private Reservation reservation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "buffet_reservation_id", nullable = true)
+    private BuffetReservation buffetReservation;
 
     // The staff member who processed this payment (null for online payments).
     @ManyToOne(fetch = FetchType.LAZY)

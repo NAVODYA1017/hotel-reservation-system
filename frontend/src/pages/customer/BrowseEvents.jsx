@@ -85,8 +85,13 @@ function BrowseEvents() {
     });
   }, []);
 
+  const [eventDate, setEventDate] = useState(new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 10));
+  const [eventGuests, setEventGuests] = useState(100);
+  const [eventNotes, setEventNotes] = useState('');
+
   const handleBookHall = (hall) => {
     setSelectedHall(hall);
+    setEventGuests(Math.min(100, hall.seatingCapacity || 100));
   };
 
   const handleSelectPackage = (pkg) => {
@@ -94,12 +99,11 @@ function BrowseEvents() {
   };
 
   const handleConfirmBooking = () => {
-    setInquirySuccess(true);
-    setTimeout(() => {
-      setInquirySuccess(false);
-      setSelectedHall(null);
-      setSelectedPackage(null);
-    }, 3000);
+    if (selectedHall) {
+      navigate(`/checkout?type=EVENT_HALL&hallId=${selectedHall.id}&date=${eventDate}&guests=${eventGuests}&notes=${encodeURIComponent(eventNotes)}`);
+    } else if (selectedPackage) {
+      navigate(`/checkout?type=PACKAGE&packageId=${selectedPackage.id}`);
+    }
   };
 
   return (
@@ -319,15 +323,15 @@ function BrowseEvents() {
 
                 <div className="form-group" style={{ marginBottom: 14 }}>
                   <label className="form-label">Event Date *</label>
-                  <input className="form-input" type="date" min={new Date().toISOString().slice(0, 10)} defaultValue={new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 10)} />
+                  <input className="form-input" type="date" min={new Date().toISOString().slice(0, 10)} value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 14 }}>
                   <label className="form-label">Estimated Guests *</label>
-                  <input className="form-input" type="number" min={1} max={selectedHall.seatingCapacity || 1000} defaultValue={100} />
+                  <input className="form-input" type="number" min={1} max={selectedHall.seatingCapacity || 1000} value={eventGuests} onChange={(e) => setEventGuests(e.target.value)} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Special Event Notes / Setup Requirements</label>
-                  <textarea className="form-textarea" rows={2} placeholder="e.g. Banquet round-table seating with central floral stage..." />
+                  <textarea className="form-textarea" rows={2} placeholder="e.g. Banquet round-table seating with central floral stage..." value={eventNotes} onChange={(e) => setEventNotes(e.target.value)} />
                 </div>
               </div>
             )}

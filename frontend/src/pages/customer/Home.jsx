@@ -68,6 +68,11 @@ function CustomerNav() {
 
           {guest ? (
             <>
+              {guest.role && guest.role !== 'CUSTOMER' && (
+                <button className="c-nav-link" onClick={() => navigate('/admin')} style={{ color: 'var(--gold-400)', fontWeight: 'bold' }}>
+                  STAFF DASHBOARD
+                </button>
+              )}
               <button className={`c-nav-link${isActive('/my-bookings') ? ' active' : ''}`} onClick={() => navigate('/my-bookings')}>
                 MY BOOKINGS
               </button>
@@ -77,7 +82,7 @@ function CustomerNav() {
               <button className="c-nav-link" onClick={handleLogout}>LOGOUT</button>
             </>
           ) : (
-            <button className="c-nav-link" onClick={() => navigate('/guest-login')}>SIGN IN</button>
+            <button className="c-nav-link" onClick={() => navigate('/login')}>SIGN IN</button>
           )}
         </div>
 

@@ -60,4 +60,15 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<PaymentResponse>> refund(@Valid @RequestBody RefundRequest request) {
         return ResponseEntity.ok(ApiResponse.ok("Refund processed.", paymentService.refundPayment(request)));
     }
+
+    @PutMapping("/{paymentId}")
+    public ResponseEntity<ApiResponse<PaymentResponse>> updatePayment(@PathVariable Long paymentId, @RequestBody PaymentRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok("Payment updated.", paymentService.updatePayment(paymentId, request)));
+    }
+
+    @DeleteMapping("/{paymentId}")
+    public ResponseEntity<ApiResponse<Void>> deletePayment(@PathVariable Long paymentId) {
+        paymentService.deletePayment(paymentId);
+        return ResponseEntity.ok(ApiResponse.ok("Payment deleted.", null));
+    }
 }

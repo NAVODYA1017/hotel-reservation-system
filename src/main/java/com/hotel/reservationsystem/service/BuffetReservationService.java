@@ -12,6 +12,8 @@ import com.hotel.reservationsystem.repository.BuffetReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.hotel.reservationsystem.repository.PaymentRepository;
+import com.hotel.reservationsystem.entity.Payment;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -28,6 +30,9 @@ public class BuffetReservationService {
 
     @Autowired
     private BuffetReservationRepository buffetReservationRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -222,9 +227,21 @@ public class BuffetReservationService {
         reservation.setPaymentStatus(com.hotel.reservationsystem.entity.enums.PaymentStatus.SUCCESS);
         reservation.setPaymentMethod(request.getPaymentMethod());
         reservation.setPaidAt(LocalDateTime.now());
-        reservation.setTransactionReference("TXN-BUF-" + System.currentTimeMillis());
+        String txnRef = "TXN-BUF-" + System.currentTimeMillis();
+        reservation.setTransactionReference(txnRef);
 
-        return buffetReservationRepository.save(reservation);
+        BuffetReservation saved = buffetReservationRepository.save(reservation);
+
+        Payment payment = new Payment();
+        payment.setTransactionReference(txnRef);
+        payment.setBuffetReservation(saved);
+        payment.setAmount(request.getAmount());
+        payment.setPaymentMethod(request.getPaymentMethod());
+        payment.setStatus(com.hotel.reservationsystem.entity.enums.PaymentStatus.SUCCESS);
+        payment.setPaymentReferenceInfo(request.getPaymentReferenceInfo());
+        paymentRepository.save(payment);
+
+        return saved;
     }
 
     /**

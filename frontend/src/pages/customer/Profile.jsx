@@ -61,6 +61,19 @@ function Profile() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Are you absolutely sure you want to delete your account? This action cannot be undone and will permanently erase your profile.')) return;
+    try {
+      if (guest?.id) {
+        await axios.delete(`/api/users/${guest.id}`);
+      }
+      localStorage.removeItem('guestUser');
+      navigate('/');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to delete account. Please cancel active bookings first.', 'error');
+    }
+  };
+
   if (!guest) return null;
 
   return (
@@ -140,6 +153,21 @@ function Profile() {
               <button type="submit" className="btn btn-secondary">Update Password</button>
             </div>
           </form>
+        </div>
+
+        {/* Delete Account Section */}
+        <div style={{ marginTop: 40, padding: 24, border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius-lg)', background: 'rgba(239, 68, 68, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#ef4444', marginBottom: 4 }}>Danger Zone: Delete Account</div>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Permanently erase your account and personal data. This cannot be undone.</div>
+          </div>
+          <button 
+            onClick={handleDeleteAccount}
+            className="btn" 
+            style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '10px 20px' }}
+          >
+            Delete My Account
+          </button>
         </div>
       </div>
 

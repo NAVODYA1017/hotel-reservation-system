@@ -77,4 +77,13 @@ public class UserController {
         userService.changePassword(id, oldPassword, newPassword);
         return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
     }
+
+    // ─────────────────────────────────────────────────────────────────
+    // 6. DELETE USER – DELETE /api/users/{id}
+    // ─────────────────────────────────────────────────────────────────
+    @DeleteMapping("/api/users/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
 }

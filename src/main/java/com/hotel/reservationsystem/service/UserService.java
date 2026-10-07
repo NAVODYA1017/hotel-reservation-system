@@ -31,6 +31,13 @@ public class UserService {
     @Autowired // Automatically injects the UserRepository bean.
     private UserRepository userRepository;
 
+    @org.springframework.context.annotation.Lazy
+    @Autowired
+    private ReservationService reservationService;
+
+    @Autowired
+    private com.hotel.reservationsystem.repository.ReservationRepository reservationRepository;
+
     // BCrypt password encoder for secure, one-way cryptographic password hashing.
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -116,6 +123,23 @@ public class UserService {
         // Hash and save new password
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // 6. DELETE USER – Delete account and associated data
+    // ─────────────────────────────────────────────────────────────────
+    @Transactional
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        
+        // Cascade delete reservations tied to the user to prevent foreign key constraint violations
+        java.util.List<com.hotel.reservationsystem.entity.Reservation> userReservations = reservationRepository.findByUser_Id(id);
+        for (com.hotel.reservationsystem.entity.Reservation res : userReservations) {
+            reservationService.deleteReservation(res.getId());
+        }
+
+        userRepository.delete(user);
     }
 
     // Helper method to convert User entity to UserResponse DTO (excludes password)
